@@ -32,23 +32,28 @@ class _QuizPageState extends State<QuizPage> {
     loadPackFromFirestore();
   }
 
-Future<void> loadPackFromFirestore() async {
-  try {
-    final doc = await FirebaseFirestore.instance
-        .collection('question_packs')
-        .doc('demo_pack')
-        .get();
-
-    if (doc.exists) {
-      pack = QuestionPack.fromJson(doc.id, doc.data()!);
-      loadQuestion(0);
-    } else {
-      print('Pack not found');
+  Future<void> loadPackFromFirestore() async {
+    print("At the top of loadPackFromFirestore...");
+    try {
+      print("Top of try...");
+      final doc = await FirebaseFirestore.instance
+          .collection('question_packs')
+          .doc('demo_pack')
+          .get();
+      print("After awaiting...");
+      if (doc.exists) {
+        pack = QuestionPack.fromJson(doc.id, doc.data()!);
+        loadQuestion(0);
+        setState(() {
+          isLoading = false;
+        });
+      } else {
+        print('Pack not found');
+      }
+    } catch (e) {
+      print('Error loading pack: $e');
     }
-  } catch (e) {
-    print('Error loading pack: $e');
   }
-}
 
   void loadQuestion(int index) {
     currentQuestion = pack.questions[index];
@@ -69,6 +74,14 @@ Future<void> loadPackFromFirestore() async {
 
   @override
   Widget build(BuildContext context) {
+    if (isLoading) {
+      print("Showing the loading screen");
+      return Scaffold(
+        appBar: AppBar(title: Text('Loading...')),
+        body: Center(child: CircularProgressIndicator()),
+      );
+    }
+
     // Question text
     Widget questionText = Text(
       currentQuestion.prompt,
