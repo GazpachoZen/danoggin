@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "238761526351",
+    "project_id": "danoggin-d0478",
+    "storage_bucket": "danoggin-d0478.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:238761526351:android:d142c13e873e588414963a",
+        "android_client_info": {
+          "package_name": "com.blue_vistas.danoggin"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCyToCLujamq4SMrfIQK-VKOINe-7HnYVo"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

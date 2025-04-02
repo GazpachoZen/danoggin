@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+
 import '../models/question.dart';
 import '../models/answer_option.dart';
 import '../models/question_pack.dart';
@@ -26,46 +28,26 @@ class _QuizPageState extends State<QuizPage> {
   @override
   void initState() {
     super.initState();
-
-    pack = QuestionPack(
-      id: 'basic-1',
-      name: 'Basic Demo Pack',
-      questions: [
-        Question(
-          prompt: 'Which is a fruit?',
-          correctAnswer: AnswerOption(text: 'Apple'),
-          decoyAnswers: [
-            AnswerOption(text: 'Lamp'),
-            AnswerOption(text: 'Desk'),
-            AnswerOption(text: 'Shark'),
-            AnswerOption(text: 'Book'),
-          ],
-        ),
-        Question(
-          prompt: 'Tap the dog',
-          correctAnswer: AnswerOption(imagePath: 'assets/images/dog.png', text:'Pick me!'),
-          decoyAnswers: [
-            AnswerOption(imagePath: 'assets/images/cat.png', text:'Meow'),
-            AnswerOption(imagePath: 'assets/images/elephant.png'),
-            AnswerOption(imagePath: 'assets/images/rabbit.png'),
-            AnswerOption(imagePath: 'assets/images/cow.png', text: 'Moo'),
-          ],
-        ),
-        Question(
-          prompt: 'Which is a vehicle?',
-          correctAnswer: AnswerOption(text: 'Car'),
-          decoyAnswers: [
-            AnswerOption(text: 'Banana'),
-            AnswerOption(text: 'Spoon'),
-            AnswerOption(text: 'Jacket'),
-            AnswerOption(text: 'Pillow'),
-          ],
-        ),
-      ],
-    );
-
-    loadQuestion(0);
+    loadPackFromFirestore();
   }
+
+Future<void> loadPackFromFirestore() async {
+  try {
+    final doc = await FirebaseFirestore.instance
+        .collection('question_packs')
+        .doc('demo_pack')
+        .get();
+
+    if (doc.exists) {
+      pack = QuestionPack.fromJson(doc.id, doc.data()!);
+      loadQuestion(0);
+    } else {
+      print('Pack not found');
+    }
+  } catch (e) {
+    print('Error loading pack: $e');
+  }
+}
 
   void loadQuestion(int index) {
     currentQuestion = pack.questions[index];

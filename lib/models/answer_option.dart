@@ -6,6 +6,13 @@ class AnswerOption {
 
   const AnswerOption({this.text, this.imagePath});
 
+  factory AnswerOption.fromJson(Map<String, dynamic> json) {
+    return AnswerOption(
+      text: json['text'] as String?,
+      imagePath: json['imagePath'] as String?,
+    );
+  }
+
   Widget render() {
     List<Widget> content = [];
 

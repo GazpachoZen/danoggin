@@ -1,9 +1,19 @@
 import 'package:flutter/material.dart';
+import 'package:firebase_core/firebase_core.dart';
 import 'screens/quiz_page.dart';
 
 // Here's the obligatory main method, where everything starts...
-void main() {
+void main() async {
+  print("--------------- Starting");
+  WidgetsFlutterBinding.ensureInitialized();
+
+  print("--------------- A");
+  await Firebase.initializeApp();
+
+  print("--------------- B");
   runApp(MyApp());
+  
+  print("--------------- after runApp(MyApp())");
 }
 
 // This is our top level class. In this example, it's a StatelessWidget, and we're overriding

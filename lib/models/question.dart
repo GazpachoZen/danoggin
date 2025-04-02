@@ -1,5 +1,5 @@
-import 'dart:math';
 import 'answer_option.dart';
+import 'dart:math';
 
 class Question {
   final String prompt;
@@ -11,6 +11,16 @@ class Question {
     required this.correctAnswer,
     required this.decoyAnswers,
   });
+
+  factory Question.fromJson(Map<String, dynamic> json) {
+    return Question(
+      prompt: json['prompt'] as String,
+      correctAnswer: AnswerOption.fromJson(json['correctAnswer']),
+      decoyAnswers: (json['decoyAnswers'] as List)
+          .map((item) => AnswerOption.fromJson(item))
+          .toList(),
+    );
+  }
 
   List<AnswerOption> getShuffledChoices() {
     final random = Random();
