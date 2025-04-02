@@ -18,6 +18,7 @@ class QuizPage extends StatefulWidget {
 class _QuizPageState extends State<QuizPage> {
   late QuestionPack pack;
   int currentQuestionIndex = 0;
+  bool isLoading = true;
 
   late Question currentQuestion;
   List<AnswerOption> displayedChoices = [];

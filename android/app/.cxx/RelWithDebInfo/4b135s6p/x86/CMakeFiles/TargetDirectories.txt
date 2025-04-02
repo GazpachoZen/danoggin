@@ -1,0 +1,2 @@
+C:/Users/bluev/Documents/Bluevista/AppDev/danoggin/android/app/.cxx/RelWithDebInfo/4b135s6p/x86/CMakeFiles/edit_cache.dir
+C:/Users/bluev/Documents/Bluevista/AppDev/danoggin/android/app/.cxx/RelWithDebInfo/4b135s6p/x86/CMakeFiles/rebuild_cache.dir

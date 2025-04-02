@@ -1,6 +1,6 @@
-# q_app
+# danoggin
 
-A new Flutter project.
+A wellness check app.
 
 ## Getting Started
 

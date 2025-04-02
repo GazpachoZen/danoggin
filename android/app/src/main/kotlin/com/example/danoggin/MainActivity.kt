@@ -1,4 +1,4 @@
-package com.example.danoggin
+package com.blue_vistas.danoggin
 
 import io.flutter.embedding.android.FlutterActivity
 
