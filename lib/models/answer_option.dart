@@ -13,32 +13,50 @@ class AnswerOption {
     );
   }
 
-  Widget render() {
-    List<Widget> content = [];
+Widget render() {
+  return LayoutBuilder(
+    builder: (context, constraints) {
+      final hasImage = imagePath != null;
+      final hasText = text != null;
 
-    if (imagePath != null) {
-      content.add(Image.asset(
-        imagePath!,
-        height: 60,
-        fit: BoxFit.contain,
-      ));
-    }
+      // max size inside square button
+      final maxSize = constraints.maxHeight;
 
-    if (text != null) {
-      content.add(Text(
-        text!,
-        style: TextStyle(fontSize: 16),
-        textAlign: TextAlign.center,
-        softWrap: true,
-        maxLines: 2,
-      ));
-    }
+      // Image height is flexible: large if solo, smaller if paired with text
+      final imageHeight = hasText ? maxSize * 0.45 : maxSize * 0.75;
 
-    return Column(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: content,
-    );
-  }
+      // Text size is flexible: larger if solo, smaller if with image
+      final fontSize = hasImage ? 16.0 : 22.0;
+
+      return Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          if (hasImage)
+            Container(
+              height: imageHeight,
+              child: Image.asset(
+                imagePath!,
+                fit: BoxFit.contain,
+              ),
+            ),
+          if (hasText)
+            Padding(
+              padding: const EdgeInsets.only(top: 6),
+              child: Text(
+                text!,
+                textAlign: TextAlign.center,
+                style: TextStyle(fontSize: fontSize),
+                maxLines: 2,
+                softWrap: true,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ),
+        ],
+      );
+    },
+  );
+}
+
 
   @override
   String toString() => text ?? '[Image Answer]';

@@ -89,36 +89,30 @@ class _QuizPageState extends State<QuizPage> {
     );
 
     // Grid of answer buttons (2x2 layout)
-    Widget answerGrid = GridView.count(
-      crossAxisCount: 2,
-      shrinkWrap: true,
-      crossAxisSpacing: 12,
-      mainAxisSpacing: 12,
-      childAspectRatio: 1.8,
-      children: displayedChoices.map((answer) {
-        bool isSelected = selectedAnswer == answer;
+Widget answerGrid = GridView.count(
+  crossAxisCount: 2,
+  shrinkWrap: true,
+  crossAxisSpacing: 12,
+  mainAxisSpacing: 12,
+  childAspectRatio: 1.0, // 1:1 aspect ratio
+  children: displayedChoices.map((answer) {
+    bool isSelected = selectedAnswer == answer;
 
-        return ElevatedButton(
-          onPressed: () {
-            setState(() {
-              selectedAnswer = answer;
-              feedback = null;
-            });
-          },
-          style: ElevatedButton.styleFrom(
-            backgroundColor: isSelected ? Colors.blueAccent : null,
-            padding: EdgeInsets.all(12),
-          ),
-          child: LayoutBuilder(
-            builder: (context, constraints) {
-              return Center(
-                child: answer.render(),
-              );
-            },
-          ),
-        );
-      }).toList(),
+    return ElevatedButton(
+      onPressed: () {
+        setState(() {
+          selectedAnswer = answer;
+          feedback = null;
+        });
+      },
+      style: ElevatedButton.styleFrom(
+        backgroundColor: isSelected ? Colors.blueAccent : null,
+        padding: EdgeInsets.all(4),
+      ),
+      child: answer.render(),
     );
+  }).toList(),
+);
 
     // Submit button
     Widget submitButton = ElevatedButton(
