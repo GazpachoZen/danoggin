@@ -1,17 +1,19 @@
 // Copyright (c) 2025, Blue Vista Solutions.  All rights reserved.
 //
-// This source code is part of the Danoggin project and is intended for 
-// internal or authorized use only. Unauthorized copying, modification, or 
-// distribution of this file, via any medium, is strictly prohibited. For 
+// This source code is part of the Danoggin project and is intended for
+// internal or authorized use only. Unauthorized copying, modification, or
+// distribution of this file, via any medium, is strictly prohibited. For
 // licensing or permissions, contact: ivory@blue-vistas.com
 //------------------------------------------------------------------------
 
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-
-import '../models/question.dart';
-import '../models/answer_option.dart';
-import '../models/question_pack.dart';
+import 'package:danoggin/models/question.dart';
+import 'package:danoggin/models/answer_option.dart';
+import 'package:danoggin/models/question_pack.dart';
+import 'package:danoggin/models/user_role.dart';
+import 'package:danoggin/screens/settings_page.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 // This is previously mentioned home page. In this example, it's a StatefulWidget... not sure if
 // that's required, or if we could use something else. Notice that all we really do is override and
@@ -34,6 +36,8 @@ class _QuizPageState extends State<QuizPage> {
   AnswerOption? selectedAnswer;
   String? feedback;
 
+  late UserRole currentRole;
+
   @override
   void initState() {
     super.initState();
@@ -49,6 +53,11 @@ class _QuizPageState extends State<QuizPage> {
           .doc('demo_pack')
           .get();
       print("After awaiting...");
+
+      final prefs = await SharedPreferences.getInstance();
+      final roleStr = prefs.getString('userRole');
+      currentRole = UserRoleExtension.fromString(roleStr) ?? UserRole.responder;
+
       if (doc.exists) {
         pack = QuestionPack.fromJson(doc.id, doc.data()!);
         loadQuestion(0);
@@ -97,30 +106,30 @@ class _QuizPageState extends State<QuizPage> {
     );
 
     // Grid of answer buttons (2x2 layout)
-Widget answerGrid = GridView.count(
-  crossAxisCount: 2,
-  shrinkWrap: true,
-  crossAxisSpacing: 12,
-  mainAxisSpacing: 12,
-  childAspectRatio: 1.0, // 1:1 aspect ratio
-  children: displayedChoices.map((answer) {
-    bool isSelected = selectedAnswer == answer;
+    Widget answerGrid = GridView.count(
+      crossAxisCount: 2,
+      shrinkWrap: true,
+      crossAxisSpacing: 12,
+      mainAxisSpacing: 12,
+      childAspectRatio: 1.0, // 1:1 aspect ratio
+      children: displayedChoices.map((answer) {
+        bool isSelected = selectedAnswer == answer;
 
-    return ElevatedButton(
-      onPressed: () {
-        setState(() {
-          selectedAnswer = answer;
-          feedback = null;
-        });
-      },
-      style: ElevatedButton.styleFrom(
-        backgroundColor: isSelected ? Colors.blueAccent : null,
-        padding: EdgeInsets.all(4),
-      ),
-      child: answer.render(),
+        return ElevatedButton(
+          onPressed: () {
+            setState(() {
+              selectedAnswer = answer;
+              feedback = null;
+            });
+          },
+          style: ElevatedButton.styleFrom(
+            backgroundColor: isSelected ? Colors.blueAccent : null,
+            padding: EdgeInsets.all(4),
+          ),
+          child: answer.render(),
+        );
+      }).toList(),
     );
-  }).toList(),
-);
 
     // Submit button
     Widget submitButton = ElevatedButton(
@@ -152,8 +161,33 @@ Widget answerGrid = GridView.count(
       );
     }
 
+    var myAppBar = AppBar(
+      title: Text(
+          'Danoggin (${currentRole.name[0].toUpperCase()}${currentRole.name.substring(1)})'),
+      actions: [
+        IconButton(
+          icon: const Icon(Icons.settings),
+          onPressed: () async {
+            final newRole = await Navigator.push<UserRole>(
+              context,
+              MaterialPageRoute(
+                builder: (context) => SettingsPage(currentRole: currentRole),
+              ),
+            );
+            if (newRole != null && newRole != currentRole) {
+              final prefs = await SharedPreferences.getInstance();
+              await prefs.setString('userRole', newRole.name);
+              setState(() {
+                currentRole = newRole;
+              });
+            }
+          },
+        ),
+      ],
+    );
+
     return Scaffold(
-      appBar: AppBar(title: Text('Simple Quiz')),
+      appBar: myAppBar,
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(

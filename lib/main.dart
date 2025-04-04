@@ -12,6 +12,8 @@ import 'models/user_role.dart';
 import 'screens/role_selection_screen.dart';
 import 'screens/quiz_page.dart';
 import 'screens/observer_home_page.dart';
+import 'screens/settings_page.dart';
+
 
 // Here's the obligatory main method, where everything starts...
 void main() async {

@@ -29,3 +29,13 @@ Future<UserRole?> loadUserRole() async {
 
   return null; // not found
 }
+
+extension UserRoleExtension on UserRole {
+  static UserRole? fromString(String? roleStr) {
+    if (roleStr == null) return null;
+    return UserRole.values.firstWhere(
+      (e) => e.name == roleStr,
+      orElse: () => UserRole.responder, // or null, if you'd rather crash safely
+    );
+  }
+}
