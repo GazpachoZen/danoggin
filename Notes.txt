@@ -1,0 +1,23 @@
+danoggin
+A wellness check app
+com.blue_vistas.danoggin
+
+Prefered versions...
+	Flutter 3.29.2
+	Java 17
+	Gradle 8.4
+	Kotlin 1.9.10
+	Android Gradle Plugin 8.1.1
+	Dart 3.3.x
+	
+flutter compatible plugins...
+	firebase_core
+	shared_preferences
+
+Flutter run key commands.
+r Hot reload.
+R Hot restart.
+h List all available interactive commands.
+d Detach (terminate "flutter run" but leave application running).
+c Clear the screen
+q Quit (terminate the application on the device).

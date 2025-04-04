@@ -1,33 +1,32 @@
+// Copyright (c) 2025, Blue Vista Solutions.  All rights reserved.
+//
+// This source code is part of the Danoggin project and is intended for 
+// internal or authorized use only. Unauthorized copying, modification, or 
+// distribution of this file, via any medium, is strictly prohibited. For 
+// licensing or permissions, contact: ivory@blue-vistas.com
+//------------------------------------------------------------------------
+
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'models/user_role.dart';
+import 'screens/role_selection_screen.dart';
 import 'screens/quiz_page.dart';
+import 'screens/observer_home_page.dart';
 
 // Here's the obligatory main method, where everything starts...
 void main() async {
-  print("--------------- Starting");
   WidgetsFlutterBinding.ensureInitialized();
-
-  print("--------------- A");
   await Firebase.initializeApp();
 
-  print("--------------- B");
-  runApp(MyApp());
-  
-  print("--------------- after runApp(MyApp())");
-}
+  final role = await loadUserRole();
 
-// This is our top level class. In this example, it's a StatelessWidget, and we're overriding
-// how it's built. Of course, we're still pretty trivial. The build method somehow is given
-// context through Flutter magic, and we have no idea yet what's in it. Even so, all we really
-// do is return something called a MaterialApp that has a title, a color theme, and a home page
-// of some sort.
-class MyApp extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'Quiz Demo',
-      theme: ThemeData(primarySwatch: Colors.blue),
-      home: QuizPage(),
-    );
-  }
+  runApp(MaterialApp(
+    title: 'Danoggin',
+    theme: ThemeData(primarySwatch: Colors.deepPurple),
+    home: role == null
+        ? RoleSelectionScreen()
+        : (role == UserRole.responder
+            ? QuizPage()
+            : ObserverHomePage()),
+  ));
 }

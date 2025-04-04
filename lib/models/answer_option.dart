@@ -1,3 +1,11 @@
+// Copyright (c) 2025, Blue Vista Solutions.  All rights reserved.
+//
+// This source code is part of the Danoggin project and is intended for 
+// internal or authorized use only. Unauthorized copying, modification, or 
+// distribution of this file, via any medium, is strictly prohibited. For 
+// licensing or permissions, contact: ivory@blue-vistas.com
+//------------------------------------------------------------------------
+
 import 'package:flutter/material.dart';
 
 class AnswerOption {
@@ -26,7 +34,7 @@ Widget render() {
       final imageHeight = hasText ? maxSize * 0.45 : maxSize * 0.75;
 
       // Text size is flexible: larger if solo, smaller if with image
-      final fontSize = hasImage ? 16.0 : 22.0;
+      final fontSize = hasImage ? 16.0 : 30.0;
 
       return Column(
         mainAxisAlignment: MainAxisAlignment.center,
