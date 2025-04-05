@@ -7,9 +7,9 @@
 //------------------------------------------------------------------------
 
 import 'package:flutter/material.dart';
-import '../models/user_role.dart';
+import 'package:danoggin/models/user_role.dart';
 import 'quiz_page.dart';
-import 'observer_home_page.dart';
+import 'observer_page.dart';
 
 class RoleSelectionScreen extends StatelessWidget {
   void selectRole(BuildContext context, UserRole role) async {
@@ -23,7 +23,7 @@ class RoleSelectionScreen extends StatelessWidget {
     } else {
       Navigator.pushReplacement(
         context,
-        MaterialPageRoute(builder: (_) => ObserverHomePage()),
+        MaterialPageRoute(builder: (_) => ObserverPage()),
       );
     }
   }

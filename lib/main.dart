@@ -11,7 +11,7 @@ import 'package:firebase_core/firebase_core.dart';
 import 'models/user_role.dart';
 import 'screens/role_selection_screen.dart';
 import 'screens/quiz_page.dart';
-import 'screens/observer_home_page.dart';
+import 'screens/observer_page.dart';
 import 'screens/settings_page.dart';
 
 
@@ -29,6 +29,6 @@ void main() async {
         ? RoleSelectionScreen()
         : (role == UserRole.responder
             ? QuizPage()
-            : ObserverHomePage()),
+            : ObserverPage()),
   ));
 }

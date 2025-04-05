@@ -1,14 +1,16 @@
 // Copyright (c) 2025, Blue Vista Solutions.  All rights reserved.
 //
-// This source code is part of the Danoggin project and is intended for 
-// internal or authorized use only. Unauthorized copying, modification, or 
-// distribution of this file, via any medium, is strictly prohibited. For 
+// This source code is part of the Danoggin project and is intended for
+// internal or authorized use only. Unauthorized copying, modification, or
+// distribution of this file, via any medium, is strictly prohibited. For
 // licensing or permissions, contact: ivory@blue-vistas.com
 //------------------------------------------------------------------------
 
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:danoggin/models/user_role.dart';
+import 'quiz_page.dart';
+import 'observer_page.dart';
 
 class SettingsPage extends StatefulWidget {
   final UserRole currentRole;
@@ -28,11 +30,25 @@ class _SettingsPageState extends State<SettingsPage> {
     _selectedRole = widget.currentRole;
   }
 
-  Future<void> _saveAndReturn(UserRole role) async {
+  Future<void> _saveAndNavigate(UserRole role) async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString('userRole', role.name);
+
+    // Decide the destination based on role
+    Widget destination;
+    if (role == UserRole.responder) {
+      destination = QuizPage();
+    } else {
+      destination = ObserverPage();
+    }
+
     if (!mounted) return;
-    Navigator.pop(context, role); // return role to caller
+
+    // Replace the entire route stack
+    Navigator.of(context).pushAndRemoveUntil(
+      MaterialPageRoute(builder: (_) => destination),
+      (route) => false,
+    );
   }
 
   @override
@@ -56,9 +72,9 @@ class _SettingsPageState extends State<SettingsPage> {
             onChanged: (value) => setState(() => _selectedRole = value!),
           ),
           ElevatedButton.icon(
-            onPressed: () => _saveAndReturn(_selectedRole),
+            onPressed: () => _saveAndNavigate(_selectedRole),
             icon: const Icon(Icons.check),
-            label: const Text("Apply & Return"),
+            label: const Text("Apply"),
           ),
           const SizedBox(height: 30),
           if (_selectedRole == UserRole.responder) ...[
