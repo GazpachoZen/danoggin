@@ -11,6 +11,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:danoggin/models/user_role.dart';
 import 'quiz_page.dart';
 import 'observer_page.dart';
+import 'package:danoggin/services/notification_service.dart';
 
 class SettingsPage extends StatefulWidget {
   final UserRole currentRole;
@@ -75,6 +76,25 @@ class _SettingsPageState extends State<SettingsPage> {
             onPressed: () => _saveAndNavigate(_selectedRole),
             icon: const Icon(Icons.check),
             label: const Text("Apply"),
+          ),
+          ElevatedButton.icon(
+            onPressed: () {
+              final now = DateTime.now().add(const Duration(seconds: 65));
+              NotificationService.scheduleDailyNotification(
+                id: 1001,
+                title: "Danoggin Test",
+                body: "This is a test reminder to answer a question.",
+                hour: now.hour,
+                minute: now.minute,
+              );
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(
+                    content:
+                        Text("Test notification will appear in ~10 seconds")),
+              );
+            },
+            icon: const Icon(Icons.notifications),
+            label: const Text("Send Test Notification"),
           ),
           const SizedBox(height: 30),
           if (_selectedRole == UserRole.responder) ...[

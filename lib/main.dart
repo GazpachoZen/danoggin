@@ -12,12 +12,13 @@ import 'models/user_role.dart';
 import 'screens/role_selection_screen.dart';
 import 'screens/quiz_page.dart';
 import 'screens/observer_page.dart';
-import 'screens/settings_page.dart';
+import 'services/notification_service.dart';
 
 
 // Here's the obligatory main method, where everything starts...
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  await NotificationService.initialize();
   await Firebase.initializeApp();
 
   final role = await loadUserRole();

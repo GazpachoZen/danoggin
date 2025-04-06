@@ -47,12 +47,12 @@ class _QuizPageState extends State<QuizPage> {
   Future<void> loadPackFromFirestore() async {
     print("At the top of loadPackFromFirestore...");
     try {
-      print("Top of try...");
+      print("JEI: Top of try...");
       final doc = await FirebaseFirestore.instance
           .collection('question_packs')
           .doc('demo_pack')
           .get();
-      print("After awaiting...");
+      print("JEI: After awaiting...");
 
       final prefs = await SharedPreferences.getInstance();
       final roleStr = prefs.getString('userRole');
@@ -65,10 +65,10 @@ class _QuizPageState extends State<QuizPage> {
           isLoading = false;
         });
       } else {
-        print('Pack not found');
+        print('JEI: Pack not found');
       }
     } catch (e) {
-      print('Error loading pack: $e');
+      print('JEI: Error loading pack: $e');
     }
   }
 
@@ -92,7 +92,7 @@ class _QuizPageState extends State<QuizPage> {
   @override
   Widget build(BuildContext context) {
     if (isLoading) {
-      print("Showing the loading screen");
+      print("JEI: Showing the loading screen");
       return Scaffold(
         appBar: AppBar(title: Text('Loading...')),
         body: Center(child: CircularProgressIndicator()),
