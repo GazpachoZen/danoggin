@@ -7,6 +7,7 @@
 //------------------------------------------------------------------------
 
 import 'question.dart';
+import 'dart:math';
 
 class QuestionPack {
   final String id;
@@ -18,6 +19,11 @@ class QuestionPack {
     required this.name,
     required this.questions,
   });
+
+  Question getRandomQuestion() {
+    final random = Random();
+    return questions[random.nextInt(questions.length)];
+  }
 
   factory QuestionPack.fromJson(String docId, Map<String, dynamic> json) {
     return QuestionPack(

@@ -15,6 +15,9 @@ import 'package:danoggin/models/user_role.dart';
 import 'package:danoggin/screens/settings_page.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:danoggin/services/notification_service.dart';
+import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'dart:async';
+
 
 // This is previously mentioned home page. In this example, it's a StatefulWidget... not sure if
 // that's required, or if we could use something else. Notice that all we really do is override and
@@ -30,6 +33,9 @@ class _QuizPageState extends State<QuizPage> {
   late QuestionPack pack;
   int currentQuestionIndex = 0;
   bool isLoading = true;
+
+Timer? alertTimer;
+Duration alertInterval = Duration(minutes: 5); // temp hard-coded
 
   late Question currentQuestion;
   List<AnswerOption> displayedChoices = [];
@@ -65,6 +71,7 @@ class _QuizPageState extends State<QuizPage> {
         setState(() {
           isLoading = false;
         });
+          startAlertLoop();  // <-- add this
       } else {
         print('JEI: Pack not found');
       }
@@ -79,6 +86,27 @@ class _QuizPageState extends State<QuizPage> {
     selectedAnswer = null;
     feedback = null;
   }
+
+void startAlertLoop() {
+  alertTimer?.cancel();
+  alertTimer = Timer.periodic(alertInterval, (_) {
+    setState(() {
+      loadRandomQuestion();
+    });
+    NotificationService.showBasicNotification(
+      id: 1,
+      title: 'Danoggin Check-in',
+      body: 'Time for a quick question!',
+    );
+  });
+}
+
+void loadRandomQuestion() {
+  currentQuestion = pack.getRandomQuestion();
+  displayedChoices = currentQuestion.getShuffledChoices();
+  selectedAnswer = null;
+  feedback = null;
+}
 
   void submitAnswer() {
     if (selectedAnswer == null) return;

@@ -1,8 +1,8 @@
 // Copyright (c) 2025, Blue Vista Solutions.  All rights reserved.
 //
-// This source code is part of the Danoggin project and is intended for 
-// internal or authorized use only. Unauthorized copying, modification, or 
-// distribution of this file, via any medium, is strictly prohibited. For 
+// This source code is part of the Danoggin project and is intended for
+// internal or authorized use only. Unauthorized copying, modification, or
+// distribution of this file, via any medium, is strictly prohibited. For
 // licensing or permissions, contact: ivory@blue-vistas.com
 //------------------------------------------------------------------------
 
@@ -21,50 +21,49 @@ class AnswerOption {
     );
   }
 
-Widget render() {
-  return LayoutBuilder(
-    builder: (context, constraints) {
-      final hasImage = imagePath != null;
-      final hasText = text != null;
+  Widget render() {
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final hasImage = imagePath != null;
+        final hasText = text != null;
 
-      // max size inside square button
-      final maxSize = constraints.maxHeight;
+        // max size inside square button
+        final maxSize = constraints.maxHeight;
 
-      // Image height is flexible: large if solo, smaller if paired with text
-      final imageHeight = hasText ? maxSize * 0.45 : maxSize * 0.75;
+        // Image height is flexible: large if solo, smaller if paired with text
+        final imageHeight = hasText ? maxSize * 0.45 : maxSize * 0.75;
 
-      // Text size is flexible: larger if solo, smaller if with image
-      final fontSize = hasImage ? 16.0 : 30.0;
+        // Text size is flexible: larger if solo, smaller if with image
+        final fontSize = hasImage ? 16.0 : 30.0;
 
-      return Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          if (hasImage)
-            Container(
-              height: imageHeight,
-              child: Image.asset(
-                imagePath!,
-                fit: BoxFit.contain,
+        return Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            if (hasImage)
+              Container(
+                height: imageHeight,
+                child: Image.asset(
+                  imagePath!,
+                  fit: BoxFit.contain,
+                ),
               ),
-            ),
-          if (hasText)
-            Padding(
-              padding: const EdgeInsets.only(top: 6),
-              child: Text(
-                text!,
-                textAlign: TextAlign.center,
-                style: TextStyle(fontSize: fontSize),
-                maxLines: 2,
-                softWrap: true,
-                overflow: TextOverflow.ellipsis,
+            if (hasText)
+              Padding(
+                padding: const EdgeInsets.only(top: 6),
+                child: Text(
+                  text!,
+                  textAlign: TextAlign.center,
+                  style: TextStyle(fontSize: fontSize),
+                  maxLines: 2,
+                  softWrap: true,
+                  overflow: TextOverflow.ellipsis,
+                ),
               ),
-            ),
-        ],
-      );
-    },
-  );
-}
-
+          ],
+        );
+      },
+    );
+  }
 
   @override
   String toString() => text ?? '[Image Answer]';

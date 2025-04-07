@@ -73,4 +73,29 @@ class NotificationService {
       });
     }
   }
+
+    static Future<void> showBasicNotification({
+    required int id,
+    required String title,
+    required String body,
+  }) async {
+    const AndroidNotificationDetails androidDetails = AndroidNotificationDetails(
+      'danoggin_channel',
+      'Danoggin Alerts',
+      channelDescription: 'Periodic awareness check-ins',
+      importance: Importance.high,
+      priority: Priority.high,
+    );
+
+    const NotificationDetails platformDetails =
+        NotificationDetails(android: androidDetails);
+
+    await _notifications.show(
+      id,
+      title,
+      body,
+      platformDetails,
+    );
+  }
+
 }
