@@ -77,26 +77,14 @@ class _SettingsPageState extends State<SettingsPage> {
             icon: const Icon(Icons.check),
             label: const Text("Apply"),
           ),
-          ElevatedButton.icon(
-            onPressed: () {
-              final now = DateTime.now().add(const Duration(seconds: 65));
-              NotificationService.scheduleDailyNotification(
-                id: 1001,
-                title: "Danoggin Test",
-                body: "This is a test reminder to answer a question.",
-                hour: now.hour,
-                minute: now.minute,
-              );
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                    content:
-                        Text("Test notification will appear in ~10 seconds")),
-              );
-            },
-            icon: const Icon(Icons.notifications),
-            label: const Text("Send Test Notification"),
-          ),
           const SizedBox(height: 30),
+                      ElevatedButton(
+              onPressed: () {
+                NotificationService.scheduleTestNotification(delaySeconds: 5);
+              },
+              child: const Text("Test Notification (5s)"),
+            ),
+
           if (_selectedRole == UserRole.responder) ...[
             const Text("Responder settings would go here"),
           ] else if (_selectedRole == UserRole.observer) ...[

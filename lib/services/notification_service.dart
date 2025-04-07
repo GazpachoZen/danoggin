@@ -6,80 +6,71 @@
 // licensing or permissions, contact: ivory@blue-vistas.com
 //------------------------------------------------------------------------
 
+import 'package:flutter/material.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
-import 'package:timezone/timezone.dart' as tz;
 import 'package:timezone/data/latest_all.dart' as tz;
+import 'package:timezone/timezone.dart' as tz;
 
 class NotificationService {
-  static final FlutterLocalNotificationsPlugin _notificationsPlugin =
-      FlutterLocalNotificationsPlugin();
+  static final _notifications = FlutterLocalNotificationsPlugin();
 
   static Future<void> initialize() async {
-    print('JEI: NotificationService.initialize() --- top');
-    // Init timezone da  tz.initializeTimeZones();
-
-  const androidSettings = AndroidInitializationSettings('@mipmap/ic_launcher');
-  const initSettings = InitializationSettings(android: androidSettings);
-
-  await _notificationsPlugin.initialize(initSettings);
-
-  // ✅ Request notification permission (supported since v14+)
-  final androidImplementation = _notificationsPlugin
-      .resolvePlatformSpecificImplementation<AndroidFlutterLocalNotificationsPlugin>();
-
-  if (androidImplementation != null) {
-    final result = await androidImplementation.requestPermission();
-    print('Notification permission granted? $result');
-  }
-
-    print('JEI: NotificationService.initialize() --- bottom');
-  }
-
-  static Future<void> scheduleDailyNotification({
-    required int id,
-    required String title,
-    required String body,
-    required int hour,
-    required int minute,
-  }) async {
-    await _notificationsPlugin.zonedSchedule(
-      id,
-      title,
-      body,
-      _nextInstanceOfTime(hour, minute),
-      const NotificationDetails(
-        android: AndroidNotificationDetails(
-          'danoggin_channel',
-          'Daily Prompts',
-          channelDescription: 'Reminders to answer awareness questions',
-          importance: Importance.max,
-          priority: Priority.high,
-        ),
-      ),
-      uiLocalNotificationDateInterpretation:
-          UILocalNotificationDateInterpretation.absoluteTime,
-      matchDateTimeComponents: DateTimeComponents.time, // repeats daily
+    final androidInit = AndroidInitializationSettings('@mipmap/ic_launcher');
+    const iosInit = DarwinInitializationSettings();
+    final initSettings = InitializationSettings(
+      android: androidInit,
+      iOS: iosInit,
     );
+
+    await _notifications.initialize(initSettings);
+
+    tz.initializeTimeZones();
+    final localName = await tz.local.name;
+    tz.setLocalLocation(tz.getLocation(localName));
   }
 
-  static tz.TZDateTime _nextInstanceOfTime(int hour, int minute) {
-    final now = tz.TZDateTime.now(tz.local);
-    var scheduled = tz.TZDateTime(tz.local, now.year, now.month, now.day, hour, minute);
-    if (scheduled.isBefore(now)) {
-      scheduled = scheduled.add(const Duration(days: 1));
+  static Future<void> scheduleTestNotification({int delaySeconds = 5}) async {
+    final scheduledTime = tz.TZDateTime.now(tz.local).add(Duration(seconds: delaySeconds));
+
+    try {
+      await _notifications.zonedSchedule(
+        0,
+        'Danoggin Alert',
+        'This is a scheduled notification.',
+        scheduledTime,
+        const NotificationDetails(
+          android: AndroidNotificationDetails(
+            'danoggin_channel',
+            'Danoggin Notifications',
+            channelDescription: 'Used for awareness prompts',
+            importance: Importance.max,
+            priority: Priority.high,
+          ),
+        ),
+        androidAllowWhileIdle: true,
+        androidScheduleMode: AndroidScheduleMode.inexactAllowWhileIdle,
+        uiLocalNotificationDateInterpretation:
+            UILocalNotificationDateInterpretation.absoluteTime,
+      );
+    } catch (e) {
+      // Fallback for older devices or silent errors
+      debugPrint('zonedSchedule failed, falling back to delayed show(): $e');
+      Future.delayed(Duration(seconds: delaySeconds), () {
+        _notifications.show(
+          0,
+          'Danoggin Alert',
+          'This is a fallback notification.',
+          const NotificationDetails(
+            android: AndroidNotificationDetails(
+              'danoggin_channel',
+              'Danoggin Notifications',
+              channelDescription: 'Fallback notifications',
+              importance: Importance.max,
+              priority: Priority.high,
+            ),
+          ),
+        );
+      });
     }
-    return scheduled;
   }
-
-  static Future<void> cancelAll() async {
-    await _notificationsPlugin.cancelAll();
-  }
-
-// void _requestPermissions() {
-//   _notificationsPlugin
-//       .resolvePlatformSpecificImplementation<
-//           AndroidFlutterLocalNotificationsPlugin>()
-//       ?.requestPermission();
-// }
-
 }
