@@ -8,8 +8,9 @@
 
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import '../models/user_role.dart';
+import 'package:danoggin/models/user_role.dart';
 import 'settings_page.dart';
+import 'package:danoggin/widgets/check_in_history_widget.dart';
 
 class ObserverPage extends StatefulWidget {
   const ObserverPage({super.key});
@@ -63,9 +64,10 @@ class _ObserverPageState extends State<ObserverPage> {
           ),
         ],
       ),
-      body: const Center(
-        child: Text('This is the observer view — coming soon!'),
-      ),
+    body: Padding(
+      padding: const EdgeInsets.all(16.0),
+      child: CheckInHistoryWidget(responderId: 'responder'), // match what's used in quiz_page.dart
+    ),
     );
   }
 }

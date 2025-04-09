@@ -8,6 +8,7 @@ import 'package:danoggin/models/question_pack.dart';
 import 'package:danoggin/models/user_role.dart';
 import 'package:danoggin/services/notification_service.dart';
 import 'package:danoggin/screens/settings_page.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 class QuizPage extends StatefulWidget {
   @override
@@ -76,16 +77,21 @@ class _QuizPageState extends State<QuizPage> {
     );
   }
 
-  void _handleTimeout() {
+  Future<void> _handleTimeout() async {
     if (selectedAnswer == null) {
       setState(() {
         feedback = '⏰ You missed the question.';
       });
-      // TODO: Record timeout to Firestore
+    await logCheckIn(
+      responderId: currentRole.name,
+      result: 'missed',
+      questionPrompt: currentQuestion.prompt,
+    );
+
     }
   }
 
-  void submitAnswer() {
+  Future<void> submitAnswer() async {
     if (selectedAnswer == null) return;
 
     responseTimer?.cancel();
@@ -96,7 +102,11 @@ class _QuizPageState extends State<QuizPage> {
           : '❌ Incorrect';
     });
 
-    // TODO: Record answer to Firestore
+    await logCheckIn(
+      responderId: currentRole.name, // or user ID from auth if you prefer
+      result: selectedAnswer == currentQuestion.correctAnswer ? 'correct' : 'incorrect',
+      questionPrompt: currentQuestion.prompt,
+    );
   }
 
   @override
@@ -187,3 +197,24 @@ class _QuizPageState extends State<QuizPage> {
     );
   }
 }
+
+
+Future<void> logCheckIn({
+  required String responderId,
+  required String result, // 'correct', 'incorrect', or 'missed'
+  required String questionPrompt,
+}) async {
+  final now = DateTime.now();
+  final doc = FirebaseFirestore.instance
+      .collection('responder_status')
+      .doc(responderId)
+      .collection('check_ins')
+      .doc(now.toIso8601String());
+
+  await doc.set({
+    'timestamp': now.toIso8601String(),
+    'result': result,
+    'prompt': questionPrompt,
+  });
+}
+
