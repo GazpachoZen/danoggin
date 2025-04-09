@@ -12,6 +12,7 @@ import 'package:danoggin/models/user_role.dart';
 import 'quiz_page.dart';
 import 'observer_page.dart';
 import 'package:danoggin/services/notification_service.dart';
+import 'package:danoggin/widgets/responder_settings_widget.dart';
 
 class SettingsPage extends StatefulWidget {
   final UserRole currentRole;
@@ -58,6 +59,10 @@ class _SettingsPageState extends State<SettingsPage> {
       appBar: AppBar(title: const Text("Settings")),
       body: Column(
         children: [
+          const SizedBox(height: 10),
+          _selectedRole == UserRole.responder
+              ? const ResponderSettingsWidget()
+              : const Text('Observer settings coming soon...'),
           const SizedBox(height: 20),
           const Text("Select Your Role", style: TextStyle(fontSize: 20)),
           RadioListTile<UserRole>(
@@ -77,14 +82,6 @@ class _SettingsPageState extends State<SettingsPage> {
             icon: const Icon(Icons.check),
             label: const Text("Apply"),
           ),
-          const SizedBox(height: 30),
-                      ElevatedButton(
-              onPressed: () {
-                NotificationService.scheduleTestNotification(delaySeconds: 5);
-              },
-              child: const Text("Test Notification (5s)"),
-            ),
-
           if (_selectedRole == UserRole.responder) ...[
             const Text("Responder settings would go here"),
           ] else if (_selectedRole == UserRole.observer) ...[
