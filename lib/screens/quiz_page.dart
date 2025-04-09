@@ -1,47 +1,33 @@
-// Copyright (c) 2025, Blue Vista Solutions.  All rights reserved.
-//
-// This source code is part of the Danoggin project and is intended for
-// internal or authorized use only. Unauthorized copying, modification, or
-// distribution of this file, via any medium, is strictly prohibited. For
-// licensing or permissions, contact: ivory@blue-vistas.com
-//------------------------------------------------------------------------
 
+import 'dart:async';
 import 'package:flutter/material.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:danoggin/models/question.dart';
 import 'package:danoggin/models/answer_option.dart';
 import 'package:danoggin/models/question_pack.dart';
 import 'package:danoggin/models/user_role.dart';
-import 'package:danoggin/screens/settings_page.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import 'package:danoggin/services/notification_service.dart';
-import 'package:flutter_local_notifications/flutter_local_notifications.dart';
-import 'dart:async';
+import 'package:danoggin/screens/settings_page.dart';
 
-
-// This is previously mentioned home page. In this example, it's a StatefulWidget... not sure if
-// that's required, or if we could use something else. Notice that all we really do is override and
-// provide our own createState method. That, in turn, is a class that does all the real work.
 class QuizPage extends StatefulWidget {
   @override
   _QuizPageState createState() => _QuizPageState();
 }
 
-// Finally, we can get down to making things.
-// This class is where the interesting stuff happens.
 class _QuizPageState extends State<QuizPage> {
   late QuestionPack pack;
-  int currentQuestionIndex = 0;
   bool isLoading = true;
-
-Timer? alertTimer;
-Duration alertInterval = Duration(minutes: 5); // temp hard-coded
 
   late Question currentQuestion;
   List<AnswerOption> displayedChoices = [];
 
   AnswerOption? selectedAnswer;
   String? feedback;
+
+  Timer? alertTimer;
+  Timer? responseTimer;
+  final Duration alertInterval = Duration(minutes: 5);
+  final Duration responseTimeout = Duration(minutes: 1);
 
   late UserRole currentRole;
 
@@ -52,185 +38,149 @@ Duration alertInterval = Duration(minutes: 5); // temp hard-coded
   }
 
   Future<void> loadPackFromFirestore() async {
-    print("At the top of loadPackFromFirestore...");
     try {
-      print("JEI: Top of try...");
-      final doc = await FirebaseFirestore.instance
-          .collection('question_packs')
-          .doc('demo_pack')
-          .get();
-      print("JEI: After awaiting...");
-
+      final doc = await QuestionPack.loadFromFirestore('demo_pack');
       final prefs = await SharedPreferences.getInstance();
       final roleStr = prefs.getString('userRole');
       currentRole = UserRoleExtension.fromString(roleStr) ?? UserRole.responder;
 
-      if (doc.exists) {
-        pack = QuestionPack.fromJson(doc.id, doc.data()!);
-        loadQuestion(0);
-        setState(() {
-          isLoading = false;
-        });
-          startAlertLoop();  // <-- add this
-      } else {
-        print('JEI: Pack not found');
-      }
+      pack = doc;
+      loadRandomQuestion();
+      setState(() {
+        isLoading = false;
+      });
+      startAlertLoop();
     } catch (e) {
-      print('JEI: Error loading pack: $e');
+      print('Error loading pack: \$e');
     }
   }
 
-  void loadQuestion(int index) {
-    currentQuestion = pack.questions[index];
+  void startAlertLoop() {
+    alertTimer?.cancel();
+    alertTimer = Timer.periodic(alertInterval, (_) => loadRandomQuestion());
+  }
+
+  void loadRandomQuestion() {
+    currentQuestion = pack.getRandomQuestion();
     displayedChoices = currentQuestion.getShuffledChoices();
     selectedAnswer = null;
     feedback = null;
-  }
 
-void startAlertLoop() {
-  alertTimer?.cancel();
-  alertTimer = Timer.periodic(alertInterval, (_) {
-    setState(() {
-      loadRandomQuestion();
-    });
+    responseTimer?.cancel();
+    responseTimer = Timer(responseTimeout, _handleTimeout);
+
     NotificationService.showBasicNotification(
       id: 1,
-      title: 'Danoggin Check-in',
-      body: 'Time for a quick question!',
+      title: 'Danoggin Check-In',
+      body: 'Time to answer a quick question!',
     );
-  });
-}
+  }
 
-void loadRandomQuestion() {
-  currentQuestion = pack.getRandomQuestion();
-  displayedChoices = currentQuestion.getShuffledChoices();
-  selectedAnswer = null;
-  feedback = null;
-}
+  void _handleTimeout() {
+    if (selectedAnswer == null) {
+      setState(() {
+        feedback = '⏰ You missed the question.';
+      });
+      // TODO: Record timeout to Firestore
+    }
+  }
 
   void submitAnswer() {
     if (selectedAnswer == null) return;
 
+    responseTimer?.cancel();
+
     setState(() {
       feedback = (selectedAnswer == currentQuestion.correctAnswer)
-          ? 'Correct!'
-          : 'Try again';
+          ? '✅ Correct!'
+          : '❌ Incorrect';
     });
+
+    // TODO: Record answer to Firestore
+  }
+
+  @override
+  void dispose() {
+    alertTimer?.cancel();
+    responseTimer?.cancel();
+    super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
     if (isLoading) {
-      print("JEI: Showing the loading screen");
       return Scaffold(
         appBar: AppBar(title: Text('Loading...')),
         body: Center(child: CircularProgressIndicator()),
       );
     }
 
-    // Question text
-    Widget questionText = Text(
-      currentQuestion.prompt,
-      style: TextStyle(fontSize: 24),
-    );
-
-    // Grid of answer buttons (2x2 layout)
-    Widget answerGrid = GridView.count(
-      crossAxisCount: 2,
-      shrinkWrap: true,
-      crossAxisSpacing: 12,
-      mainAxisSpacing: 12,
-      childAspectRatio: 1.0, // 1:1 aspect ratio
-      children: displayedChoices.map((answer) {
-        bool isSelected = selectedAnswer == answer;
-
-        return ElevatedButton(
-          onPressed: () {
-            setState(() {
-              selectedAnswer = answer;
-              feedback = null;
-            });
-          },
-          style: ElevatedButton.styleFrom(
-            backgroundColor: isSelected ? Colors.blueAccent : null,
-            padding: EdgeInsets.all(4),
-          ),
-          child: answer.render(),
-        );
-      }).toList(),
-    );
-
-    // Submit button
-    Widget submitButton = ElevatedButton(
-      onPressed: selectedAnswer == null ? null : submitAnswer,
-      child: Text('Submit'),
-    );
-
-    Widget nextButton = ElevatedButton(
-      onPressed: (currentQuestionIndex < pack.questions.length - 1)
-          ? () {
-              setState(() {
-                currentQuestionIndex++;
-                loadQuestion(currentQuestionIndex);
-              });
-            }
-          : null,
-      child: Text('Next Question'),
-    );
-
-    // Feedback text
-    Widget? feedbackText;
-    if (feedback != null) {
-      feedbackText = Text(
-        feedback!,
-        style: TextStyle(
-          fontSize: 20,
-          color: feedback == 'Correct!' ? Colors.green : Colors.red,
-        ),
-      );
-    }
-
-    var myAppBar = AppBar(
-      title: Text(
-          'Danoggin (${currentRole.name[0].toUpperCase()}${currentRole.name.substring(1)})'),
-      actions: [
-        IconButton(
-          icon: const Icon(Icons.settings),
-          onPressed: () async {
-            final newRole = await Navigator.push<UserRole>(
-              context,
-              MaterialPageRoute(
-                builder: (context) => SettingsPage(currentRole: currentRole),
-              ),
-            );
-            if (newRole != null && newRole != currentRole) {
-              final prefs = await SharedPreferences.getInstance();
-              await prefs.setString('userRole', newRole.name);
-              setState(() {
-                currentRole = newRole;
-              });
-            }
-          },
-        ),
-      ],
-    );
-
     return Scaffold(
-      appBar: myAppBar,
+      appBar: AppBar(
+        title: Text('Danoggin (${currentRole.name[0].toUpperCase()}${currentRole.name.substring(1)})'),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.settings),
+            onPressed: () async {
+              final newRole = await Navigator.push<UserRole>(
+                context,
+                MaterialPageRoute(builder: (context) => SettingsPage(currentRole: currentRole)),
+              );
+              if (newRole != null && newRole != currentRole) {
+                final prefs = await SharedPreferences.getInstance();
+                await prefs.setString('userRole', newRole.name);
+                setState(() {
+                  currentRole = newRole;
+                });
+              }
+            },
+          ),
+        ],
+      ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            questionText,
+            Text(currentQuestion.prompt, style: TextStyle(fontSize: 24)),
             SizedBox(height: 24),
-            answerGrid,
+            GridView.count(
+              crossAxisCount: 2,
+              shrinkWrap: true,
+              crossAxisSpacing: 12,
+              mainAxisSpacing: 12,
+              childAspectRatio: 1.0,
+              children: displayedChoices.map((answer) {
+                final isSelected = selectedAnswer == answer;
+                return ElevatedButton(
+                  onPressed: () {
+                    setState(() {
+                      selectedAnswer = answer;
+                      feedback = null;
+                    });
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: isSelected ? Colors.blueAccent : null,
+                    padding: EdgeInsets.all(4),
+                  ),
+                  child: answer.render(),
+                );
+              }).toList(),
+            ),
             SizedBox(height: 16),
-            submitButton,
+            ElevatedButton(
+              onPressed: selectedAnswer == null ? null : submitAnswer,
+              child: Text('Submit'),
+            ),
             SizedBox(height: 24),
-            if (feedbackText != null) feedbackText,
-            SizedBox(height: 12),
-            nextButton,
+            if (feedback != null)
+              Text(
+                feedback!,
+                style: TextStyle(
+                  fontSize: 20,
+                  color: feedback == '✅ Correct!' ? Colors.green : Colors.red,
+                ),
+              ),
           ],
         ),
       ),
