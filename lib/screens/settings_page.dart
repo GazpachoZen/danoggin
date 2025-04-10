@@ -1,7 +1,10 @@
+
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:danoggin/models/user_role.dart';
 import 'package:danoggin/widgets/responder_settings_widget.dart';
+import 'package:danoggin/screens/quiz_page.dart';
+import 'package:danoggin/screens/observer_page.dart';
 
 class SettingsPage extends StatefulWidget {
   final UserRole currentRole;
@@ -24,75 +27,86 @@ class _SettingsPageState extends State<SettingsPage> {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString('userRole', selectedRole.name);
     if (!mounted) return;
-    Navigator.pop(context, selectedRole);
+    Navigator.of(context).pushAndRemoveUntil(
+      MaterialPageRoute(
+        builder: (_) => selectedRole == UserRole.responder
+            ? QuizPage()
+            : ObserverPage(),
+      ),
+      (route) => false,
+    );
   }
 
   @override
   Widget build(BuildContext context) {
+    final isDirty = selectedRole != widget.currentRole;
+
     return Scaffold(
       appBar: AppBar(title: const Text('Settings')),
       body: Padding(
-        padding: const EdgeInsets.all(16.0),
+        padding: const EdgeInsets.all(12.0),
         child: Column(
           children: [
+            // Role-specific settings
             Expanded(
               child: widget.currentRole == UserRole.responder
                   ? const ResponderSettingsWidget()
-                  : const Center(
-                      child: Text('Observer settings coming soon...')),
+                  : const Center(child: Text('Observer settings coming soon...')),
             ),
-            const SizedBox(height: 24),
-            Card(
-              elevation: 2,
-              shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(8)),
-              child: Padding(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const Text('Your Current Role',
-                        style: TextStyle(
-                            fontSize: 16, fontWeight: FontWeight.bold)),
-                    RadioListTile<UserRole>(
-                      title: const Text('Responder'),
-                      value: UserRole.responder,
-                      groupValue: selectedRole,
-                      onChanged: (value) =>
-                          setState(() => selectedRole = value!),
-                    ),
-                    RadioListTile<UserRole>(
-                      title: const Text('Observer'),
-                      value: UserRole.observer,
-                      groupValue: selectedRole,
-                      onChanged: (value) =>
-                          setState(() => selectedRole = value!),
-                    ),
-                    const SizedBox(height: 8),
-                    Align(
-                      alignment: Alignment.centerRight,
-                      child: ElevatedButton.icon(
-                        icon: const Icon(Icons.check),
-                        label: const Text('Apply'),
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.deepPurple,
-                          foregroundColor: Colors.white,
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 20, vertical: 12),
-                        ),
-                        onPressed: selectedRole == widget.currentRole
-                            ? null
-                            : _applyRoleChange,
+
+            // Role selection section (always shown last)
+            const Divider(thickness: 1.2, height: 32),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 10),
+              decoration: BoxDecoration(
+                color: Colors.grey.shade100,
+                border: Border.all(color: Colors.grey.shade300),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text(
+                    'Switch Role (rarely needed)',
+                    style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold),
+                  ),
+                  _buildRoleSelector(),
+                  const SizedBox(height: 4),
+                  Align(
+                    alignment: Alignment.centerRight,
+                    child: ElevatedButton.icon(
+                      icon: const Icon(Icons.check),
+                      label: const Text('Apply'),
+                      onPressed: isDirty ? _applyRoleChange : null,
+                      style: ElevatedButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 10),
+                        backgroundColor: isDirty ? Colors.deepPurple : Colors.grey,
+                        foregroundColor: Colors.white,
                       ),
                     ),
-                  ],
-                ),
+                  ),
+                ],
               ),
             ),
           ],
         ),
       ),
+    );
+  }
+
+  Widget _buildRoleSelector() {
+    return Column(
+      children: UserRole.values.map((role) {
+        return RadioListTile<UserRole>(
+          dense: true,
+          contentPadding: EdgeInsets.zero,
+          visualDensity: const VisualDensity(vertical: -4),
+          title: Text(role.name[0].toUpperCase() + role.name.substring(1)),
+          value: role,
+          groupValue: selectedRole,
+          onChanged: (value) => setState(() => selectedRole = value!),
+        );
+      }).toList(),
     );
   }
 }

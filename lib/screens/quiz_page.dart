@@ -1,4 +1,3 @@
-
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -15,10 +14,11 @@ class QuizPage extends StatefulWidget {
   _QuizPageState createState() => _QuizPageState();
 }
 
-class _QuizPageState extends State<QuizPage> {
+class _QuizPageState extends State<QuizPage> with WidgetsBindingObserver {
   late QuestionPack pack;
   bool isLoading = true;
-
+  TimeOfDay? startHour;
+  TimeOfDay? endHour;
   late Question currentQuestion;
   List<AnswerOption> displayedChoices = [];
 
@@ -27,15 +27,56 @@ class _QuizPageState extends State<QuizPage> {
 
   Timer? alertTimer;
   Timer? responseTimer;
-  final Duration alertInterval = Duration(minutes: 5);
-  final Duration responseTimeout = Duration(minutes: 1);
+
+  // Will be set based on settings
+  Duration alertInterval = Duration(minutes: 5);
+  Duration responseTimeout = Duration(minutes: 1);
 
   late UserRole currentRole;
 
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     loadPackFromFirestore();
+  }
+
+  @override
+  void dispose() {
+    alertTimer?.cancel();
+    responseTimer?.cancel();
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed && !isLoading) {
+      setState(() {});
+    }
+  }
+
+  void _parseOperationHours(String startStr, String endStr) {
+    try {
+      final startParts = startStr.split(':').map(int.parse).toList();
+      final endParts = endStr.split(':').map(int.parse).toList();
+      startHour = TimeOfDay(hour: startParts[0], minute: startParts[1]);
+      endHour = TimeOfDay(hour: endParts[0], minute: endParts[1]);
+    } catch (e) {
+      startHour = const TimeOfDay(hour: 8, minute: 0);
+      endHour = const TimeOfDay(hour: 20, minute: 0);
+    }
+  }
+
+  bool _isWithinActiveHours() {
+    if (startHour == null || endHour == null) return true;
+
+    final now = TimeOfDay.now();
+    final nowMinutes = now.hour * 60 + now.minute;
+    final startMinutes = startHour!.hour * 60 + startHour!.minute;
+    final endMinutes = endHour!.hour * 60 + endHour!.minute;
+
+    return nowMinutes >= startMinutes && nowMinutes <= endMinutes;
   }
 
   Future<void> loadPackFromFirestore() async {
@@ -46,19 +87,33 @@ class _QuizPageState extends State<QuizPage> {
       currentRole = UserRoleExtension.fromString(roleStr) ?? UserRole.responder;
 
       pack = doc;
+
+      final startStr = prefs.getString('startHour') ?? '08:00';
+      final endStr = prefs.getString('endHour') ?? '20:00';
+      _parseOperationHours(startStr, endStr);
+      final frequency = prefs.getDouble('alertFrequency') ?? 180;
+      final timeout = prefs.getDouble('timeoutDuration') ?? 1;
+
+      alertInterval = Duration(minutes: frequency.round());
+      responseTimeout = Duration(minutes: timeout.round());
+
       loadRandomQuestion();
       setState(() {
         isLoading = false;
       });
       startAlertLoop();
     } catch (e) {
-      print('Error loading pack: \$e');
+      print('Error loading pack: $e');
     }
   }
 
   void startAlertLoop() {
     alertTimer?.cancel();
-    alertTimer = Timer.periodic(alertInterval, (_) => loadRandomQuestion());
+    alertTimer = Timer.periodic(alertInterval, (_) {
+      if (_isWithinActiveHours()) {
+        loadRandomQuestion();
+      }
+    });
   }
 
   void loadRandomQuestion() {
@@ -77,17 +132,16 @@ class _QuizPageState extends State<QuizPage> {
     );
   }
 
-  Future<void> _handleTimeout() async {
+  void _handleTimeout() async {
     if (selectedAnswer == null) {
       setState(() {
         feedback = '⏰ You missed the question.';
       });
-    await logCheckIn(
-      responderId: currentRole.name,
-      result: 'missed',
-      questionPrompt: currentQuestion.prompt,
-    );
-
+      await logCheckIn(
+        responderId: currentRole.name,
+        result: 'missed',
+        questionPrompt: currentQuestion.prompt,
+      );
     }
   }
 
@@ -96,24 +150,17 @@ class _QuizPageState extends State<QuizPage> {
 
     responseTimer?.cancel();
 
+    final isCorrect = selectedAnswer == currentQuestion.correctAnswer;
+
     setState(() {
-      feedback = (selectedAnswer == currentQuestion.correctAnswer)
-          ? '✅ Correct!'
-          : '❌ Incorrect';
+      feedback = isCorrect ? '✅ Correct!' : '❌ Incorrect';
     });
 
     await logCheckIn(
-      responderId: currentRole.name, // or user ID from auth if you prefer
-      result: selectedAnswer == currentQuestion.correctAnswer ? 'correct' : 'incorrect',
+      responderId: currentRole.name,
+      result: isCorrect ? 'correct' : 'incorrect',
       questionPrompt: currentQuestion.prompt,
     );
-  }
-
-  @override
-  void dispose() {
-    alertTimer?.cancel();
-    responseTimer?.cancel();
-    super.dispose();
   }
 
   @override
@@ -127,14 +174,17 @@ class _QuizPageState extends State<QuizPage> {
 
     return Scaffold(
       appBar: AppBar(
-        title: Text('Danoggin (${currentRole.name[0].toUpperCase()}${currentRole.name.substring(1)})'),
+        title: Text(
+            'Danoggin (${currentRole.name[0].toUpperCase()}${currentRole.name.substring(1)})'),
         actions: [
           IconButton(
             icon: const Icon(Icons.settings),
             onPressed: () async {
               final newRole = await Navigator.push<UserRole>(
                 context,
-                MaterialPageRoute(builder: (context) => SettingsPage(currentRole: currentRole)),
+                MaterialPageRoute(
+                    builder: (context) =>
+                        SettingsPage(currentRole: currentRole)),
               );
               if (newRole != null && newRole != currentRole) {
                 final prefs = await SharedPreferences.getInstance();
@@ -198,10 +248,9 @@ class _QuizPageState extends State<QuizPage> {
   }
 }
 
-
 Future<void> logCheckIn({
   required String responderId,
-  required String result, // 'correct', 'incorrect', or 'missed'
+  required String result,
   required String questionPrompt,
 }) async {
   final now = DateTime.now();
@@ -217,4 +266,3 @@ Future<void> logCheckIn({
     'prompt': questionPrompt,
   });
 }
-
