@@ -1,4 +1,5 @@
 
+import 'package:danoggin/widgets/observer_settings_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:danoggin/models/user_role.dart';
@@ -51,7 +52,7 @@ class _SettingsPageState extends State<SettingsPage> {
             Expanded(
               child: widget.currentRole == UserRole.responder
                   ? const ResponderSettingsWidget()
-                  : const Center(child: Text('Observer settings coming soon...')),
+                  : const ObserverSettingsWidget(),
             ),
 
             // Role selection section (always shown last)

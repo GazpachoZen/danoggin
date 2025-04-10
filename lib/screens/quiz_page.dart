@@ -107,14 +107,19 @@ class _QuizPageState extends State<QuizPage> with WidgetsBindingObserver {
     }
   }
 
-  void startAlertLoop() {
-    alertTimer?.cancel();
-    alertTimer = Timer.periodic(alertInterval, (_) {
-      if (_isWithinActiveHours()) {
-        loadRandomQuestion();
-      }
-    });
-  }
+void startAlertLoop() {
+  alertTimer?.cancel();
+  alertTimer = Timer.periodic(alertInterval, (_) async {
+    final prefs = await SharedPreferences.getInstance();
+    final startStr = prefs.getString('startHour') ?? '08:00';
+    final endStr = prefs.getString('endHour') ?? '20:00';
+    _parseOperationHours(startStr, endStr);
+
+    if (_isWithinActiveHours()) {
+      loadRandomQuestion();
+    }
+  });
+}
 
   void loadRandomQuestion() {
     currentQuestion = pack.getRandomQuestion();
