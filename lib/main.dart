@@ -1,36 +1,47 @@
-// Copyright (c) 2025, Blue Vista Solutions.  All rights reserved.
-//
-// This source code is part of the Danoggin project and is intended for 
-// internal or authorized use only. Unauthorized copying, modification, or 
-// distribution of this file, via any medium, is strictly prohibited. For 
-// licensing or permissions, contact: ivory@blue-vistas.com
-//------------------------------------------------------------------------
 
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'services/auth_service.dart';
+import 'repositories/user_repository.dart';
 import 'models/user_role.dart';
-import 'screens/role_selection_screen.dart';
 import 'screens/quiz_page.dart';
 import 'screens/observer_page.dart';
-import 'services/notification_service.dart';
-
-
-// Here's the obligatory main method, where everything starts...
+import 'screens/role_selection_screen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await NotificationService.initialize();
+  print('Starting Firebase init...');
   await Firebase.initializeApp();
+  print('Firebase initialized.');
 
-  final role = await loadUserRole();
+  print('Ensuring anonymous sign-in...');
+  await AuthService.ensureSignedIn();
+  print('User signed in: ${AuthService.currentUserId}');
 
-  runApp(MaterialApp(
-    title: 'Danoggin',
-    theme: ThemeData(primarySwatch: Colors.deepPurple),
-    home: role == null
-        ? RoleSelectionScreen()
-        : (role == UserRole.responder
-            ? QuizPage()
-            : ObserverPage()),
-  ));
+  print('Checking role...');
+  final uid = AuthService.currentUserId;
+  final role = await UserRepository.getUserRole(uid);
+  print('Role from Firestore: $role');
+
+  runApp(MyApp(initialRole: role));
+}
+
+class MyApp extends StatelessWidget {
+  final UserRole? initialRole;
+
+  const MyApp({super.key, required this.initialRole});
+
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      title: 'Danoggin',
+      theme: ThemeData(primarySwatch: Colors.deepPurple),
+      home: initialRole == null
+          ? RoleSelectionScreen()
+          : (initialRole == UserRole.responder
+              ? QuizPage()
+              : ObserverPage()),
+    );
+  }
 }

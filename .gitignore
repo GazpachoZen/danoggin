@@ -31,6 +31,7 @@ migrate_working_dir/
 .pub-cache/
 .pub/
 /build/
+/android/app/.cxx/
 
 # Symbolication related
 app.*.symbols
@@ -48,3 +49,4 @@ android/app/.cxx/Debug/121u2h4q/armeabi-v7a/configure_fingerprint.bin
 android/app/.cxx/Debug/121u2h4q/x86/configure_fingerprint.bin
 android/app/.cxx/Debug/121u2h4q/x86_64/configure_fingerprint.bin
 lib.zip
+jj.*

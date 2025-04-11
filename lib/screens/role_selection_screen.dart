@@ -1,57 +1,67 @@
-// Copyright (c) 2025, Blue Vista Solutions.  All rights reserved.
-//
-// This source code is part of the Danoggin project and is intended for 
-// internal or authorized use only. Unauthorized copying, modification, or 
-// distribution of this file, via any medium, is strictly prohibited. For 
-// licensing or permissions, contact: ivory@blue-vistas.com
-//------------------------------------------------------------------------
 
 import 'package:flutter/material.dart';
 import 'package:danoggin/models/user_role.dart';
-import 'quiz_page.dart';
-import 'observer_page.dart';
+import 'package:danoggin/screens/quiz_page.dart';
+import 'package:danoggin/screens/observer_page.dart';
+import 'package:danoggin/repositories/user_repository.dart';
+import 'package:danoggin/services/auth_service.dart';
 
-class RoleSelectionScreen extends StatelessWidget {
-  void selectRole(BuildContext context, UserRole role) async {
-    await saveUserRole(role);
+class RoleSelectionScreen extends StatefulWidget {
+  const RoleSelectionScreen({super.key});
 
-    if (role == UserRole.responder) {
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(builder: (_) => QuizPage()),
-      );
-    } else {
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(builder: (_) => ObserverPage()),
-      );
-    }
+  @override
+  State<RoleSelectionScreen> createState() => _RoleSelectionScreenState();
+}
+
+class _RoleSelectionScreenState extends State<RoleSelectionScreen> {
+  UserRole? selectedRole;
+
+  Future<void> _applyRole() async {
+    if (selectedRole == null) return;
+
+    final uid = AuthService.currentUserId;
+    await UserRepository.createUserIfNotExists(uid, selectedRole!);
+    print('Role ${selectedRole!.name} stored for user $uid');
+
+    Navigator.of(context).pushReplacement(
+      MaterialPageRoute(
+        builder: (_) => selectedRole == UserRole.responder
+            ? QuizPage()
+            : ObserverPage(),
+      ),
+    );
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text("Welcome to Danoggin")),
+      appBar: AppBar(title: const Text('Select Your Role')),
       body: Padding(
-        padding: const EdgeInsets.all(24),
+        padding: const EdgeInsets.all(24.0),
         child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Text(
-              "Who are you?",
-              style: TextStyle(fontSize: 22),
+            const Text('Please choose your role:', style: TextStyle(fontSize: 18)),
+            const SizedBox(height: 24),
+            RadioListTile<UserRole>(
+              title: const Text('Responder'),
+              value: UserRole.responder,
+              groupValue: selectedRole,
+              onChanged: (value) => setState(() => selectedRole = value),
             ),
-            SizedBox(height: 32),
-            ElevatedButton.icon(
-              icon: Icon(Icons.person),
-              label: Text("Responder"),
-              onPressed: () => selectRole(context, UserRole.responder),
+            RadioListTile<UserRole>(
+              title: const Text('Observer'),
+              value: UserRole.observer,
+              groupValue: selectedRole,
+              onChanged: (value) => setState(() => selectedRole = value),
             ),
-            SizedBox(height: 16),
+            const SizedBox(height: 32),
             ElevatedButton.icon(
-              icon: Icon(Icons.visibility),
-              label: Text("Observer"),
-              onPressed: () => selectRole(context, UserRole.observer),
+              icon: const Icon(Icons.check),
+              label: const Text('Continue'),
+              onPressed: _applyRole,
+              style: ElevatedButton.styleFrom(
+                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+              ),
             ),
           ],
         ),

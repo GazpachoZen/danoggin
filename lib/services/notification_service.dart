@@ -85,6 +85,7 @@ class NotificationService {
       channelDescription: 'Periodic awareness check-ins',
       importance: Importance.high,
       priority: Priority.high,
+      icon: 'ic_stat_notify',
     );
 
     const NotificationDetails platformDetails =
