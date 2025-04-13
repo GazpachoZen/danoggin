@@ -5,6 +5,7 @@ import 'package:danoggin/screens/quiz_page.dart';
 import 'package:danoggin/screens/observer_page.dart';
 import 'package:danoggin/repositories/user_repository.dart';
 import 'package:danoggin/services/auth_service.dart';
+import 'dart:math';
 
 class RoleSelectionScreen extends StatefulWidget {
   const RoleSelectionScreen({super.key});
@@ -43,8 +44,9 @@ class _RoleSelectionScreenState extends State<RoleSelectionScreen> {
   }
 
   String _generateInviteCode() {
-    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
-    return List.generate(6, (index) => chars[(chars.length * index + DateTime.now().millisecondsSinceEpoch) % chars.length]).join();
+    const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+    final rand = Random.secure();
+    return List.generate(6, (index) => chars[rand.nextInt(chars.length)]).join();
   }
 
   @override
