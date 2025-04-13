@@ -5,14 +5,27 @@ import 'package:danoggin/models/user_role.dart';
 class UserRepository {
   static final _usersRef = FirebaseFirestore.instance.collection('users');
 
-  static Future<void> createUserIfNotExists(String uid, UserRole role) async {
+  static Future<void> createUserProfile({
+    required String uid,
+    required String name,
+    required UserRole role,
+    String? inviteCode,
+  }) async {
     final doc = _usersRef.doc(uid);
     final snapshot = await doc.get();
 
     if (!snapshot.exists) {
       await doc.set({
+        'name': name,
         'role': role.name,
         'createdAt': FieldValue.serverTimestamp(),
+        if (inviteCode != null) 'inviteCode': inviteCode,
+      });
+    } else {
+      await doc.update({
+        'name': name,
+        'role': role.name,
+        if (inviteCode != null) 'inviteCode': inviteCode,
       });
     }
   }

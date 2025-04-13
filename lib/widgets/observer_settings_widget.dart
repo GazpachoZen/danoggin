@@ -1,6 +1,6 @@
-
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:danoggin/screens/observer_add_responder_screen.dart';
 
 class ObserverSettingsWidget extends StatefulWidget {
   const ObserverSettingsWidget({super.key});
@@ -35,7 +35,8 @@ class _ObserverSettingsWidgetState extends State<ObserverSettingsWidget> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text('Polling Interval (minutes)', style: TextStyle(fontWeight: FontWeight.bold)),
+        const Text('Polling Interval (minutes)',
+            style: TextStyle(fontWeight: FontWeight.bold)),
         Slider(
           value: pollingIntervalMinutes,
           min: 1,
@@ -50,7 +51,16 @@ class _ObserverSettingsWidgetState extends State<ObserverSettingsWidget> {
             onPressed: _savePrefs,
             child: const Text('Save Settings'),
           ),
-        )
+        ),
+        ListTile(
+          leading: const Icon(Icons.link),
+          title: const Text('Link to a responder'),
+          onTap: () {
+            Navigator.of(context).push(MaterialPageRoute(
+              builder: (_) => const ObserverAddResponderScreen(),
+            ));
+          },
+        ),
       ],
     );
   }

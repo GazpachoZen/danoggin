@@ -1,12 +1,13 @@
-
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:danoggin/screens/responder_invite_code_screen.dart';
 
 class ResponderSettingsWidget extends StatefulWidget {
   const ResponderSettingsWidget({super.key});
 
   @override
-  State<ResponderSettingsWidget> createState() => _ResponderSettingsWidgetState();
+  State<ResponderSettingsWidget> createState() =>
+      _ResponderSettingsWidgetState();
 }
 
 class _ResponderSettingsWidgetState extends State<ResponderSettingsWidget> {
@@ -26,7 +27,8 @@ class _ResponderSettingsWidgetState extends State<ResponderSettingsWidget> {
     setState(() {
       startHour = _getTimeOfDay(prefs.getString('startHour')) ?? startHour;
       endHour = _getTimeOfDay(prefs.getString('endHour')) ?? endHour;
-      alertFrequencyMinutes = prefs.getDouble('alertFrequency') ?? alertFrequencyMinutes;
+      alertFrequencyMinutes =
+          prefs.getDouble('alertFrequency') ?? alertFrequencyMinutes;
       timeoutMinutes = prefs.getDouble('timeoutDuration') ?? timeoutMinutes;
     });
   }
@@ -38,13 +40,14 @@ class _ResponderSettingsWidgetState extends State<ResponderSettingsWidget> {
     return TimeOfDay(hour: int.parse(parts[0]), minute: int.parse(parts[1]));
   }
 
-  String _formatTimeOfDay(TimeOfDay tod) => '${tod.hour.toString().padLeft(2, '0')}:${tod.minute.toString().padLeft(2, '0')}';
+  String _formatTimeOfDay(TimeOfDay tod) =>
+      '${tod.hour.toString().padLeft(2, '0')}:${tod.minute.toString().padLeft(2, '0')}';
 
   String _formatTimeOfDayAMPM(TimeOfDay tod) {
     final now = DateTime.now();
     final dt = DateTime(now.year, now.month, now.day, tod.hour, tod.minute);
     final local = TimeOfDay.fromDateTime(dt);
-    return local.format(context);  // Uses device locale and AM/PM
+    return local.format(context); // Uses device locale and AM/PM
   }
 
   Future<void> _savePrefs() async {
@@ -57,7 +60,8 @@ class _ResponderSettingsWidgetState extends State<ResponderSettingsWidget> {
 
   Future<void> _pickTime(BuildContext context, bool isStart) async {
     final initialTime = isStart ? startHour : endHour;
-    final picked = await showTimePicker(context: context, initialTime: initialTime);
+    final picked =
+        await showTimePicker(context: context, initialTime: initialTime);
     if (picked != null) {
       setState(() {
         if (isStart) {
@@ -74,7 +78,8 @@ class _ResponderSettingsWidgetState extends State<ResponderSettingsWidget> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text('Hours of Operation', style: TextStyle(fontWeight: FontWeight.bold)),
+        const Text('Hours of Operation',
+            style: TextStyle(fontWeight: FontWeight.bold)),
         Row(
           children: [
             TextButton(
@@ -89,7 +94,7 @@ class _ResponderSettingsWidgetState extends State<ResponderSettingsWidget> {
         ),
         const SizedBox(height: 16),
         Text('Alert Frequency: ${alertFrequencyMinutes.round()} min',
-          style: TextStyle(fontWeight: FontWeight.bold)),
+            style: TextStyle(fontWeight: FontWeight.bold)),
         Slider(
           value: alertFrequencyMinutes,
           min: 5,
@@ -99,7 +104,8 @@ class _ResponderSettingsWidgetState extends State<ResponderSettingsWidget> {
           onChanged: (val) => setState(() => alertFrequencyMinutes = val),
         ),
         const SizedBox(height: 16),
-        Text('Response Timeout: ${timeoutMinutes.toStringAsFixed(1)} min', style: TextStyle(fontWeight: FontWeight.bold)),
+        Text('Response Timeout: ${timeoutMinutes.toStringAsFixed(1)} min',
+            style: TextStyle(fontWeight: FontWeight.bold)),
         Slider(
           value: timeoutMinutes,
           min: 0.5,
@@ -114,7 +120,20 @@ class _ResponderSettingsWidgetState extends State<ResponderSettingsWidget> {
             onPressed: _savePrefs,
             child: const Text('Save Settings'),
           ),
-        )
+        ),
+        const Divider(height: 32),
+        ListTile(
+          leading: const Icon(Icons.key),
+          title: const Text('Show my invite code'),
+          trailing: const Icon(Icons.arrow_forward_ios, size: 16),
+          onTap: () {
+            Navigator.of(context).push(
+              MaterialPageRoute(
+                builder: (_) => const ResponderInviteCodeScreen(),
+              ),
+            );
+          },
+        ),
       ],
     );
   }

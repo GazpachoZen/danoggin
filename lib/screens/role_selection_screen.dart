@@ -15,21 +15,36 @@ class RoleSelectionScreen extends StatefulWidget {
 
 class _RoleSelectionScreenState extends State<RoleSelectionScreen> {
   UserRole? selectedRole;
+  final TextEditingController nameController = TextEditingController();
 
   Future<void> _applyRole() async {
-    if (selectedRole == null) return;
+    final name = nameController.text.trim();
+    if (selectedRole == null || name.isEmpty) return;
 
     final uid = AuthService.currentUserId;
-    await UserRepository.createUserIfNotExists(uid, selectedRole!);
-    print('Role ${selectedRole!.name} stored for user $uid');
+    final inviteCode = selectedRole == UserRole.responder
+        ? _generateInviteCode()
+        : null;
+
+    await UserRepository.createUserProfile(
+      uid: uid,
+      name: name,
+      role: selectedRole!,
+      inviteCode: inviteCode,
+    );
 
     Navigator.of(context).pushReplacement(
       MaterialPageRoute(
         builder: (_) => selectedRole == UserRole.responder
             ? QuizPage()
-            : ObserverPage(),
+            : const ObserverPage(),
       ),
     );
+  }
+
+  String _generateInviteCode() {
+    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+    return List.generate(6, (index) => chars[(chars.length * index + DateTime.now().millisecondsSinceEpoch) % chars.length]).join();
   }
 
   @override
@@ -40,8 +55,17 @@ class _RoleSelectionScreenState extends State<RoleSelectionScreen> {
         padding: const EdgeInsets.all(24.0),
         child: Column(
           children: [
-            const Text('Please choose your role:', style: TextStyle(fontSize: 18)),
+            const Text('Please enter your name:', style: TextStyle(fontSize: 18)),
+            const SizedBox(height: 8),
+            TextField(
+              controller: nameController,
+              decoration: const InputDecoration(
+                hintText: 'Your full name',
+                border: OutlineInputBorder(),
+              ),
+            ),
             const SizedBox(height: 24),
+            const Text('Choose your role:', style: TextStyle(fontSize: 18)),
             RadioListTile<UserRole>(
               title: const Text('Responder'),
               value: UserRole.responder,
