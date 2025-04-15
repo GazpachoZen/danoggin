@@ -21,3 +21,7 @@ h List all available interactive commands.
 d Detach (terminate "flutter run" but leave application running).
 c Clear the screen
 q Quit (terminate the application on the device).
+
+Pat:	iPhone, iOS 18
+Teresa:	iPhone, iOS 18.4
+Sean:	Pixel 9 Pro XL, Android 15
