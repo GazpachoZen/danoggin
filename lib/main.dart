@@ -8,9 +8,15 @@ import 'models/user_role.dart';
 import 'screens/quiz_page.dart';
 import 'screens/observer_page.dart';
 import 'screens/role_selection_screen.dart';
+import 'services/notification_service.dart';
+import 'services/notification_helper.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  
+  // Initialize notification system first
+  await NotificationHelper.initialize();
+  
   print('Starting Firebase init...');
   await Firebase.initializeApp();
   print('Firebase initialized.');
@@ -42,6 +48,32 @@ class MyApp extends StatelessWidget {
           : (initialRole == UserRole.responder
               ? QuizPage()
               : ObserverPage()),
+      // Add this to check permissions after the app loads
+      navigatorObservers: [
+        _NotificationPermissionObserver(),
+      ],
     );
+  }
+}
+
+// Create a navigator observer to check permissions after initial page load
+class _NotificationPermissionObserver extends NavigatorObserver {
+  bool _permissionCheckDone = false;
+
+  @override
+  void didPush(Route<dynamic> route, Route<dynamic>? previousRoute) {
+    super.didPush(route, previousRoute);
+    
+    // Only check permissions once, after initial screen loads
+    if (!_permissionCheckDone && route.settings.name == null) {
+      _permissionCheckDone = true;
+      
+      // Delay slightly to ensure UI is fully loaded
+      Future.delayed(Duration(seconds: 1), () async {
+        if (navigator?.context != null) {
+          await NotificationHelper.showPermissionDialog(navigator!.context);
+        }
+      });
+    }
   }
 }

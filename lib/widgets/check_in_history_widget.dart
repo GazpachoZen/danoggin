@@ -5,7 +5,7 @@ import 'package:intl/intl.dart';
 import 'package:timeago/timeago.dart' as timeago;
 
 class CheckInHistoryWidget extends StatelessWidget {
-  final String responderId;
+  final String responderId; // This is now expected to be a Firebase UID
   final int limit;
 
   const CheckInHistoryWidget({
@@ -19,7 +19,7 @@ class CheckInHistoryWidget extends StatelessWidget {
     return StreamBuilder<QuerySnapshot>(
       stream: FirebaseFirestore.instance
           .collection('responder_status')
-          .doc(responderId)
+          .doc(responderId) // Use the actual UID
           .collection('check_ins')
           .orderBy('timestamp', descending: true)
           .limit(limit)

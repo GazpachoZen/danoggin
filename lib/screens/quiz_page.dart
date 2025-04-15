@@ -8,6 +8,8 @@ import 'package:danoggin/models/user_role.dart';
 import 'package:danoggin/services/notification_service.dart';
 import 'package:danoggin/screens/settings_page.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:danoggin/services/auth_service.dart';
+import 'package:danoggin/services/notification_helper.dart';
 
 class QuizPage extends StatefulWidget {
   @override
@@ -39,6 +41,52 @@ class _QuizPageState extends State<QuizPage> with WidgetsBindingObserver {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
     loadPackFromFirestore();
+
+    // Add this - Check notification permissions after a short delay
+    _checkNotificationPermissions();
+  }
+
+// Add this method to check notification permissions
+  Future<void> _checkNotificationPermissions() async {
+    // Wait for UI to be fully initialized
+    await Future.delayed(Duration(seconds: 2));
+
+    if (!mounted) return;
+
+    // Check if notifications are enabled
+    bool enabled = true;
+    try {
+      enabled = await NotificationHelper.areNotificationsEnabled();
+    } catch (e) {
+      print('Error checking notification permissions: $e');
+      return;
+    }
+
+    // If notifications are disabled, show a more urgent dialog for responders
+    if (!enabled && mounted) {
+      showDialog(
+        context: context,
+        barrierDismissible: false, // User must respond to dialog
+        builder: (context) => AlertDialog(
+          title: Text('Important: Enable Notifications'),
+          content: Text(
+              'Notifications are currently disabled for Danoggin. As a Responder, '
+              'you need notifications to be alerted when it\'s time for a check-in.\n\n'
+              'Please enable notifications for this app in your device settings to '
+              'ensure you receive check-in alerts.'),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.pop(context);
+                // Show manual instructions
+                NotificationHelper.openNotificationSettings(context);
+              },
+              child: Text('Show Instructions'),
+            ),
+          ],
+        ),
+      );
+    }
   }
 
   @override
@@ -107,19 +155,36 @@ class _QuizPageState extends State<QuizPage> with WidgetsBindingObserver {
     }
   }
 
-void startAlertLoop() {
-  alertTimer?.cancel();
-  alertTimer = Timer.periodic(alertInterval, (_) async {
-    final prefs = await SharedPreferences.getInstance();
-    final startStr = prefs.getString('startHour') ?? '08:00';
-    final endStr = prefs.getString('endHour') ?? '20:00';
-    _parseOperationHours(startStr, endStr);
+  void startAlertLoop() {
+    alertTimer?.cancel();
+    alertTimer = Timer.periodic(alertInterval, (_) async {
+      final prefs = await SharedPreferences.getInstance();
+      final startStr = prefs.getString('startHour') ?? '08:00';
+      final endStr = prefs.getString('endHour') ?? '20:00';
+      _parseOperationHours(startStr, endStr);
 
-    if (_isWithinActiveHours()) {
-      loadRandomQuestion();
-    }
-  });
-}
+      if (_isWithinActiveHours()) {
+        // Check if notifications are enabled
+        bool enabled = true;
+        try {
+          enabled = await NotificationHelper.areNotificationsEnabled();
+        } catch (e) {
+          print('Error checking notification permissions: $e');
+        }
+
+        if (!enabled && mounted) {
+          // Show a dialog prompting to enable notifications
+          NotificationHelper.showInAppAlert(
+            context,
+            'Notifications Disabled',
+            'Check-in notifications appear to be disabled. This app requires notifications to remind you when it\'s time to perform a check-in. Please enable notifications for the app in your device settings.',
+          );
+        }
+
+        loadRandomQuestion();
+      }
+    });
+  }
 
   void loadRandomQuestion() {
     currentQuestion = pack.getRandomQuestion();
@@ -130,7 +195,8 @@ void startAlertLoop() {
     responseTimer?.cancel();
     responseTimer = Timer(responseTimeout, _handleTimeout);
 
-    NotificationService.showBasicNotification(
+    // Use the NotificationHelper to show the check-in notification
+    NotificationHelper.showAlert(
       id: 1,
       title: 'Danoggin Check-In',
       body: 'Time to answer a quick question!',
@@ -142,10 +208,19 @@ void startAlertLoop() {
       setState(() {
         feedback = '⏰ You missed the question.';
       });
+
+      // Log the missed check-in
       await logCheckIn(
         responderId: currentRole.name,
         result: 'missed',
         questionPrompt: currentQuestion.prompt,
+      );
+
+      // Show an alert notification
+      NotificationHelper.showInAppAlert(
+        context,
+        'Missed Check-in',
+        'You missed answering the check-in question. This will be recorded as a missed check-in.',
       );
     }
   }
@@ -182,6 +257,11 @@ void startAlertLoop() {
         title: Text(
             'Danoggin (${currentRole.name[0].toUpperCase()}${currentRole.name.substring(1)})'),
         actions: [
+          IconButton(
+            icon: const Icon(Icons.notifications),
+            tooltip: 'Test Notifications',
+            onPressed: _testNotifications,
+          ),
           IconButton(
             icon: const Icon(Icons.settings),
             onPressed: () async {
@@ -251,6 +331,44 @@ void startAlertLoop() {
       ),
     );
   }
+
+  Future<void> _testNotifications() async {
+    try {
+      // Try to check if notifications are enabled
+      bool enabled = true;
+      try {
+        enabled = await NotificationHelper.areNotificationsEnabled();
+      } catch (e) {
+        print('Error checking notification permissions: $e');
+        // If we can't check, assume they're enabled
+      }
+
+      if (!enabled) {
+        // Show manual instructions if notifications are disabled
+        NotificationHelper.openNotificationSettings(context);
+        return;
+      }
+
+      // Test notification
+      await NotificationHelper.testNotification();
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Test notification sent!'),
+          duration: Duration(seconds: 2),
+        ),
+      );
+    } catch (e) {
+      print('Error testing notifications: $e');
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Error sending test notification: $e'),
+          backgroundColor: Colors.red,
+          duration: Duration(seconds: 3),
+        ),
+      );
+    }
+  }
 }
 
 Future<void> logCheckIn({
@@ -258,16 +376,34 @@ Future<void> logCheckIn({
   required String result,
   required String questionPrompt,
 }) async {
-  final now = DateTime.now();
-  final doc = FirebaseFirestore.instance
-      .collection('responder_status')
-      .doc(responderId)
-      .collection('check_ins')
-      .doc(now.toIso8601String());
+  try {
+    final now = DateTime.now();
 
-  await doc.set({
-    'timestamp': now.toIso8601String(),
-    'result': result,
-    'prompt': questionPrompt,
-  });
+    // Get the current user's UID from AuthService
+    final uid = AuthService.currentUserId;
+
+    print(
+        "SAVE: Writing check-in data to responder_status/$uid/check_ins/${now.toIso8601String()}");
+    print(
+        "SAVE: Data: result=$result, prompt=$questionPrompt, timestamp=${now.toIso8601String()}");
+
+    final doc = FirebaseFirestore.instance
+        .collection('responder_status')
+        .doc(uid) // Use the actual UID instead of static responderId
+        .collection('check_ins')
+        .doc(now.toIso8601String());
+
+    await doc.set({
+      'timestamp': now.toIso8601String(),
+      'result': result,
+      'prompt': questionPrompt,
+      'responderId':
+          responderId, // Keep this for backward compatibility/filtering
+    });
+
+    print("SAVE: Successfully wrote check-in data!");
+  } catch (e, stackTrace) {
+    print("ERROR: Failed to log check-in: $e");
+    print("Stack trace: $stackTrace");
+  }
 }
