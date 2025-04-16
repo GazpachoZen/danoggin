@@ -1,0 +1,289 @@
+[
+    {
+      "prompt": "What is the capital of New York State?",
+      "correctAnswer": {
+        "text": "Albany",
+        "imagePath": null
+      },
+      "decoyAnswers": [
+        {
+          "text": "Chicago",
+          "imagePath": null
+        },
+        {
+          "text": "Los Angeles",
+          "imagePath": null
+        },
+        {
+          "text": "Dallas",
+          "imagePath": null
+        },
+        {
+          "text": "Phoenix",
+          "imagePath": null
+        },
+        {
+          "text": "Atlanta",
+          "imagePath": null
+        },
+        {
+          "text": "Denver",
+          "imagePath": null
+        },
+        {
+          "text": "Seattle",
+          "imagePath": null
+        },
+        {
+          "text": "Miami",
+          "imagePath": null
+        }
+      ]
+    },
+    {
+      "prompt": "What is the capital of the United States?",
+      "correctAnswer": {
+        "text": "Washington, D.C.",
+        "imagePath": null
+      },
+      "decoyAnswers": [
+        {
+          "text": "Toronto",
+          "imagePath": null
+        },
+        {
+          "text": "Mexico City",
+          "imagePath": null
+        },
+        {
+          "text": "Ottawa",
+          "imagePath": null
+        },
+        {
+          "text": "London",
+          "imagePath": null
+        },
+        {
+          "text": "Berlin",
+          "imagePath": null
+        },
+        {
+          "text": "Paris",
+          "imagePath": null
+        },
+        {
+          "text": "Tokyo",
+          "imagePath": null
+        },
+        {
+          "text": "Moscow",
+          "imagePath": null
+        }
+      ]
+    },
+    {
+      "prompt": "What is the capital of France?",
+      "correctAnswer": {
+        "text": "Paris",
+        "imagePath": null
+      },
+      "decoyAnswers": [
+        {
+          "text": "Madrid",
+          "imagePath": null
+        },
+        {
+          "text": "Rome",
+          "imagePath": null
+        },
+        {
+          "text": "Berlin",
+          "imagePath": null
+        },
+        {
+          "text": "Lisbon",
+          "imagePath": null
+        },
+        {
+          "text": "Vienna",
+          "imagePath": null
+        },
+        {
+          "text": "Oslo",
+          "imagePath": null
+        },
+        {
+          "text": "Brussels",
+          "imagePath": null
+        },
+        {
+          "text": "Athens",
+          "imagePath": null
+        }
+      ]
+    },
+    {
+      "prompt": "What is the capital of England?",
+      "correctAnswer": {
+        "text": "London",
+        "imagePath": null
+      },
+      "decoyAnswers": [
+        {
+          "text": "Dublin",
+          "imagePath": null
+        },
+        {
+          "text": "Edinburgh",
+          "imagePath": null
+        },
+        {
+          "text": "Cardiff",
+          "imagePath": null
+        },
+        {
+          "text": "Paris",
+          "imagePath": null
+        },
+        {
+          "text": "Berlin",
+          "imagePath": null
+        },
+        {
+          "text": "Madrid",
+          "imagePath": null
+        },
+        {
+          "text": "Rome",
+          "imagePath": null
+        },
+        {
+          "text": "Vienna",
+          "imagePath": null
+        }
+      ]
+    },
+    {
+      "prompt": "What is the capital of Russia?",
+      "correctAnswer": {
+        "text": "Moscow",
+        "imagePath": null
+      },
+      "decoyAnswers": [
+        {
+          "text": "Kyiv",
+          "imagePath": null
+        },
+        {
+          "text": "Minsk",
+          "imagePath": null
+        },
+        {
+          "text": "Warsaw",
+          "imagePath": null
+        },
+        {
+          "text": "Beijing",
+          "imagePath": null
+        },
+        {
+          "text": "Seoul",
+          "imagePath": null
+        },
+        {
+          "text": "Tokyo",
+          "imagePath": null
+        },
+        {
+          "text": "Helsinki",
+          "imagePath": null
+        },
+        {
+          "text": "Tallinn",
+          "imagePath": null
+        }
+      ]
+    },
+    {
+      "prompt": "What is the capital of Japan?",
+      "correctAnswer": {
+        "text": "Tokyo",
+        "imagePath": null
+      },
+      "decoyAnswers": [
+        {
+          "text": "Bangkok",
+          "imagePath": null
+        },
+        {
+          "text": "Beijing",
+          "imagePath": null
+        },
+        {
+          "text": "Seoul",
+          "imagePath": null
+        },
+        {
+          "text": "Hanoi",
+          "imagePath": null
+        },
+        {
+          "text": "Kuala Lumpur",
+          "imagePath": null
+        },
+        {
+          "text": "Jakarta",
+          "imagePath": null
+        },
+        {
+          "text": "Manila",
+          "imagePath": null
+        },
+        {
+          "text": "New Delhi",
+          "imagePath": null
+        }
+      ]
+    },
+    {
+      "prompt": "What is the capital of Germany?",
+      "correctAnswer": {
+        "text": "Berlin",
+        "imagePath": null
+      },
+      "decoyAnswers": [
+        {
+          "text": "Rome",
+          "imagePath": null
+        },
+        {
+          "text": "Madrid",
+          "imagePath": null
+        },
+        {
+          "text": "Vienna",
+          "imagePath": null
+        },
+        {
+          "text": "Bern",
+          "imagePath": null
+        },
+        {
+          "text": "Brussels",
+          "imagePath": null
+        },
+        {
+          "text": "Amsterdam",
+          "imagePath": null
+        },
+        {
+          "text": "Prague",
+          "imagePath": null
+        },
+        {
+          "text": "Copenhagen",
+          "imagePath": null
+        }
+      ]
+    }
+  ]

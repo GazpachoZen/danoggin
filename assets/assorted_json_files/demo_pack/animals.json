@@ -1,0 +1,2134 @@
+[
+    {
+      "prompt": "Click on the bear",
+      "correctAnswer": {
+        "text": null,
+        "imagePath": "assets/images/bear.png"
+      },
+      "decoyAnswers": [
+        {
+          "text": null,
+          "imagePath": "assets/images/frog.png"
+        },
+        {
+          "text": null,
+          "imagePath": "assets/images/ostrich.png"
+        },
+        {
+          "text": null,
+          "imagePath": "assets/images/owl.png"
+        },
+        {
+          "text": null,
+          "imagePath": "assets/images/shark.png"
+        },
+        {
+          "text": null,
+          "imagePath": "assets/images/penguin.png"
+        },
+        {
+          "text": null,
+          "imagePath": "assets/images/dolphin.png"
+        },
+        {
+          "text": null,
+          "imagePath": "assets/images/snake.png"
+        },
+        {
+          "text": null,
+          "imagePath": "assets/images/monkey.png"
+        }
+      ]
+    },
+    {
+      "prompt": "Click on the cat",
+      "correctAnswer": {
+        "text": null,
+        "imagePath": "assets/images/cat.png"
+      },
+      "decoyAnswers": [
+        {
+          "text": null,
+          "imagePath": "assets/images/peacock.png"
+        },
+        {
+          "text": null,
+          "imagePath": "assets/images/rabbit.png"
+        },
+        {
+          "text": null,
+          "imagePath": "assets/images/giraffe.png"
+        },
+        {
+          "text": null,
+          "imagePath": "assets/images/owl.png"
+        },
+        {
+          "text": null,
+          "imagePath": "assets/images/hippopotamus.png"
+        },
+        {
+          "text": null,
+          "imagePath": "assets/images/monkey.png"
+        },
+        {
+          "text": null,
+          "imagePath": "assets/images/walrus.png"
+        },
+        {
+          "text": null,
+          "imagePath": "assets/images/cow.png"
+        }
+      ]
+    },
+    {
+      "prompt": "Click on the chicken",
+      "correctAnswer": {
+        "text": null,
+        "imagePath": "assets/images/chicken.png"
+      },
+      "decoyAnswers": [
+        {
+          "text": null,
+          "imagePath": "assets/images/shark.png"
+        },
+        {
+          "text": null,
+          "imagePath": "assets/images/bear.png"
+        },
+        {
+          "text": null,
+          "imagePath": "assets/images/rabbit.png"
+        },
+        {
+          "text": null,
+          "imagePath": "assets/images/dolphin.png"
+        },
+        {
+          "text": null,
+          "imagePath": "assets/images/sheep.png"
+        },
+        {
+          "text": null,
+          "imagePath": "assets/images/frog.png"
+        },
+        {
+          "text": null,
+          "imagePath": "assets/images/crocodile.png"
+        },
+        {
+          "text": null,
+          "imagePath": "assets/images/lion.png"
+        }
+      ]
+    },
+    {
+      "prompt": "Click on the cow",
+      "correctAnswer": {
+        "text": null,
+        "imagePath": "assets/images/cow.png"
+      },
+      "decoyAnswers": [
+        {
+          "text": null,
+          "imagePath": "assets/images/walrus.png"
+        },
+        {
+          "text": null,
+          "imagePath": "assets/images/goat.png"
+        },
+        {
+          "text": null,
+          "imagePath": "assets/images/zebra.png"
+        },
+        {
+          "text": null,
+          "imagePath": "assets/images/orangutan.png"
+        },
+        {
+          "text": null,
+          "imagePath": "assets/images/ladybug.png"
+        },
+        {
+          "text": null,
+          "imagePath": "assets/images/giraffe.png"
+        },
+        {
+          "text": null,
+          "imagePath": "assets/images/owl.png"
+        },
+        {
+          "text": null,
+          "imagePath": "assets/images/dolphin.png"
+        }
+      ]
+    },
+    {
+      "prompt": "Click on the crab",
+      "correctAnswer": {
+        "text": null,
+        "imagePath": "assets/images/crab.png"
+      },
+      "decoyAnswers": [
+        {
+          "text": null,
+          "imagePath": "assets/images/starfish.png"
+        },
+        {
+          "text": null,
+          "imagePath": "assets/images/dolphin.png"
+        },
+        {
+          "text": null,
+          "imagePath": "assets/images/octopus.png"
+        },
+        {
+          "text": null,
+          "imagePath": "assets/images/orangutan.png"
+        },
+        {
+          "text": null,
+          "imagePath": "assets/images/raccoon.png"
+        },
+        {
+          "text": null,
+          "imagePath": "assets/images/monkey.png"
+        },
+        {
+          "text": null,
+          "imagePath": "assets/images/penguin.png"
+        },
+        {
+          "text": null,
+          "imagePath": "assets/images/pig.png"
+        }
+      ]
+    },
+    {
+      "prompt": "Click on the crocodile",
+      "correctAnswer": {
+        "text": null,
+        "imagePath": "assets/images/crocodile.png"
+      },
+      "decoyAnswers": [
+        {
+          "text": null,
+          "imagePath": "assets/images/dog.png"
+        },
+        {
+          "text": null,
+          "imagePath": "assets/images/manta-ray.png"
+        },
+        {
+          "text": null,
+          "imagePath": "assets/images/monkey.png"
+        },
+        {
+          "text": null,
+          "imagePath": "assets/images/shark.png"
+        },
+        {
+          "text": null,
+          "imagePath": "assets/images/eagle.png"
+        },
+        {
+          "text": null,
+          "imagePath": "assets/images/pig.png"
+        },
+        {
+          "text": null,
+          "imagePath": "assets/images/snail.png"
+        },
+        {
+          "text": null,
+          "imagePath": "assets/images/yak.png"
+        }
+      ]
+    },
+    {
+      "prompt": "Click on the dog",
+      "correctAnswer": {
+        "text": null,
+        "imagePath": "assets/images/dog.png"
+      },
+      "decoyAnswers": [
+        {
+          "text": null,
+          "imagePath": "assets/images/monkey.png"
+        },
+        {
+          "text": null,
+          "imagePath": "assets/images/pigeon.png"
+        },
+        {
+          "text": null,
+          "imagePath": "assets/images/raccoon.png"
+        },
+        {
+          "text": null,
+          "imagePath": "assets/images/owl.png"
+        },
+        {
+          "text": null,
+          "imagePath": "assets/images/peacock.png"
+        },
+        {
+          "text": null,
+          "imagePath": "assets/images/toucan.png"
+        },
+        {
+          "text": null,
+          "imagePath": "assets/images/penguin.png"
+        },
+        {
+          "text": null,
+          "imagePath": "assets/images/seahorse.png"
+        }
+      ]
+    },
+    {
+      "prompt": "Click on the dolphin",
+      "correctAnswer": {
+        "text": null,
+        "imagePath": "assets/images/dolphin.png"
+      },
+      "decoyAnswers": [
+        {
+          "text": null,
+          "imagePath": "assets/images/spider.png"
+        },
+        {
+          "text": null,
+          "imagePath": "assets/images/pigeon.png"
+        },
+        {
+          "text": null,
+          "imagePath": "assets/images/crab.png"
+        },
+        {
+          "text": null,
+          "imagePath": "assets/images/tortoise.png"
+        },
+        {
+          "text": null,
+          "imagePath": "assets/images/ladybug.png"
+        },
+        {
+          "text": null,
+          "imagePath": "assets/images/owl.png"
+        },
+        {
+          "text": null,
+          "imagePath": "assets/images/bear.png"
+        },
+        {
+          "text": null,
+          "imagePath": "assets/images/penguin.png"
+        }
+      ]
+    },
+    {
+      "prompt": "Click on the eagle",
+      "correctAnswer": {
+        "text": null,
+        "imagePath": "assets/images/eagle.png"
+      },
+      "decoyAnswers": [
+        {
+          "text": null,
+          "imagePath": "assets/images/zebra.png"
+        },
+        {
+          "text": null,
+          "imagePath": "assets/images/tortoise.png"
+        },
+        {
+          "text": null,
+          "imagePath": "assets/images/horse.png"
+        },
+        {
+          "text": null,
+          "imagePath": "assets/images/kangaroo.png"
+        },
+        {
+          "text": null,
+          "imagePath": "assets/images/cat.png"
+        },
+        {
+          "text": null,
+          "imagePath": "assets/images/giraffe.png"
+        },
+        {
+          "text": null,
+          "imagePath": "assets/images/bear.png"
+        },
+        {
+          "text": null,
+          "imagePath": "assets/images/monkey.png"
+        }
+      ]
+    },
+    {
+      "prompt": "Click on the elephant",
+      "correctAnswer": {
+        "text": null,
+        "imagePath": "assets/images/elephant.png"
+      },
+      "decoyAnswers": [
+        {
+          "text": null,
+          "imagePath": "assets/images/ladybug.png"
+        },
+        {
+          "text": null,
+          "imagePath": "assets/images/tiger.png"
+        },
+        {
+          "text": null,
+          "imagePath": "assets/images/jellyfish.png"
+        },
+        {
+          "text": null,
+          "imagePath": "assets/images/monkey.png"
+        },
+        {
+          "text": null,
+          "imagePath": "assets/images/penguin.png"
+        },
+        {
+          "text": null,
+          "imagePath": "assets/images/lobster.png"
+        },
+        {
+          "text": null,
+          "imagePath": "assets/images/dolphin.png"
+        },
+        {
+          "text": null,
+          "imagePath": "assets/images/spider.png"
+        }
+      ]
+    },
+    {
+      "prompt": "Click on the flamingo",
+      "correctAnswer": {
+        "text": null,
+        "imagePath": "assets/images/flamingo.png"
+      },
+      "decoyAnswers": [
+        {
+          "text": null,
+          "imagePath": "assets/images/whale.png"
+        },
+        {
+          "text": null,
+          "imagePath": "assets/images/elephant.png"
+        },
+        {
+          "text": null,
+          "imagePath": "assets/images/lobster.png"
+        },
+        {
+          "text": null,
+          "imagePath": "assets/images/ostrich.png"
+        },
+        {
+          "text": null,
+          "imagePath": "assets/images/praying-mantis.png"
+        },
+        {
+          "text": null,
+          "imagePath": "assets/images/walrus.png"
+        },
+        {
+          "text": null,
+          "imagePath": "assets/images/pigeon.png"
+        },
+        {
+          "text": null,
+          "imagePath": "assets/images/cow.png"
+        }
+      ]
+    },
+    {
+      "prompt": "Click on the frog",
+      "correctAnswer": {
+        "text": null,
+        "imagePath": "assets/images/frog.png"
+      },
+      "decoyAnswers": [
+        {
+          "text": null,
+          "imagePath": "assets/images/peacock.png"
+        },
+        {
+          "text": null,
+          "imagePath": "assets/images/crab.png"
+        },
+        {
+          "text": null,
+          "imagePath": "assets/images/wolf.png"
+        },
+        {
+          "text": null,
+          "imagePath": "assets/images/sheep.png"
+        },
+        {
+          "text": null,
+          "imagePath": "assets/images/jellyfish.png"
+        },
+        {
+          "text": null,
+          "imagePath": "assets/images/squirrel.png"
+        },
+        {
+          "text": null,
+          "imagePath": "assets/images/giraffe.png"
+        },
+        {
+          "text": null,
+          "imagePath": "assets/images/goat.png"
+        }
+      ]
+    },
+    {
+      "prompt": "Click on the giraffe",
+      "correctAnswer": {
+        "text": null,
+        "imagePath": "assets/images/giraffe.png"
+      },
+      "decoyAnswers": [
+        {
+          "text": null,
+          "imagePath": "assets/images/bear.png"
+        },
+        {
+          "text": null,
+          "imagePath": "assets/images/pigeon.png"
+        },
+        {
+          "text": null,
+          "imagePath": "assets/images/hippopotamus.png"
+        },
+        {
+          "text": null,
+          "imagePath": "assets/images/spider.png"
+        },
+        {
+          "text": null,
+          "imagePath": "assets/images/scorpion.png"
+        },
+        {
+          "text": null,
+          "imagePath": "assets/images/jellyfish.png"
+        },
+        {
+          "text": null,
+          "imagePath": "assets/images/starfish.png"
+        },
+        {
+          "text": null,
+          "imagePath": "assets/images/flamingo.png"
+        }
+      ]
+    },
+    {
+      "prompt": "Click on the goat",
+      "correctAnswer": {
+        "text": null,
+        "imagePath": "assets/images/goat.png"
+      },
+      "decoyAnswers": [
+        {
+          "text": null,
+          "imagePath": "assets/images/flamingo.png"
+        },
+        {
+          "text": null,
+          "imagePath": "assets/images/owl.png"
+        },
+        {
+          "text": null,
+          "imagePath": "assets/images/walrus.png"
+        },
+        {
+          "text": null,
+          "imagePath": "assets/images/spider.png"
+        },
+        {
+          "text": null,
+          "imagePath": "assets/images/scorpion.png"
+        },
+        {
+          "text": null,
+          "imagePath": "assets/images/orangutan.png"
+        },
+        {
+          "text": null,
+          "imagePath": "assets/images/pigeon.png"
+        },
+        {
+          "text": null,
+          "imagePath": "assets/images/monkey.png"
+        }
+      ]
+    },
+    {
+      "prompt": "Click on the hippopotamus",
+      "correctAnswer": {
+        "text": null,
+        "imagePath": "assets/images/hippopotamus.png"
+      },
+      "decoyAnswers": [
+        {
+          "text": null,
+          "imagePath": "assets/images/pigeon.png"
+        },
+        {
+          "text": null,
+          "imagePath": "assets/images/dolphin.png"
+        },
+        {
+          "text": null,
+          "imagePath": "assets/images/raccoon.png"
+        },
+        {
+          "text": null,
+          "imagePath": "assets/images/pig.png"
+        },
+        {
+          "text": null,
+          "imagePath": "assets/images/snake.png"
+        },
+        {
+          "text": null,
+          "imagePath": "assets/images/cat.png"
+        },
+        {
+          "text": null,
+          "imagePath": "assets/images/cow.png"
+        },
+        {
+          "text": null,
+          "imagePath": "assets/images/crab.png"
+        }
+      ]
+    },
+    {
+      "prompt": "Click on the horse",
+      "correctAnswer": {
+        "text": null,
+        "imagePath": "assets/images/horse.png"
+      },
+      "decoyAnswers": [
+        {
+          "text": null,
+          "imagePath": "assets/images/whale.png"
+        },
+        {
+          "text": null,
+          "imagePath": "assets/images/tortoise.png"
+        },
+        {
+          "text": null,
+          "imagePath": "assets/images/wolf.png"
+        },
+        {
+          "text": null,
+          "imagePath": "assets/images/ostrich.png"
+        },
+        {
+          "text": null,
+          "imagePath": "assets/images/sheep.png"
+        },
+        {
+          "text": null,
+          "imagePath": "assets/images/penguin.png"
+        },
+        {
+          "text": null,
+          "imagePath": "assets/images/frog.png"
+        },
+        {
+          "text": null,
+          "imagePath": "assets/images/flamingo.png"
+        }
+      ]
+    },
+    {
+      "prompt": "Click on the jellyfish",
+      "correctAnswer": {
+        "text": null,
+        "imagePath": "assets/images/jellyfish.png"
+      },
+      "decoyAnswers": [
+        {
+          "text": null,
+          "imagePath": "assets/images/crocodile.png"
+        },
+        {
+          "text": null,
+          "imagePath": "assets/images/chicken.png"
+        },
+        {
+          "text": null,
+          "imagePath": "assets/images/tiger.png"
+        },
+        {
+          "text": null,
+          "imagePath": "assets/images/shark.png"
+        },
+        {
+          "text": null,
+          "imagePath": "assets/images/scorpion.png"
+        },
+        {
+          "text": null,
+          "imagePath": "assets/images/penguin.png"
+        },
+        {
+          "text": null,
+          "imagePath": "assets/images/giraffe.png"
+        },
+        {
+          "text": null,
+          "imagePath": "assets/images/starfish.png"
+        }
+      ]
+    },
+    {
+      "prompt": "Click on the kangaroo",
+      "correctAnswer": {
+        "text": null,
+        "imagePath": "assets/images/kangaroo.png"
+      },
+      "decoyAnswers": [
+        {
+          "text": null,
+          "imagePath": "assets/images/whale.png"
+        },
+        {
+          "text": null,
+          "imagePath": "assets/images/octopus.png"
+        },
+        {
+          "text": null,
+          "imagePath": "assets/images/crab.png"
+        },
+        {
+          "text": null,
+          "imagePath": "assets/images/bear.png"
+        },
+        {
+          "text": null,
+          "imagePath": "assets/images/goat.png"
+        },
+        {
+          "text": null,
+          "imagePath": "assets/images/ladybug.png"
+        },
+        {
+          "text": null,
+          "imagePath": "assets/images/spider.png"
+        },
+        {
+          "text": null,
+          "imagePath": "assets/images/turkey.png"
+        }
+      ]
+    },
+    {
+      "prompt": "Click on the ladybug",
+      "correctAnswer": {
+        "text": null,
+        "imagePath": "assets/images/ladybug.png"
+      },
+      "decoyAnswers": [
+        {
+          "text": null,
+          "imagePath": "assets/images/peacock.png"
+        },
+        {
+          "text": null,
+          "imagePath": "assets/images/squirrel.png"
+        },
+        {
+          "text": null,
+          "imagePath": "assets/images/starfish.png"
+        },
+        {
+          "text": null,
+          "imagePath": "assets/images/kangaroo.png"
+        },
+        {
+          "text": null,
+          "imagePath": "assets/images/crab.png"
+        },
+        {
+          "text": null,
+          "imagePath": "assets/images/crocodile.png"
+        },
+        {
+          "text": null,
+          "imagePath": "assets/images/scorpion.png"
+        },
+        {
+          "text": null,
+          "imagePath": "assets/images/cat.png"
+        }
+      ]
+    },
+    {
+      "prompt": "Click on the lion",
+      "correctAnswer": {
+        "text": null,
+        "imagePath": "assets/images/lion.png"
+      },
+      "decoyAnswers": [
+        {
+          "text": null,
+          "imagePath": "assets/images/goat.png"
+        },
+        {
+          "text": null,
+          "imagePath": "assets/images/bear.png"
+        },
+        {
+          "text": null,
+          "imagePath": "assets/images/tortoise.png"
+        },
+        {
+          "text": null,
+          "imagePath": "assets/images/starfish.png"
+        },
+        {
+          "text": null,
+          "imagePath": "assets/images/manta-ray.png"
+        },
+        {
+          "text": null,
+          "imagePath": "assets/images/sheep.png"
+        },
+        {
+          "text": null,
+          "imagePath": "assets/images/ladybug.png"
+        },
+        {
+          "text": null,
+          "imagePath": "assets/images/squirrel.png"
+        }
+      ]
+    },
+    {
+      "prompt": "Click on the lobster",
+      "correctAnswer": {
+        "text": null,
+        "imagePath": "assets/images/lobster.png"
+      },
+      "decoyAnswers": [
+        {
+          "text": null,
+          "imagePath": "assets/images/toucan.png"
+        },
+        {
+          "text": null,
+          "imagePath": "assets/images/peacock.png"
+        },
+        {
+          "text": null,
+          "imagePath": "assets/images/snail.png"
+        },
+        {
+          "text": null,
+          "imagePath": "assets/images/raccoon.png"
+        },
+        {
+          "text": null,
+          "imagePath": "assets/images/jellyfish.png"
+        },
+        {
+          "text": null,
+          "imagePath": "assets/images/pigeon.png"
+        },
+        {
+          "text": null,
+          "imagePath": "assets/images/penguin.png"
+        },
+        {
+          "text": null,
+          "imagePath": "assets/images/elephant.png"
+        }
+      ]
+    },
+    {
+      "prompt": "Click on the manta ray",
+      "correctAnswer": {
+        "text": null,
+        "imagePath": "assets/images/manta-ray.png"
+      },
+      "decoyAnswers": [
+        {
+          "text": null,
+          "imagePath": "assets/images/orangutan.png"
+        },
+        {
+          "text": null,
+          "imagePath": "assets/images/bear.png"
+        },
+        {
+          "text": null,
+          "imagePath": "assets/images/starfish.png"
+        },
+        {
+          "text": null,
+          "imagePath": "assets/images/penguin.png"
+        },
+        {
+          "text": null,
+          "imagePath": "assets/images/walrus.png"
+        },
+        {
+          "text": null,
+          "imagePath": "assets/images/tortoise.png"
+        },
+        {
+          "text": null,
+          "imagePath": "assets/images/flamingo.png"
+        },
+        {
+          "text": null,
+          "imagePath": "assets/images/seahorse.png"
+        }
+      ]
+    },
+    {
+      "prompt": "Click on the monkey",
+      "correctAnswer": {
+        "text": null,
+        "imagePath": "assets/images/monkey.png"
+      },
+      "decoyAnswers": [
+        {
+          "text": null,
+          "imagePath": "assets/images/lobster.png"
+        },
+        {
+          "text": null,
+          "imagePath": "assets/images/sheep.png"
+        },
+        {
+          "text": null,
+          "imagePath": "assets/images/turkey.png"
+        },
+        {
+          "text": null,
+          "imagePath": "assets/images/elephant.png"
+        },
+        {
+          "text": null,
+          "imagePath": "assets/images/frog.png"
+        },
+        {
+          "text": null,
+          "imagePath": "assets/images/yak.png"
+        },
+        {
+          "text": null,
+          "imagePath": "assets/images/pigeon.png"
+        },
+        {
+          "text": null,
+          "imagePath": "assets/images/lion.png"
+        }
+      ]
+    },
+    {
+      "prompt": "Click on the octopus",
+      "correctAnswer": {
+        "text": null,
+        "imagePath": "assets/images/octopus.png"
+      },
+      "decoyAnswers": [
+        {
+          "text": null,
+          "imagePath": "assets/images/hippopotamus.png"
+        },
+        {
+          "text": null,
+          "imagePath": "assets/images/lion.png"
+        },
+        {
+          "text": null,
+          "imagePath": "assets/images/turkey.png"
+        },
+        {
+          "text": null,
+          "imagePath": "assets/images/pig.png"
+        },
+        {
+          "text": null,
+          "imagePath": "assets/images/elephant.png"
+        },
+        {
+          "text": null,
+          "imagePath": "assets/images/ladybug.png"
+        },
+        {
+          "text": null,
+          "imagePath": "assets/images/sheep.png"
+        },
+        {
+          "text": null,
+          "imagePath": "assets/images/goat.png"
+        }
+      ]
+    },
+    {
+      "prompt": "Click on the orangutan",
+      "correctAnswer": {
+        "text": null,
+        "imagePath": "assets/images/orangutan.png"
+      },
+      "decoyAnswers": [
+        {
+          "text": null,
+          "imagePath": "assets/images/toucan.png"
+        },
+        {
+          "text": null,
+          "imagePath": "assets/images/ladybug.png"
+        },
+        {
+          "text": null,
+          "imagePath": "assets/images/frog.png"
+        },
+        {
+          "text": null,
+          "imagePath": "assets/images/turkey.png"
+        },
+        {
+          "text": null,
+          "imagePath": "assets/images/dog.png"
+        },
+        {
+          "text": null,
+          "imagePath": "assets/images/pigeon.png"
+        },
+        {
+          "text": null,
+          "imagePath": "assets/images/manta-ray.png"
+        },
+        {
+          "text": null,
+          "imagePath": "assets/images/elephant.png"
+        }
+      ]
+    },
+    {
+      "prompt": "Click on the ostrich",
+      "correctAnswer": {
+        "text": null,
+        "imagePath": "assets/images/ostrich.png"
+      },
+      "decoyAnswers": [
+        {
+          "text": null,
+          "imagePath": "assets/images/spider.png"
+        },
+        {
+          "text": null,
+          "imagePath": "assets/images/owl.png"
+        },
+        {
+          "text": null,
+          "imagePath": "assets/images/turkey.png"
+        },
+        {
+          "text": null,
+          "imagePath": "assets/images/bear.png"
+        },
+        {
+          "text": null,
+          "imagePath": "assets/images/snake.png"
+        },
+        {
+          "text": null,
+          "imagePath": "assets/images/eagle.png"
+        },
+        {
+          "text": null,
+          "imagePath": "assets/images/whale.png"
+        },
+        {
+          "text": null,
+          "imagePath": "assets/images/hippopotamus.png"
+        }
+      ]
+    },
+    {
+      "prompt": "Click on the owl",
+      "correctAnswer": {
+        "text": null,
+        "imagePath": "assets/images/owl.png"
+      },
+      "decoyAnswers": [
+        {
+          "text": null,
+          "imagePath": "assets/images/lion.png"
+        },
+        {
+          "text": null,
+          "imagePath": "assets/images/tortoise.png"
+        },
+        {
+          "text": null,
+          "imagePath": "assets/images/squirrel.png"
+        },
+        {
+          "text": null,
+          "imagePath": "assets/images/wolf.png"
+        },
+        {
+          "text": null,
+          "imagePath": "assets/images/monkey.png"
+        },
+        {
+          "text": null,
+          "imagePath": "assets/images/flamingo.png"
+        },
+        {
+          "text": null,
+          "imagePath": "assets/images/scorpion.png"
+        },
+        {
+          "text": null,
+          "imagePath": "assets/images/spider.png"
+        }
+      ]
+    },
+    {
+      "prompt": "Click on the peacock",
+      "correctAnswer": {
+        "text": null,
+        "imagePath": "assets/images/peacock.png"
+      },
+      "decoyAnswers": [
+        {
+          "text": null,
+          "imagePath": "assets/images/flamingo.png"
+        },
+        {
+          "text": null,
+          "imagePath": "assets/images/eagle.png"
+        },
+        {
+          "text": null,
+          "imagePath": "assets/images/tiger.png"
+        },
+        {
+          "text": null,
+          "imagePath": "assets/images/giraffe.png"
+        },
+        {
+          "text": null,
+          "imagePath": "assets/images/snail.png"
+        },
+        {
+          "text": null,
+          "imagePath": "assets/images/ladybug.png"
+        },
+        {
+          "text": null,
+          "imagePath": "assets/images/cow.png"
+        },
+        {
+          "text": null,
+          "imagePath": "assets/images/ostrich.png"
+        }
+      ]
+    },
+    {
+      "prompt": "Click on the penguin",
+      "correctAnswer": {
+        "text": null,
+        "imagePath": "assets/images/penguin.png"
+      },
+      "decoyAnswers": [
+        {
+          "text": null,
+          "imagePath": "assets/images/eagle.png"
+        },
+        {
+          "text": null,
+          "imagePath": "assets/images/horse.png"
+        },
+        {
+          "text": null,
+          "imagePath": "assets/images/monkey.png"
+        },
+        {
+          "text": null,
+          "imagePath": "assets/images/walrus.png"
+        },
+        {
+          "text": null,
+          "imagePath": "assets/images/manta-ray.png"
+        },
+        {
+          "text": null,
+          "imagePath": "assets/images/turkey.png"
+        },
+        {
+          "text": null,
+          "imagePath": "assets/images/dog.png"
+        },
+        {
+          "text": null,
+          "imagePath": "assets/images/frog.png"
+        }
+      ]
+    },
+    {
+      "prompt": "Click on the pig",
+      "correctAnswer": {
+        "text": null,
+        "imagePath": "assets/images/pig.png"
+      },
+      "decoyAnswers": [
+        {
+          "text": null,
+          "imagePath": "assets/images/lion.png"
+        },
+        {
+          "text": null,
+          "imagePath": "assets/images/pigeon.png"
+        },
+        {
+          "text": null,
+          "imagePath": "assets/images/sheep.png"
+        },
+        {
+          "text": null,
+          "imagePath": "assets/images/dog.png"
+        },
+        {
+          "text": null,
+          "imagePath": "assets/images/frog.png"
+        },
+        {
+          "text": null,
+          "imagePath": "assets/images/penguin.png"
+        },
+        {
+          "text": null,
+          "imagePath": "assets/images/giraffe.png"
+        },
+        {
+          "text": null,
+          "imagePath": "assets/images/spider.png"
+        }
+      ]
+    },
+    {
+      "prompt": "Click on the pigeon",
+      "correctAnswer": {
+        "text": null,
+        "imagePath": "assets/images/pigeon.png"
+      },
+      "decoyAnswers": [
+        {
+          "text": null,
+          "imagePath": "assets/images/flamingo.png"
+        },
+        {
+          "text": null,
+          "imagePath": "assets/images/sheep.png"
+        },
+        {
+          "text": null,
+          "imagePath": "assets/images/orangutan.png"
+        },
+        {
+          "text": null,
+          "imagePath": "assets/images/chicken.png"
+        },
+        {
+          "text": null,
+          "imagePath": "assets/images/penguin.png"
+        },
+        {
+          "text": null,
+          "imagePath": "assets/images/elephant.png"
+        },
+        {
+          "text": null,
+          "imagePath": "assets/images/zebra.png"
+        },
+        {
+          "text": null,
+          "imagePath": "assets/images/horse.png"
+        }
+      ]
+    },
+    {
+      "prompt": "Click on the praying mantis",
+      "correctAnswer": {
+        "text": null,
+        "imagePath": "assets/images/praying-mantis.png"
+      },
+      "decoyAnswers": [
+        {
+          "text": null,
+          "imagePath": "assets/images/octopus.png"
+        },
+        {
+          "text": null,
+          "imagePath": "assets/images/seahorse.png"
+        },
+        {
+          "text": null,
+          "imagePath": "assets/images/scorpion.png"
+        },
+        {
+          "text": null,
+          "imagePath": "assets/images/whale.png"
+        },
+        {
+          "text": null,
+          "imagePath": "assets/images/rabbit.png"
+        },
+        {
+          "text": null,
+          "imagePath": "assets/images/hippopotamus.png"
+        },
+        {
+          "text": null,
+          "imagePath": "assets/images/crab.png"
+        },
+        {
+          "text": null,
+          "imagePath": "assets/images/tiger.png"
+        }
+      ]
+    },
+    {
+      "prompt": "Click on the rabbit",
+      "correctAnswer": {
+        "text": null,
+        "imagePath": "assets/images/rabbit.png"
+      },
+      "decoyAnswers": [
+        {
+          "text": null,
+          "imagePath": "assets/images/octopus.png"
+        },
+        {
+          "text": null,
+          "imagePath": "assets/images/cow.png"
+        },
+        {
+          "text": null,
+          "imagePath": "assets/images/ladybug.png"
+        },
+        {
+          "text": null,
+          "imagePath": "assets/images/snail.png"
+        },
+        {
+          "text": null,
+          "imagePath": "assets/images/seahorse.png"
+        },
+        {
+          "text": null,
+          "imagePath": "assets/images/spider.png"
+        },
+        {
+          "text": null,
+          "imagePath": "assets/images/manta-ray.png"
+        },
+        {
+          "text": null,
+          "imagePath": "assets/images/monkey.png"
+        }
+      ]
+    },
+    {
+      "prompt": "Click on the raccoon",
+      "correctAnswer": {
+        "text": null,
+        "imagePath": "assets/images/raccoon.png"
+      },
+      "decoyAnswers": [
+        {
+          "text": null,
+          "imagePath": "assets/images/octopus.png"
+        },
+        {
+          "text": null,
+          "imagePath": "assets/images/jellyfish.png"
+        },
+        {
+          "text": null,
+          "imagePath": "assets/images/lion.png"
+        },
+        {
+          "text": null,
+          "imagePath": "assets/images/frog.png"
+        },
+        {
+          "text": null,
+          "imagePath": "assets/images/snake.png"
+        },
+        {
+          "text": null,
+          "imagePath": "assets/images/monkey.png"
+        },
+        {
+          "text": null,
+          "imagePath": "assets/images/whale.png"
+        },
+        {
+          "text": null,
+          "imagePath": "assets/images/squirrel.png"
+        }
+      ]
+    },
+    {
+      "prompt": "Click on the scorpion",
+      "correctAnswer": {
+        "text": null,
+        "imagePath": "assets/images/scorpion.png"
+      },
+      "decoyAnswers": [
+        {
+          "text": null,
+          "imagePath": "assets/images/cow.png"
+        },
+        {
+          "text": null,
+          "imagePath": "assets/images/ostrich.png"
+        },
+        {
+          "text": null,
+          "imagePath": "assets/images/pig.png"
+        },
+        {
+          "text": null,
+          "imagePath": "assets/images/monkey.png"
+        },
+        {
+          "text": null,
+          "imagePath": "assets/images/zebra.png"
+        },
+        {
+          "text": null,
+          "imagePath": "assets/images/sheep.png"
+        },
+        {
+          "text": null,
+          "imagePath": "assets/images/praying-mantis.png"
+        },
+        {
+          "text": null,
+          "imagePath": "assets/images/frog.png"
+        }
+      ]
+    },
+    {
+      "prompt": "Click on the seahorse",
+      "correctAnswer": {
+        "text": null,
+        "imagePath": "assets/images/seahorse.png"
+      },
+      "decoyAnswers": [
+        {
+          "text": null,
+          "imagePath": "assets/images/cow.png"
+        },
+        {
+          "text": null,
+          "imagePath": "assets/images/orangutan.png"
+        },
+        {
+          "text": null,
+          "imagePath": "assets/images/flamingo.png"
+        },
+        {
+          "text": null,
+          "imagePath": "assets/images/toucan.png"
+        },
+        {
+          "text": null,
+          "imagePath": "assets/images/frog.png"
+        },
+        {
+          "text": null,
+          "imagePath": "assets/images/pig.png"
+        },
+        {
+          "text": null,
+          "imagePath": "assets/images/squirrel.png"
+        },
+        {
+          "text": null,
+          "imagePath": "assets/images/jellyfish.png"
+        }
+      ]
+    },
+    {
+      "prompt": "Click on the shark",
+      "correctAnswer": {
+        "text": null,
+        "imagePath": "assets/images/shark.png"
+      },
+      "decoyAnswers": [
+        {
+          "text": null,
+          "imagePath": "assets/images/elephant.png"
+        },
+        {
+          "text": null,
+          "imagePath": "assets/images/dolphin.png"
+        },
+        {
+          "text": null,
+          "imagePath": "assets/images/frog.png"
+        },
+        {
+          "text": null,
+          "imagePath": "assets/images/rabbit.png"
+        },
+        {
+          "text": null,
+          "imagePath": "assets/images/orangutan.png"
+        },
+        {
+          "text": null,
+          "imagePath": "assets/images/ostrich.png"
+        },
+        {
+          "text": null,
+          "imagePath": "assets/images/lobster.png"
+        },
+        {
+          "text": null,
+          "imagePath": "assets/images/seahorse.png"
+        }
+      ]
+    },
+    {
+      "prompt": "Click on the sheep",
+      "correctAnswer": {
+        "text": null,
+        "imagePath": "assets/images/sheep.png"
+      },
+      "decoyAnswers": [
+        {
+          "text": null,
+          "imagePath": "assets/images/giraffe.png"
+        },
+        {
+          "text": null,
+          "imagePath": "assets/images/scorpion.png"
+        },
+        {
+          "text": null,
+          "imagePath": "assets/images/ladybug.png"
+        },
+        {
+          "text": null,
+          "imagePath": "assets/images/tortoise.png"
+        },
+        {
+          "text": null,
+          "imagePath": "assets/images/goat.png"
+        },
+        {
+          "text": null,
+          "imagePath": "assets/images/flamingo.png"
+        },
+        {
+          "text": null,
+          "imagePath": "assets/images/lion.png"
+        },
+        {
+          "text": null,
+          "imagePath": "assets/images/squirrel.png"
+        }
+      ]
+    },
+    {
+      "prompt": "Click on the snail",
+      "correctAnswer": {
+        "text": null,
+        "imagePath": "assets/images/snail.png"
+      },
+      "decoyAnswers": [
+        {
+          "text": null,
+          "imagePath": "assets/images/rabbit.png"
+        },
+        {
+          "text": null,
+          "imagePath": "assets/images/zebra.png"
+        },
+        {
+          "text": null,
+          "imagePath": "assets/images/peacock.png"
+        },
+        {
+          "text": null,
+          "imagePath": "assets/images/sheep.png"
+        },
+        {
+          "text": null,
+          "imagePath": "assets/images/giraffe.png"
+        },
+        {
+          "text": null,
+          "imagePath": "assets/images/goat.png"
+        },
+        {
+          "text": null,
+          "imagePath": "assets/images/chicken.png"
+        },
+        {
+          "text": null,
+          "imagePath": "assets/images/toucan.png"
+        }
+      ]
+    },
+    {
+      "prompt": "Click on the snake",
+      "correctAnswer": {
+        "text": null,
+        "imagePath": "assets/images/snake.png"
+      },
+      "decoyAnswers": [
+        {
+          "text": null,
+          "imagePath": "assets/images/toucan.png"
+        },
+        {
+          "text": null,
+          "imagePath": "assets/images/tiger.png"
+        },
+        {
+          "text": null,
+          "imagePath": "assets/images/lion.png"
+        },
+        {
+          "text": null,
+          "imagePath": "assets/images/dog.png"
+        },
+        {
+          "text": null,
+          "imagePath": "assets/images/dolphin.png"
+        },
+        {
+          "text": null,
+          "imagePath": "assets/images/eagle.png"
+        },
+        {
+          "text": null,
+          "imagePath": "assets/images/chicken.png"
+        },
+        {
+          "text": null,
+          "imagePath": "assets/images/manta-ray.png"
+        }
+      ]
+    },
+    {
+      "prompt": "Click on the spider",
+      "correctAnswer": {
+        "text": null,
+        "imagePath": "assets/images/spider.png"
+      },
+      "decoyAnswers": [
+        {
+          "text": null,
+          "imagePath": "assets/images/yak.png"
+        },
+        {
+          "text": null,
+          "imagePath": "assets/images/goat.png"
+        },
+        {
+          "text": null,
+          "imagePath": "assets/images/horse.png"
+        },
+        {
+          "text": null,
+          "imagePath": "assets/images/manta-ray.png"
+        },
+        {
+          "text": null,
+          "imagePath": "assets/images/monkey.png"
+        },
+        {
+          "text": null,
+          "imagePath": "assets/images/penguin.png"
+        },
+        {
+          "text": null,
+          "imagePath": "assets/images/shark.png"
+        },
+        {
+          "text": null,
+          "imagePath": "assets/images/flamingo.png"
+        }
+      ]
+    },
+    {
+      "prompt": "Click on the squirrel",
+      "correctAnswer": {
+        "text": null,
+        "imagePath": "assets/images/squirrel.png"
+      },
+      "decoyAnswers": [
+        {
+          "text": null,
+          "imagePath": "assets/images/crocodile.png"
+        },
+        {
+          "text": null,
+          "imagePath": "assets/images/dog.png"
+        },
+        {
+          "text": null,
+          "imagePath": "assets/images/elephant.png"
+        },
+        {
+          "text": null,
+          "imagePath": "assets/images/goat.png"
+        },
+        {
+          "text": null,
+          "imagePath": "assets/images/praying-mantis.png"
+        },
+        {
+          "text": null,
+          "imagePath": "assets/images/yak.png"
+        },
+        {
+          "text": null,
+          "imagePath": "assets/images/snail.png"
+        },
+        {
+          "text": null,
+          "imagePath": "assets/images/tortoise.png"
+        }
+      ]
+    },
+    {
+      "prompt": "Click on the starfish",
+      "correctAnswer": {
+        "text": null,
+        "imagePath": "assets/images/starfish.png"
+      },
+      "decoyAnswers": [
+        {
+          "text": null,
+          "imagePath": "assets/images/lobster.png"
+        },
+        {
+          "text": null,
+          "imagePath": "assets/images/orangutan.png"
+        },
+        {
+          "text": null,
+          "imagePath": "assets/images/owl.png"
+        },
+        {
+          "text": null,
+          "imagePath": "assets/images/eagle.png"
+        },
+        {
+          "text": null,
+          "imagePath": "assets/images/ostrich.png"
+        },
+        {
+          "text": null,
+          "imagePath": "assets/images/goat.png"
+        },
+        {
+          "text": null,
+          "imagePath": "assets/images/spider.png"
+        },
+        {
+          "text": null,
+          "imagePath": "assets/images/cat.png"
+        }
+      ]
+    },
+    {
+      "prompt": "Click on the tiger",
+      "correctAnswer": {
+        "text": null,
+        "imagePath": "assets/images/tiger.png"
+      },
+      "decoyAnswers": [
+        {
+          "text": null,
+          "imagePath": "assets/images/raccoon.png"
+        },
+        {
+          "text": null,
+          "imagePath": "assets/images/cat.png"
+        },
+        {
+          "text": null,
+          "imagePath": "assets/images/chicken.png"
+        },
+        {
+          "text": null,
+          "imagePath": "assets/images/jellyfish.png"
+        },
+        {
+          "text": null,
+          "imagePath": "assets/images/seahorse.png"
+        },
+        {
+          "text": null,
+          "imagePath": "assets/images/kangaroo.png"
+        },
+        {
+          "text": null,
+          "imagePath": "assets/images/giraffe.png"
+        },
+        {
+          "text": null,
+          "imagePath": "assets/images/ladybug.png"
+        }
+      ]
+    },
+    {
+      "prompt": "Click on the tortoise",
+      "correctAnswer": {
+        "text": null,
+        "imagePath": "assets/images/tortoise.png"
+      },
+      "decoyAnswers": [
+        {
+          "text": null,
+          "imagePath": "assets/images/elephant.png"
+        },
+        {
+          "text": null,
+          "imagePath": "assets/images/owl.png"
+        },
+        {
+          "text": null,
+          "imagePath": "assets/images/horse.png"
+        },
+        {
+          "text": null,
+          "imagePath": "assets/images/orangutan.png"
+        },
+        {
+          "text": null,
+          "imagePath": "assets/images/cow.png"
+        },
+        {
+          "text": null,
+          "imagePath": "assets/images/walrus.png"
+        },
+        {
+          "text": null,
+          "imagePath": "assets/images/bear.png"
+        },
+        {
+          "text": null,
+          "imagePath": "assets/images/squirrel.png"
+        }
+      ]
+    },
+    {
+      "prompt": "Click on the toucan",
+      "correctAnswer": {
+        "text": null,
+        "imagePath": "assets/images/toucan.png"
+      },
+      "decoyAnswers": [
+        {
+          "text": null,
+          "imagePath": "assets/images/wolf.png"
+        },
+        {
+          "text": null,
+          "imagePath": "assets/images/frog.png"
+        },
+        {
+          "text": null,
+          "imagePath": "assets/images/sheep.png"
+        },
+        {
+          "text": null,
+          "imagePath": "assets/images/turkey.png"
+        },
+        {
+          "text": null,
+          "imagePath": "assets/images/jellyfish.png"
+        },
+        {
+          "text": null,
+          "imagePath": "assets/images/seahorse.png"
+        },
+        {
+          "text": null,
+          "imagePath": "assets/images/manta-ray.png"
+        },
+        {
+          "text": null,
+          "imagePath": "assets/images/starfish.png"
+        }
+      ]
+    },
+    {
+      "prompt": "Click on the turkey",
+      "correctAnswer": {
+        "text": null,
+        "imagePath": "assets/images/turkey.png"
+      },
+      "decoyAnswers": [
+        {
+          "text": null,
+          "imagePath": "assets/images/tortoise.png"
+        },
+        {
+          "text": null,
+          "imagePath": "assets/images/yak.png"
+        },
+        {
+          "text": null,
+          "imagePath": "assets/images/manta-ray.png"
+        },
+        {
+          "text": null,
+          "imagePath": "assets/images/goat.png"
+        },
+        {
+          "text": null,
+          "imagePath": "assets/images/snake.png"
+        },
+        {
+          "text": null,
+          "imagePath": "assets/images/peacock.png"
+        },
+        {
+          "text": null,
+          "imagePath": "assets/images/raccoon.png"
+        },
+        {
+          "text": null,
+          "imagePath": "assets/images/penguin.png"
+        }
+      ]
+    },
+    {
+      "prompt": "Click on the walrus",
+      "correctAnswer": {
+        "text": null,
+        "imagePath": "assets/images/walrus.png"
+      },
+      "decoyAnswers": [
+        {
+          "text": null,
+          "imagePath": "assets/images/rabbit.png"
+        },
+        {
+          "text": null,
+          "imagePath": "assets/images/spider.png"
+        },
+        {
+          "text": null,
+          "imagePath": "assets/images/sheep.png"
+        },
+        {
+          "text": null,
+          "imagePath": "assets/images/flamingo.png"
+        },
+        {
+          "text": null,
+          "imagePath": "assets/images/frog.png"
+        },
+        {
+          "text": null,
+          "imagePath": "assets/images/crocodile.png"
+        },
+        {
+          "text": null,
+          "imagePath": "assets/images/dolphin.png"
+        },
+        {
+          "text": null,
+          "imagePath": "assets/images/pigeon.png"
+        }
+      ]
+    },
+    {
+      "prompt": "Click on the whale",
+      "correctAnswer": {
+        "text": null,
+        "imagePath": "assets/images/whale.png"
+      },
+      "decoyAnswers": [
+        {
+          "text": null,
+          "imagePath": "assets/images/manta-ray.png"
+        },
+        {
+          "text": null,
+          "imagePath": "assets/images/shark.png"
+        },
+        {
+          "text": null,
+          "imagePath": "assets/images/elephant.png"
+        },
+        {
+          "text": null,
+          "imagePath": "assets/images/flamingo.png"
+        },
+        {
+          "text": null,
+          "imagePath": "assets/images/kangaroo.png"
+        },
+        {
+          "text": null,
+          "imagePath": "assets/images/rabbit.png"
+        },
+        {
+          "text": null,
+          "imagePath": "assets/images/crab.png"
+        },
+        {
+          "text": null,
+          "imagePath": "assets/images/seahorse.png"
+        }
+      ]
+    },
+    {
+      "prompt": "Click on the wolf",
+      "correctAnswer": {
+        "text": null,
+        "imagePath": "assets/images/wolf.png"
+      },
+      "decoyAnswers": [
+        {
+          "text": null,
+          "imagePath": "assets/images/kangaroo.png"
+        },
+        {
+          "text": null,
+          "imagePath": "assets/images/toucan.png"
+        },
+        {
+          "text": null,
+          "imagePath": "assets/images/yak.png"
+        },
+        {
+          "text": null,
+          "imagePath": "assets/images/ladybug.png"
+        },
+        {
+          "text": null,
+          "imagePath": "assets/images/monkey.png"
+        },
+        {
+          "text": null,
+          "imagePath": "assets/images/dog.png"
+        },
+        {
+          "text": null,
+          "imagePath": "assets/images/turkey.png"
+        },
+        {
+          "text": null,
+          "imagePath": "assets/images/owl.png"
+        }
+      ]
+    },
+    {
+      "prompt": "Click on the yak",
+      "correctAnswer": {
+        "text": null,
+        "imagePath": "assets/images/yak.png"
+      },
+      "decoyAnswers": [
+        {
+          "text": null,
+          "imagePath": "assets/images/wolf.png"
+        },
+        {
+          "text": null,
+          "imagePath": "assets/images/spider.png"
+        },
+        {
+          "text": null,
+          "imagePath": "assets/images/crocodile.png"
+        },
+        {
+          "text": null,
+          "imagePath": "assets/images/lion.png"
+        },
+        {
+          "text": null,
+          "imagePath": "assets/images/squirrel.png"
+        },
+        {
+          "text": null,
+          "imagePath": "assets/images/ladybug.png"
+        },
+        {
+          "text": null,
+          "imagePath": "assets/images/turkey.png"
+        },
+        {
+          "text": null,
+          "imagePath": "assets/images/chicken.png"
+        }
+      ]
+    },
+    {
+      "prompt": "Click on the zebra",
+      "correctAnswer": {
+        "text": null,
+        "imagePath": "assets/images/zebra.png"
+      },
+      "decoyAnswers": [
+        {
+          "text": null,
+          "imagePath": "assets/images/yak.png"
+        },
+        {
+          "text": null,
+          "imagePath": "assets/images/hippopotamus.png"
+        },
+        {
+          "text": null,
+          "imagePath": "assets/images/spider.png"
+        },
+        {
+          "text": null,
+          "imagePath": "assets/images/giraffe.png"
+        },
+        {
+          "text": null,
+          "imagePath": "assets/images/praying-mantis.png"
+        },
+        {
+          "text": null,
+          "imagePath": "assets/images/crab.png"
+        },
+        {
+          "text": null,
+          "imagePath": "assets/images/squirrel.png"
+        },
+        {
+          "text": null,
+          "imagePath": "assets/images/whale.png"
+        }
+      ]
+    }
+  ]

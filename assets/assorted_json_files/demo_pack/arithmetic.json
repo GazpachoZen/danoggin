@@ -1,0 +1,806 @@
+[
+    {
+      "prompt": "What is 2 + 6?",
+      "correctAnswer": {
+        "text": "8",
+        "imagePath": null
+      },
+      "decoyAnswers": [
+        {
+          "text": "11",
+          "imagePath": null
+        },
+        {
+          "text": "9",
+          "imagePath": null
+        },
+        {
+          "text": "6",
+          "imagePath": null
+        },
+        {
+          "text": "3",
+          "imagePath": null
+        },
+        {
+          "text": "4",
+          "imagePath": null
+        },
+        {
+          "text": "12",
+          "imagePath": null
+        },
+        {
+          "text": "13",
+          "imagePath": null
+        },
+        {
+          "text": "5",
+          "imagePath": null
+        }
+      ]
+    },
+    {
+      "prompt": "What is 6 + 5?",
+      "correctAnswer": {
+        "text": "11",
+        "imagePath": null
+      },
+      "decoyAnswers": [
+        {
+          "text": "14",
+          "imagePath": null
+        },
+        {
+          "text": "8",
+          "imagePath": null
+        },
+        {
+          "text": "12",
+          "imagePath": null
+        },
+        {
+          "text": "13",
+          "imagePath": null
+        },
+        {
+          "text": "9",
+          "imagePath": null
+        },
+        {
+          "text": "16",
+          "imagePath": null
+        },
+        {
+          "text": "7",
+          "imagePath": null
+        },
+        {
+          "text": "15",
+          "imagePath": null
+        }
+      ]
+    },
+    {
+      "prompt": "What is 8 + 9?",
+      "correctAnswer": {
+        "text": "17",
+        "imagePath": null
+      },
+      "decoyAnswers": [
+        {
+          "text": "22",
+          "imagePath": null
+        },
+        {
+          "text": "13",
+          "imagePath": null
+        },
+        {
+          "text": "19",
+          "imagePath": null
+        },
+        {
+          "text": "18",
+          "imagePath": null
+        },
+        {
+          "text": "14",
+          "imagePath": null
+        },
+        {
+          "text": "12",
+          "imagePath": null
+        },
+        {
+          "text": "15",
+          "imagePath": null
+        },
+        {
+          "text": "21",
+          "imagePath": null
+        }
+      ]
+    },
+    {
+      "prompt": "What is 10 + 4?",
+      "correctAnswer": {
+        "text": "14",
+        "imagePath": null
+      },
+      "decoyAnswers": [
+        {
+          "text": "18",
+          "imagePath": null
+        },
+        {
+          "text": "9",
+          "imagePath": null
+        },
+        {
+          "text": "12",
+          "imagePath": null
+        },
+        {
+          "text": "16",
+          "imagePath": null
+        },
+        {
+          "text": "11",
+          "imagePath": null
+        },
+        {
+          "text": "19",
+          "imagePath": null
+        },
+        {
+          "text": "15",
+          "imagePath": null
+        },
+        {
+          "text": "17",
+          "imagePath": null
+        }
+      ]
+    },
+    {
+      "prompt": "What is 1 \u00d7 3?",
+      "correctAnswer": {
+        "text": "3",
+        "imagePath": null
+      },
+      "decoyAnswers": [
+        {
+          "text": "7",
+          "imagePath": null
+        },
+        {
+          "text": "4",
+          "imagePath": null
+        },
+        {
+          "text": "6",
+          "imagePath": null
+        },
+        {
+          "text": "2",
+          "imagePath": null
+        },
+        {
+          "text": "1",
+          "imagePath": null
+        },
+        {
+          "text": "0",
+          "imagePath": null
+        },
+        {
+          "text": "8",
+          "imagePath": null
+        },
+        {
+          "text": "5",
+          "imagePath": null
+        }
+      ]
+    },
+    {
+      "prompt": "What is 2 - 2?",
+      "correctAnswer": {
+        "text": "0",
+        "imagePath": null
+      },
+      "decoyAnswers": [
+        {
+          "text": "1",
+          "imagePath": null
+        },
+        {
+          "text": "4",
+          "imagePath": null
+        },
+        {
+          "text": "5",
+          "imagePath": null
+        },
+        {
+          "text": "2",
+          "imagePath": null
+        },
+        {
+          "text": "3",
+          "imagePath": null
+        }
+      ]
+    },
+    {
+      "prompt": "What is 11 + 12?",
+      "correctAnswer": {
+        "text": "23",
+        "imagePath": null
+      },
+      "decoyAnswers": [
+        {
+          "text": "32",
+          "imagePath": null
+        },
+        {
+          "text": "13",
+          "imagePath": null
+        },
+        {
+          "text": "33",
+          "imagePath": null
+        },
+        {
+          "text": "15",
+          "imagePath": null
+        },
+        {
+          "text": "1",
+          "imagePath": null
+        },
+        {
+          "text": "132",
+          "imagePath": null
+        },
+        {
+          "text": "9",
+          "imagePath": null
+        },
+        {
+          "text": "10",
+          "imagePath": null
+        }
+      ]
+    },
+    {
+      "prompt": "What is 11 - 3?",
+      "correctAnswer": {
+        "text": "8",
+        "imagePath": null
+      },
+      "decoyAnswers": [
+        {
+          "text": "4",
+          "imagePath": null
+        },
+        {
+          "text": "5",
+          "imagePath": null
+        },
+        {
+          "text": "3",
+          "imagePath": null
+        },
+        {
+          "text": "7",
+          "imagePath": null
+        },
+        {
+          "text": "12",
+          "imagePath": null
+        },
+        {
+          "text": "6",
+          "imagePath": null
+        },
+        {
+          "text": "11",
+          "imagePath": null
+        },
+        {
+          "text": "13",
+          "imagePath": null
+        }
+      ]
+    },
+    {
+      "prompt": "What is 12 \u00d7 12?",
+      "correctAnswer": {
+        "text": "144",
+        "imagePath": null
+      },
+      "decoyAnswers": [
+        {
+          "text": "143",
+          "imagePath": null
+        },
+        {
+          "text": "142",
+          "imagePath": null
+        },
+        {
+          "text": "139",
+          "imagePath": null
+        },
+        {
+          "text": "147",
+          "imagePath": null
+        },
+        {
+          "text": "148",
+          "imagePath": null
+        },
+        {
+          "text": "141",
+          "imagePath": null
+        },
+        {
+          "text": "145",
+          "imagePath": null
+        },
+        {
+          "text": "140",
+          "imagePath": null
+        }
+      ]
+    },
+    {
+      "prompt": "What is 6 + 12?",
+      "correctAnswer": {
+        "text": "18",
+        "imagePath": null
+      },
+      "decoyAnswers": [
+        {
+          "text": "14",
+          "imagePath": null
+        },
+        {
+          "text": "19",
+          "imagePath": null
+        },
+        {
+          "text": "23",
+          "imagePath": null
+        },
+        {
+          "text": "13",
+          "imagePath": null
+        },
+        {
+          "text": "17",
+          "imagePath": null
+        },
+        {
+          "text": "16",
+          "imagePath": null
+        },
+        {
+          "text": "22",
+          "imagePath": null
+        },
+        {
+          "text": "15",
+          "imagePath": null
+        }
+      ]
+    },
+    {
+      "prompt": "What is 11 + 5?",
+      "correctAnswer": {
+        "text": "16",
+        "imagePath": null
+      },
+      "decoyAnswers": [
+        {
+          "text": "11",
+          "imagePath": null
+        },
+        {
+          "text": "14",
+          "imagePath": null
+        },
+        {
+          "text": "17",
+          "imagePath": null
+        },
+        {
+          "text": "12",
+          "imagePath": null
+        },
+        {
+          "text": "18",
+          "imagePath": null
+        },
+        {
+          "text": "20",
+          "imagePath": null
+        },
+        {
+          "text": "21",
+          "imagePath": null
+        },
+        {
+          "text": "13",
+          "imagePath": null
+        }
+      ]
+    },
+    {
+      "prompt": "What is 9 \u00d7 8?",
+      "correctAnswer": {
+        "text": "72",
+        "imagePath": null
+      },
+      "decoyAnswers": [
+        {
+          "text": "74",
+          "imagePath": null
+        },
+        {
+          "text": "73",
+          "imagePath": null
+        },
+        {
+          "text": "67",
+          "imagePath": null
+        },
+        {
+          "text": "77",
+          "imagePath": null
+        },
+        {
+          "text": "75",
+          "imagePath": null
+        },
+        {
+          "text": "68",
+          "imagePath": null
+        },
+        {
+          "text": "76",
+          "imagePath": null
+        },
+        {
+          "text": "69",
+          "imagePath": null
+        }
+      ]
+    },
+    {
+      "prompt": "What is 12 \u00f7 2?",
+      "correctAnswer": {
+        "text": "6",
+        "imagePath": null
+      },
+      "decoyAnswers": [
+        {
+          "text": "4",
+          "imagePath": null
+        },
+        {
+          "text": "11",
+          "imagePath": null
+        },
+        {
+          "text": "7",
+          "imagePath": null
+        },
+        {
+          "text": "3",
+          "imagePath": null
+        },
+        {
+          "text": "8",
+          "imagePath": null
+        },
+        {
+          "text": "1",
+          "imagePath": null
+        },
+        {
+          "text": "2",
+          "imagePath": null
+        },
+        {
+          "text": "9",
+          "imagePath": null
+        }
+      ]
+    },
+    {
+      "prompt": "What is 5 \u00d7 12?",
+      "correctAnswer": {
+        "text": "60",
+        "imagePath": null
+      },
+      "decoyAnswers": [
+        {
+          "text": "62",
+          "imagePath": null
+        },
+        {
+          "text": "56",
+          "imagePath": null
+        },
+        {
+          "text": "65",
+          "imagePath": null
+        },
+        {
+          "text": "55",
+          "imagePath": null
+        },
+        {
+          "text": "64",
+          "imagePath": null
+        },
+        {
+          "text": "63",
+          "imagePath": null
+        },
+        {
+          "text": "57",
+          "imagePath": null
+        },
+        {
+          "text": "61",
+          "imagePath": null
+        }
+      ]
+    },
+    {
+      "prompt": "What is 11 - 9?",
+      "correctAnswer": {
+        "text": "2",
+        "imagePath": null
+      },
+      "decoyAnswers": [
+        {
+          "text": "7",
+          "imagePath": null
+        },
+        {
+          "text": "0",
+          "imagePath": null
+        },
+        {
+          "text": "1",
+          "imagePath": null
+        },
+        {
+          "text": "6",
+          "imagePath": null
+        },
+        {
+          "text": "3",
+          "imagePath": null
+        },
+        {
+          "text": "4",
+          "imagePath": null
+        },
+        {
+          "text": "5",
+          "imagePath": null
+        }
+      ]
+    },
+    {
+      "prompt": "What is 8 + 1?",
+      "correctAnswer": {
+        "text": "9",
+        "imagePath": null
+      },
+      "decoyAnswers": [
+        {
+          "text": "10",
+          "imagePath": null
+        },
+        {
+          "text": "12",
+          "imagePath": null
+        },
+        {
+          "text": "14",
+          "imagePath": null
+        },
+        {
+          "text": "11",
+          "imagePath": null
+        },
+        {
+          "text": "5",
+          "imagePath": null
+        },
+        {
+          "text": "7",
+          "imagePath": null
+        },
+        {
+          "text": "8",
+          "imagePath": null
+        },
+        {
+          "text": "13",
+          "imagePath": null
+        }
+      ]
+    },
+    {
+      "prompt": "What is 4 + 11?",
+      "correctAnswer": {
+        "text": "15",
+        "imagePath": null
+      },
+      "decoyAnswers": [
+        {
+          "text": "18",
+          "imagePath": null
+        },
+        {
+          "text": "13",
+          "imagePath": null
+        },
+        {
+          "text": "11",
+          "imagePath": null
+        },
+        {
+          "text": "16",
+          "imagePath": null
+        },
+        {
+          "text": "12",
+          "imagePath": null
+        },
+        {
+          "text": "20",
+          "imagePath": null
+        },
+        {
+          "text": "14",
+          "imagePath": null
+        },
+        {
+          "text": "17",
+          "imagePath": null
+        }
+      ]
+    },
+    {
+      "prompt": "What is 10 \u00f7 2?",
+      "correctAnswer": {
+        "text": "5",
+        "imagePath": null
+      },
+      "decoyAnswers": [
+        {
+          "text": "2",
+          "imagePath": null
+        },
+        {
+          "text": "9",
+          "imagePath": null
+        },
+        {
+          "text": "3",
+          "imagePath": null
+        },
+        {
+          "text": "4",
+          "imagePath": null
+        },
+        {
+          "text": "7",
+          "imagePath": null
+        },
+        {
+          "text": "10",
+          "imagePath": null
+        },
+        {
+          "text": "0",
+          "imagePath": null
+        },
+        {
+          "text": "1",
+          "imagePath": null
+        }
+      ]
+    },
+    {
+      "prompt": "What is 6 + 1?",
+      "correctAnswer": {
+        "text": "7",
+        "imagePath": null
+      },
+      "decoyAnswers": [
+        {
+          "text": "10",
+          "imagePath": null
+        },
+        {
+          "text": "5",
+          "imagePath": null
+        },
+        {
+          "text": "11",
+          "imagePath": null
+        },
+        {
+          "text": "9",
+          "imagePath": null
+        },
+        {
+          "text": "12",
+          "imagePath": null
+        },
+        {
+          "text": "6",
+          "imagePath": null
+        },
+        {
+          "text": "3",
+          "imagePath": null
+        },
+        {
+          "text": "2",
+          "imagePath": null
+        }
+      ]
+    },
+    {
+      "prompt": "What is 1 \u00d7 11?",
+      "correctAnswer": {
+        "text": "11",
+        "imagePath": null
+      },
+      "decoyAnswers": [
+        {
+          "text": "14",
+          "imagePath": null
+        },
+        {
+          "text": "12",
+          "imagePath": null
+        },
+        {
+          "text": "13",
+          "imagePath": null
+        },
+        {
+          "text": "8",
+          "imagePath": null
+        },
+        {
+          "text": "15",
+          "imagePath": null
+        },
+        {
+          "text": "10",
+          "imagePath": null
+        },
+        {
+          "text": "9",
+          "imagePath": null
+        },
+        {
+          "text": "6",
+          "imagePath": null
+        }
+      ]
+    }
+  ]

@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Firestore Question Upload</title>
+  <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore-compat.js"></script>
+</head>
+<body>
+  <h2>Upload Questions to Firestore</h2>
+  <input type="file" id="jsonFile" accept=".json" />
+  <button onclick="uploadQuestions()">Upload</button>
+  <div id="status"></div>
+
+  <script>
+    // Your Firebase config (copy from Firebase console → Project settings)
+    const firebaseConfig = {
+      apiKey: "AIzaSyCyToCLujamq4SMrfIQK-VKOINe-7HnYVo",
+      authDomain: "Danoggin.firebaseapp.com",
+      projectId: "danoggin-d0478",
+      // ... other config
+    };
+
+    // Initialize Firebase
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
+
+    async function uploadQuestions() {
+      const fileInput = document.getElementById('jsonFile');
+      const statusDiv = document.getElementById('status');
+      
+      if (!fileInput.files.length) {
+        statusDiv.textContent = 'Please select a JSON file first';
+        return;
+      }
+
+      try {
+        // Read the file
+        const file = fileInput.files[0];
+        const content = await file.text();
+        const questionsData = JSON.parse(content);
+        
+        // Get current questions
+        const packRef = db.collection('question_packs').doc('demo_pack');
+        const doc = await packRef.get();
+        
+        if (!doc.exists) {
+          statusDiv.textContent = 'demo_pack document does not exist!';
+          return;
+        }
+        
+        const currentData = doc.data();
+        
+        // Upload combined questions
+        await packRef.update({
+          questions: [...currentData.questions, ...questionsData]
+        });
+        
+        statusDiv.textContent = 'Questions uploaded successfully!';
+      } catch (error) {
+        statusDiv.textContent = 'Error: ' + error.message;
+        console.error(error);
+      }
+    }
+  </script>
+</body>
+</html>
