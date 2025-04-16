@@ -21,7 +21,7 @@ class AnswerOption {
     );
   }
 
-  Widget render() {
+  Widget render({bool disabled = false}) {
     return LayoutBuilder(
       builder: (context, constraints) {
         final hasImage = imagePath != null;
@@ -42,9 +42,20 @@ class AnswerOption {
             if (hasImage)
               Container(
                 height: imageHeight,
-                child: Image.asset(
-                  imagePath!,
-                  fit: BoxFit.contain,
+                child: ColorFiltered(
+                  // Apply grayscale filter when disabled
+                  colorFilter: disabled 
+                      ? ColorFilter.matrix([
+                          0.2126, 0.7152, 0.0722, 0, 0,
+                          0.2126, 0.7152, 0.0722, 0, 0,
+                          0.2126, 0.7152, 0.0722, 0, 0,
+                          0,      0,      0,      1, 0,
+                        ])
+                      : ColorFilter.mode(Colors.transparent, BlendMode.color),
+                  child: Image.asset(
+                    imagePath!,
+                    fit: BoxFit.contain,
+                  ),
                 ),
               ),
             if (hasText)
@@ -53,7 +64,11 @@ class AnswerOption {
                 child: Text(
                   text!,
                   textAlign: TextAlign.center,
-                  style: TextStyle(fontSize: fontSize),
+                  style: TextStyle(
+                    fontSize: fontSize,
+                    // Reduce opacity of text when disabled
+                    color: disabled ? Colors.grey : null,
+                  ),
                   maxLines: 2,
                   softWrap: true,
                   overflow: TextOverflow.ellipsis,

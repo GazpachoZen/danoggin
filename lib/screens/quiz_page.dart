@@ -17,6 +17,9 @@ class QuizPage extends StatefulWidget {
 }
 
 class _QuizPageState extends State<QuizPage> with WidgetsBindingObserver {
+  bool _uiDisabled = false;
+  bool _isRetryAttempt = false;
+  AnswerOption? _previousIncorrectAnswer;
   late QuestionPack pack;
   bool isLoading = true;
   TimeOfDay? startHour;
@@ -187,10 +190,15 @@ class _QuizPageState extends State<QuizPage> with WidgetsBindingObserver {
   }
 
   void loadRandomQuestion() {
-    currentQuestion = pack.getRandomQuestion();
+    currentQuestion = pack.getNextQuestion(); // Using the new method
     displayedChoices = currentQuestion.getShuffledChoices();
     selectedAnswer = null;
     feedback = null;
+
+    // Reset state for new question
+    _uiDisabled = false;
+    _isRetryAttempt = false;
+    _previousIncorrectAnswer = null;
 
     responseTimer?.cancel();
     responseTimer = Timer(responseTimeout, _handleTimeout);
@@ -206,13 +214,16 @@ class _QuizPageState extends State<QuizPage> with WidgetsBindingObserver {
   void _handleTimeout() async {
     if (selectedAnswer == null) {
       setState(() {
-        feedback = '⏰ You missed the question.';
+        feedback = _isRetryAttempt
+            ? '⏰ You missed the second chance.'
+            : '⏰ You missed the question.';
+        _uiDisabled = true; // Disable UI after timeout
       });
 
       // Log the missed check-in
       await logCheckIn(
         responderId: currentRole.name,
-        result: 'missed',
+        result: _isRetryAttempt ? 'missed_retry' : 'missed',
         questionPrompt: currentQuestion.prompt,
       );
 
@@ -220,7 +231,9 @@ class _QuizPageState extends State<QuizPage> with WidgetsBindingObserver {
       NotificationHelper.showInAppAlert(
         context,
         'Missed Check-in',
-        'You missed answering the check-in question. This will be recorded as a missed check-in.',
+        _isRetryAttempt
+            ? 'You missed answering the second chance. This will be recorded as a missed check-in.'
+            : 'You missed answering the check-in question. This will be recorded as a missed check-in.',
       );
     }
   }
@@ -232,26 +245,60 @@ class _QuizPageState extends State<QuizPage> with WidgetsBindingObserver {
 
     final isCorrect = selectedAnswer == currentQuestion.correctAnswer;
 
-    setState(() {
-      feedback = isCorrect ? '✅ Correct!' : '❌ Incorrect';
-    });
+    if (isCorrect) {
+      // Correct answer case
+      setState(() {
+        feedback = '✅ Correct!';
+        _uiDisabled = true; // Disable UI after correct answer
+      });
 
-    await logCheckIn(
-      responderId: currentRole.name,
-      result: isCorrect ? 'correct' : 'incorrect',
-      questionPrompt: currentQuestion.prompt,
-    );
+      await logCheckIn(
+        responderId: currentRole.name,
+        result: 'correct',
+        questionPrompt: currentQuestion.prompt,
+      );
+    } else {
+      // Incorrect answer case
+      if (!_isRetryAttempt) {
+        // First incorrect attempt - allow retry
+        _previousIncorrectAnswer = selectedAnswer;
+        setState(() {
+          feedback = '❌ Incorrect. Try again.';
+          selectedAnswer = null;
+          _isRetryAttempt = true;
+        });
+
+        // Log the first incorrect attempt
+        await logCheckIn(
+          responderId: currentRole.name,
+          result: 'incorrect_first_attempt',
+          questionPrompt: currentQuestion.prompt,
+        );
+
+        // Restart the timer for the second attempt
+        responseTimer = Timer(responseTimeout, _handleTimeout);
+      } else {
+        // Second incorrect attempt - disable UI
+        setState(() {
+          feedback = '❌ Incorrect';
+          _uiDisabled = true;
+        });
+
+        // Log the final incorrect result
+        await logCheckIn(
+          responderId: currentRole.name,
+          result: 'incorrect',
+          questionPrompt: currentQuestion.prompt,
+        );
+      }
+    }
   }
 
   @override
   Widget build(BuildContext context) {
-    if (isLoading) {
-      return Scaffold(
-        appBar: AppBar(title: Text('Loading...')),
-        body: Center(child: CircularProgressIndicator()),
-      );
-    }
+    // ... existing code ...
 
+    // In the UI section, modify the buttons to respect the disabled state:
     return Scaffold(
       appBar: AppBar(
         title: Text(
@@ -282,6 +329,7 @@ class _QuizPageState extends State<QuizPage> with WidgetsBindingObserver {
           ),
         ],
       ),
+      // ... existing Scaffold properties ...
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(
@@ -297,24 +345,34 @@ class _QuizPageState extends State<QuizPage> with WidgetsBindingObserver {
               childAspectRatio: 1.0,
               children: displayedChoices.map((answer) {
                 final isSelected = selectedAnswer == answer;
+                final isPreviousIncorrect = answer == _previousIncorrectAnswer;
+                final isDisabled = _uiDisabled || isPreviousIncorrect;
+
                 return ElevatedButton(
-                  onPressed: () {
-                    setState(() {
-                      selectedAnswer = answer;
-                      feedback = null;
-                    });
-                  },
+                  onPressed: isDisabled
+                      ? null
+                      : () {
+                          setState(() {
+                            selectedAnswer = answer;
+                            feedback = null;
+                          });
+                        },
                   style: ElevatedButton.styleFrom(
                     backgroundColor: isSelected ? Colors.blueAccent : null,
                     padding: EdgeInsets.all(4),
+                    // Visually indicate the previously incorrect answer
+                    disabledBackgroundColor: isPreviousIncorrect
+                        ? Colors.red.withOpacity(0.3)
+                        : null,
                   ),
-                  child: answer.render(),
+                  child: answer.render(disabled: isDisabled),
                 );
               }).toList(),
             ),
             SizedBox(height: 16),
             ElevatedButton(
-              onPressed: selectedAnswer == null ? null : submitAnswer,
+              onPressed:
+                  (_uiDisabled || selectedAnswer == null) ? null : submitAnswer,
               child: Text('Submit'),
             ),
             SizedBox(height: 24),
@@ -323,7 +381,11 @@ class _QuizPageState extends State<QuizPage> with WidgetsBindingObserver {
                 feedback!,
                 style: TextStyle(
                   fontSize: 20,
-                  color: feedback == '✅ Correct!' ? Colors.green : Colors.red,
+                  color: feedback == '✅ Correct!'
+                      ? Colors.green
+                      : (feedback == '❌ Incorrect. Try again.'
+                          ? Colors.orange
+                          : Colors.red),
                 ),
               ),
           ],
