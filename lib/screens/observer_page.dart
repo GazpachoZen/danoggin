@@ -140,68 +140,81 @@ class _ObserverPageState extends State<ObserverPage> {
     _pollingTimer = Timer.periodic(duration, (_) => _checkResponderStatus());
   }
 
-  Future<void> _checkResponderStatus() async {
-    try {
-      // Get the responder UIDs that this observer is linked to
-      final observerUid = AuthService.currentUserId;
-      final observerDoc = await FirebaseFirestore.instance
-          .collection('users')
-          .doc(observerUid)
+
+Future<void> _checkResponderStatus() async {
+  try {
+    // Get the responder UIDs that this observer is linked to
+    final observerUid = AuthService.currentUserId;
+    final observerDoc = await FirebaseFirestore.instance
+        .collection('users')
+        .doc(observerUid)
+        .get();
+    
+    final userData = observerDoc.data() as Map<String, dynamic>?;
+    final observingMap = userData?['observing'] as Map<String, dynamic>? ?? {};
+    final responderUids = observingMap.keys.toList();
+    
+    if (responderUids.isEmpty) {
+      print("No linked responders found");
+      return;
+    }
+    
+    // Track notifications sent in this polling cycle to avoid duplicates
+    List<String> notifiedInThisCycle = [];
+    
+    // Check each linked responder
+    for (final responderUid in responderUids) {
+      final responderName = observingMap[responderUid];
+      
+      // Use get() to force a fresh read from Firestore
+      final snapshot = await FirebaseFirestore.instance
+          .collection('responder_status')
+          .doc(responderUid)
+          .collection('check_ins')
+          .orderBy('timestamp', descending: true)
+          .limit(1)
           .get();
+  
+      final now = DateTime.now();
+      print("Checking responder $responderName ($responderUid) @ ${now.hour}:${now.minute}:${now.second}");
+  
+      if (snapshot.docs.isEmpty) continue;
       
-      final userData = observerDoc.data() as Map<String, dynamic>?;
-      final observingMap = userData?['observing'] as Map<String, dynamic>? ?? {};
-      final responderUids = observingMap.keys.toList();
+      final doc = snapshot.docs.first;
+      final data = doc.data();
+      final result = data['result'] as String;
+      final timestamp = DateTime.tryParse(data['timestamp'] as String);
+      final docId = doc.id;
       
-      if (responderUids.isEmpty) {
-        print("No linked responders found");
-        return;
-      }
+      // Skip if we can't parse the timestamp
+      if (timestamp == null) continue;
       
-      // Check each linked responder
-      for (final responderUid in responderUids) {
-        final responderName = observingMap[responderUid];
+      final checkInAge = now.difference(timestamp);
+      final mostRecentTimeStr = DateFormat('M/d h:mma').format(timestamp).toLowerCase();
+      
+      print("Found check-in: id=$docId, result=$result, age=${checkInAge.inMinutes}m");
+      
+      // Create a unique identifier for this check-in
+      final checkInKey = "$responderUid:$docId";
+      
+      // Only notify for recent check-ins that are missed or incorrect
+      if ((result == 'missed' || result == 'incorrect') && 
+          checkInAge.inHours < 24) {  // Only consider relatively recent check-ins (last 24h)
         
-        // Use get() to force a fresh read from Firestore
-        final snapshot = await FirebaseFirestore.instance
-            .collection('responder_status')
-            .doc(responderUid)
-            .collection('check_ins')
-            .orderBy('timestamp', descending: true)
-            .limit(1)
-            .get();
-    
-        final now = DateTime.now();
-        print("Checking responder $responderName ($responderUid) @ ${now.hour}:${now.minute}:${now.second}");
-    
-        if (snapshot.docs.isEmpty) continue;
+        // Check if we've already acknowledged this issue
+        final isAcknowledged = checkInKey == lastAcknowledgedId;
         
-        final doc = snapshot.docs.first;
-        final data = doc.data();
-        final result = data['result'] as String;
-        final timestamp = DateTime.tryParse(data['timestamp'] as String);
-        final docId = doc.id;
+        // Check if we've already notified about this issue in this polling cycle
+        final alreadyNotifiedThisCycle = notifiedInThisCycle.contains(checkInKey);
         
-        // Skip if we can't parse the timestamp
-        if (timestamp == null) continue;
-        
-        final checkInAge = now.difference(timestamp);
-        final mostRecentTimeStr = DateFormat('M/d h:mma').format(timestamp).toLowerCase();
-        
-        print("Found check-in: id=$docId, result=$result, age=${checkInAge.inMinutes}m");
-        
-        // Create a unique identifier for this check-in
-        final checkInKey = "$responderUid:$docId";
-        
-        // Only notify for recent check-ins that are missed or incorrect
-        if ((result == 'missed' || result == 'incorrect') && 
-            checkInAge.inHours < 24 &&  // Only notify for relatively recent check-ins (last 24h)
-            checkInKey != lastNotifiedId &&
-            checkInKey != lastAcknowledgedId) {
-          
+        if (!isAcknowledged && !alreadyNotifiedThisCycle) {
           print("Issue detected: $responderName had a $result check-in");
           
-          // Update tracking of notifications
+          // Mark this as notified in this cycle to avoid duplicate notifications
+          notifiedInThisCycle.add(checkInKey);
+          
+          // Update tracking of last notification - this is only to track the 
+          // very last notification sent, not to prevent repeated notifications
           setState(() {
             lastNotifiedId = checkInKey;
           });
@@ -220,10 +233,11 @@ class _ObserverPageState extends State<ObserverPage> {
           print("Notification sent for $responderName's $result check-in");
         }
       }
-    } catch (e) {
-      print("Error in _checkResponderStatus: $e");
     }
+  } catch (e) {
+    print("Error in _checkResponderStatus: $e");
   }
+}
 
   Future<void> _testNotifications() async {
     try {
