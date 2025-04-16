@@ -52,46 +52,53 @@ class _RoleSelectionScreenState extends State<RoleSelectionScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      // Set this property to true to allow the screen to resize
+      resizeToAvoidBottomInset: true,
       appBar: AppBar(title: const Text('Select Your Role')),
-      body: Padding(
-        padding: const EdgeInsets.all(24.0),
-        child: Column(
-          children: [
-            const Text('Please enter your name:', style: TextStyle(fontSize: 18)),
-            const SizedBox(height: 8),
-            TextField(
-              controller: nameController,
-              decoration: const InputDecoration(
-                hintText: 'Your full name',
-                border: OutlineInputBorder(),
+      // Wrap the body in a SingleChildScrollView
+      body: SingleChildScrollView(
+        child: Padding(
+          padding: const EdgeInsets.all(24.0),
+          child: Column(
+            children: [
+              const Text('Please enter your name:', style: TextStyle(fontSize: 18)),
+              const SizedBox(height: 8),
+              TextField(
+                controller: nameController,
+                decoration: const InputDecoration(
+                  hintText: 'Your full name',
+                  border: OutlineInputBorder(),
+                ),
               ),
-            ),
-            const SizedBox(height: 24),
-            const Text('Choose your role:', style: TextStyle(fontSize: 18)),
-            RadioListTile<UserRole>(
-              title: const Text('Responder'),
-              value: UserRole.responder,
-              groupValue: selectedRole,
-              onChanged: (value) => setState(() => selectedRole = value),
-            ),
-            RadioListTile<UserRole>(
-              title: const Text('Observer'),
-              value: UserRole.observer,
-              groupValue: selectedRole,
-              onChanged: (value) => setState(() => selectedRole = value),
-            ),
-            const SizedBox(height: 32),
-            ElevatedButton.icon(
-              icon: const Icon(Icons.check),
-              label: const Text('Continue'),
-              onPressed: _applyRole,
-              style: ElevatedButton.styleFrom(
-                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+              const SizedBox(height: 24),
+              const Text('Choose your role:', style: TextStyle(fontSize: 18)),
+              RadioListTile<UserRole>(
+                title: const Text('Responder'),
+                value: UserRole.responder,
+                groupValue: selectedRole,
+                onChanged: (value) => setState(() => selectedRole = value),
               ),
-            ),
-          ],
+              RadioListTile<UserRole>(
+                title: const Text('Observer'),
+                value: UserRole.observer,
+                groupValue: selectedRole,
+                onChanged: (value) => setState(() => selectedRole = value),
+              ),
+              const SizedBox(height: 32),
+              ElevatedButton.icon(
+                icon: const Icon(Icons.check),
+                label: const Text('Continue'),
+                onPressed: _applyRole,
+                style: ElevatedButton.styleFrom(
+                  padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );
   }
+
+
 }

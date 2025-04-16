@@ -35,8 +35,14 @@ class _ObserverSettingsWidgetState extends State<ObserverSettingsWidget> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text('Polling Interval (minutes)',
-            style: TextStyle(fontWeight: FontWeight.bold)),
+    Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        Text('Polling interval: ${pollingIntervalMinutes.round()} minutes', 
+            style: TextStyle(fontSize: 16, color: Colors.deepPurple)),
+        Text('Range: 1-10', style: TextStyle(fontSize: 14, color: Colors.grey)),
+      ],
+    ),
         Slider(
           value: pollingIntervalMinutes,
           min: 1,
