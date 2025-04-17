@@ -142,7 +142,7 @@ class _QuizPageState extends State<QuizPage> with WidgetsBindingObserver {
       final startStr = prefs.getString('startHour') ?? '08:00';
       final endStr = prefs.getString('endHour') ?? '20:00';
       _parseOperationHours(startStr, endStr);
-      final frequency = prefs.getDouble('alertFrequency') ?? 180;
+      final frequency = prefs.getDouble('alertFrequency') ?? 5;
       final timeout = prefs.getDouble('timeoutDuration') ?? 1;
 
       alertInterval = Duration(minutes: frequency.round());

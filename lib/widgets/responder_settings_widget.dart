@@ -1,9 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:danoggin/screens/responder_invite_code_screen.dart';
+import 'package:danoggin/screens/responder_manage_observers_screen.dart';
 
 class ResponderSettingsWidget extends StatefulWidget {
-  const ResponderSettingsWidget({super.key});
+  // Add callback for relationship changes
+  final VoidCallback? onRelationshipsChanged;
+  
+  const ResponderSettingsWidget({
+    super.key,
+    this.onRelationshipsChanged,
+  });
 
   @override
   State<ResponderSettingsWidget> createState() =>
@@ -13,7 +20,7 @@ class ResponderSettingsWidget extends StatefulWidget {
 class _ResponderSettingsWidgetState extends State<ResponderSettingsWidget> {
   TimeOfDay startHour = const TimeOfDay(hour: 8, minute: 0);
   TimeOfDay endHour = const TimeOfDay(hour: 20, minute: 0);
-  double alertFrequencyMinutes = 180;
+  double alertFrequencyMinutes = 5;
   double timeoutMinutes = 1;
 
   @override
@@ -75,66 +82,93 @@ class _ResponderSettingsWidgetState extends State<ResponderSettingsWidget> {
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        const Text('Hours of Operation',
-            style: TextStyle(fontWeight: FontWeight.bold)),
-        Row(
+    // Wrap in SingleChildScrollView to allow scrolling
+    return SingleChildScrollView(
+      physics: const AlwaysScrollableScrollPhysics(),
+      child: Padding(
+        padding: const EdgeInsets.only(bottom: 16.0), // Add padding at the bottom
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            TextButton(
-              onPressed: () => _pickTime(context, true),
-              child: Text('Start: ${_formatTimeOfDayAMPM(startHour)}'),
+            const Text('Hours of Operation',
+                style: TextStyle(fontWeight: FontWeight.bold)),
+            Row(
+              children: [
+                TextButton(
+                  onPressed: () => _pickTime(context, true),
+                  child: Text('Start: ${_formatTimeOfDayAMPM(startHour)}'),
+                ),
+                TextButton(
+                  onPressed: () => _pickTime(context, false),
+                  child: Text('End: ${_formatTimeOfDayAMPM(endHour)}'),
+                ),
+              ],
             ),
-            TextButton(
-              onPressed: () => _pickTime(context, false),
-              child: Text('End: ${_formatTimeOfDayAMPM(endHour)}'),
+            const SizedBox(height: 16),
+            Text('Alert Frequency: ${alertFrequencyMinutes.round()} min',
+                style: TextStyle(fontWeight: FontWeight.bold)),
+            Slider(
+              value: alertFrequencyMinutes,
+              min: 5,
+              max: 360,
+              divisions: 71,
+              label: '${alertFrequencyMinutes.round()} min',
+              onChanged: (val) => setState(() => alertFrequencyMinutes = val),
+            ),
+            const SizedBox(height: 16),
+            Text('Response Timeout: ${timeoutMinutes.toStringAsFixed(1)} min',
+                style: TextStyle(fontWeight: FontWeight.bold)),
+            Slider(
+              value: timeoutMinutes,
+              min: 0.5,
+              max: 10,
+              divisions: 19,
+              label: '${timeoutMinutes.toStringAsFixed(1)} min',
+              onChanged: (val) => setState(() => timeoutMinutes = val),
+            ),
+            const SizedBox(height: 16),
+            Center(
+              child: ElevatedButton(
+                onPressed: _savePrefs,
+                child: const Text('Save Settings'),
+              ),
+            ),
+            const Divider(height: 32),
+            ListTile(
+              leading: const Icon(Icons.key),
+              title: const Text('Show my invite code'),
+              trailing: const Icon(Icons.arrow_forward_ios, size: 16),
+              onTap: () {
+                Navigator.of(context).push(
+                  MaterialPageRoute(
+                    builder: (_) => const ResponderInviteCodeScreen(),
+                  ),
+                );
+              },
+            ),
+            // Add new option for managing observers
+            ListTile(
+              leading: const Icon(Icons.people),
+              title: const Text('Who is observing me'),
+              subtitle: const Text('See and manage observers'),
+              trailing: const Icon(Icons.arrow_forward_ios, size: 16),
+              onTap: () async {
+                // Navigate to manage observers screen and await result
+                final relationshipsChanged = await Navigator.of(context).push<bool>(
+                  MaterialPageRoute(
+                    builder: (_) => const ResponderManageObserversScreen(),
+                  ),
+                );
+                
+                // If relationships changed and we have a callback, notify parent
+                if (relationshipsChanged == true && widget.onRelationshipsChanged != null) {
+                  widget.onRelationshipsChanged!();
+                }
+              },
             ),
           ],
         ),
-        const SizedBox(height: 16),
-        Text('Alert Frequency: ${alertFrequencyMinutes.round()} min',
-            style: TextStyle(fontWeight: FontWeight.bold)),
-        Slider(
-          value: alertFrequencyMinutes,
-          min: 5,
-          max: 360,
-          divisions: 71,
-          label: '${alertFrequencyMinutes.round()} min',
-          onChanged: (val) => setState(() => alertFrequencyMinutes = val),
-        ),
-        const SizedBox(height: 16),
-        Text('Response Timeout: ${timeoutMinutes.toStringAsFixed(1)} min',
-            style: TextStyle(fontWeight: FontWeight.bold)),
-        Slider(
-          value: timeoutMinutes,
-          min: 0.5,
-          max: 10,
-          divisions: 19,
-          label: '${timeoutMinutes.toStringAsFixed(1)} min',
-          onChanged: (val) => setState(() => timeoutMinutes = val),
-        ),
-        const SizedBox(height: 16),
-        Center(
-          child: ElevatedButton(
-            onPressed: _savePrefs,
-            child: const Text('Save Settings'),
-          ),
-        ),
-        const Divider(height: 32),
-        ListTile(
-          leading: const Icon(Icons.key),
-          title: const Text('Show my invite code'),
-          trailing: const Icon(Icons.arrow_forward_ios, size: 16),
-          onTap: () {
-            Navigator.of(context).push(
-              MaterialPageRoute(
-                builder: (_) => const ResponderInviteCodeScreen(),
-              ),
-            );
-          },
-        ),
-      ],
+      ),
     );
   }
 }

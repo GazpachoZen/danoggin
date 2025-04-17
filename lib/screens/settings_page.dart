@@ -42,7 +42,7 @@ class _SettingsPageState extends State<SettingsPage> {
   @override
   void dispose() {
     // If we're popping back to the observer page and relationships changed
-    if (widget.currentRole == UserRole.observer && _relationshipsChanged) {
+    if (_relationshipsChanged) {
       Navigator.of(context).pop(true);
     }
     super.dispose();
@@ -54,8 +54,8 @@ class _SettingsPageState extends State<SettingsPage> {
 
     return WillPopScope(
       onWillPop: () async {
-        // Signal back to the observer page if relationships have changed
-        if (widget.currentRole == UserRole.observer && _relationshipsChanged) {
+        // Signal back to parent page if relationships have changed
+        if (_relationshipsChanged) {
           Navigator.of(context).pop(true);
           return false; // We handled the navigation
         }
@@ -68,7 +68,7 @@ class _SettingsPageState extends State<SettingsPage> {
           leading: IconButton(
             icon: Icon(Icons.arrow_back),
             onPressed: () {
-              if (widget.currentRole == UserRole.observer && _relationshipsChanged) {
+              if (_relationshipsChanged) {
                 Navigator.of(context).pop(true);
               } else {
                 Navigator.of(context).pop();
@@ -76,14 +76,22 @@ class _SettingsPageState extends State<SettingsPage> {
             },
           ),
         ),
-        body: Padding(
-          padding: const EdgeInsets.all(12.0),
-          child: Column(
-            children: [
-              // Role-specific settings
-              Expanded(
-                child: widget.currentRole == UserRole.responder
-                    ? const ResponderSettingsWidget()
+        // Use a SingleChildScrollView to wrap the entire content
+        body: SingleChildScrollView(
+          child: Padding(
+            padding: const EdgeInsets.all(12.0),
+            child: Column(
+              children: [
+                // Role-specific settings
+                widget.currentRole == UserRole.responder
+                    ? ResponderSettingsWidget(
+                        // Add a callback to receive relationship changes
+                        onRelationshipsChanged: () {
+                          setState(() {
+                            _relationshipsChanged = true;
+                          });
+                        },
+                      )
                     : ObserverSettingsWidget(
                         // Add a callback to receive relationship changes
                         onRelationshipsChanged: () {
@@ -92,43 +100,45 @@ class _SettingsPageState extends State<SettingsPage> {
                           });
                         },
                       ),
-              ),
-  
-              // Role selection section (always shown last)
-              const Divider(thickness: 1.2, height: 32),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 10),
-                decoration: BoxDecoration(
-                  color: Colors.grey.shade100,
-                  border: Border.all(color: Colors.grey.shade300),
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const Text(
-                      'Switch Role (rarely needed)',
-                      style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold),
-                    ),
-                    _buildRoleSelector(),
-                    const SizedBox(height: 4),
-                    Align(
-                      alignment: Alignment.centerRight,
-                      child: ElevatedButton.icon(
-                        icon: const Icon(Icons.check),
-                        label: const Text('Apply'),
-                        onPressed: isDirty ? _applyRoleChange : null,
-                        style: ElevatedButton.styleFrom(
-                          padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 10),
-                          backgroundColor: isDirty ? Colors.deepPurple : Colors.grey,
-                          foregroundColor: Colors.white,
+    
+                // Role selection section (always shown last)
+                const Divider(thickness: 1.2, height: 32),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 10),
+                  decoration: BoxDecoration(
+                    color: Colors.grey.shade100,
+                    border: Border.all(color: Colors.grey.shade300),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text(
+                        'Switch Role (rarely needed)',
+                        style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold),
+                      ),
+                      _buildRoleSelector(),
+                      const SizedBox(height: 4),
+                      Align(
+                        alignment: Alignment.centerRight,
+                        child: ElevatedButton.icon(
+                          icon: const Icon(Icons.check),
+                          label: const Text('Apply'),
+                          onPressed: isDirty ? _applyRoleChange : null,
+                          style: ElevatedButton.styleFrom(
+                            padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 10),
+                            backgroundColor: isDirty ? Colors.deepPurple : Colors.grey,
+                            foregroundColor: Colors.white,
+                          ),
                         ),
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
-              ),
-            ],
+                // Add padding at the bottom for better scrolling experience
+                SizedBox(height: 20),
+              ],
+            ),
           ),
         ),
       ),
