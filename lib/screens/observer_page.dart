@@ -436,29 +436,37 @@ Future<void> _checkResponderStatus() async {
             tooltip: 'Test Notifications',
             onPressed: _testNotifications,
           ),
-          IconButton(
-            icon: const Icon(Icons.settings),
-            onPressed: () async {
-              final newRole = await Navigator.push<UserRole>(
-                context,
-                MaterialPageRoute(
-                  builder: (_) => SettingsPage(currentRole: UserRole.observer),
-                ),
-              );
 
-              if (newRole != null && newRole != UserRole.observer) {
-                final prefs = await SharedPreferences.getInstance();
-                await prefs.setString('userRole', newRole.name);
-                Navigator.of(context).pushReplacement(
-                  MaterialPageRoute(
-                    builder: (_) => newRole == UserRole.responder
-                        ? QuizPage()
-                        : ObserverPage(),
-                  ),
-                );
-              }
-            },
-          ),
+IconButton(
+  icon: const Icon(Icons.settings),
+  onPressed: () async {
+    final result = await Navigator.push<dynamic>(
+      context,
+      MaterialPageRoute(
+        builder: (_) => SettingsPage(currentRole: UserRole.observer),
+      ),
+    );
+
+    // If result is a Boolean 'true', relationships have changed
+    if (result == true) {
+      await _loadResponders(); // Refresh the responder list
+      setState(() {}); // Update the UI
+    }
+    // If result is a UserRole, handle role change as before
+    else if (result != null && result != UserRole.observer) {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setString('userRole', result.name);
+      Navigator.of(context).pushReplacement(
+        MaterialPageRoute(
+          builder: (_) => result == UserRole.responder
+              ? QuizPage()
+              : ObserverPage(),
+        ),
+      );
+    }
+  },
+),
+
         ],
       ),
       body: Container(

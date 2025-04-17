@@ -1,9 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:danoggin/screens/observer_add_responder_screen.dart';
+import 'package:danoggin/screens/observer_manage_responders_screen.dart';
 
 class ObserverSettingsWidget extends StatefulWidget {
-  const ObserverSettingsWidget({super.key});
+  // Add a callback for relationship changes
+  final VoidCallback? onRelationshipsChanged;
+  
+  const ObserverSettingsWidget({
+    super.key, 
+    this.onRelationshipsChanged,
+  });
 
   @override
   State<ObserverSettingsWidget> createState() => _ObserverSettingsWidgetState();
@@ -35,14 +41,14 @@ class _ObserverSettingsWidgetState extends State<ObserverSettingsWidget> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-    Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: [
-        Text('Polling interval: ${pollingIntervalMinutes.round()} minutes', 
-            style: TextStyle(fontSize: 16, color: Colors.deepPurple)),
-        Text('Range: 1-10', style: TextStyle(fontSize: 14, color: Colors.grey)),
-      ],
-    ),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text('Polling interval: ${pollingIntervalMinutes.round()} minutes', 
+                style: TextStyle(fontSize: 16, color: Colors.deepPurple)),
+            Text('Range: 1-10', style: TextStyle(fontSize: 14, color: Colors.grey)),
+          ],
+        ),
         Slider(
           value: pollingIntervalMinutes,
           min: 1,
@@ -59,12 +65,22 @@ class _ObserverSettingsWidgetState extends State<ObserverSettingsWidget> {
           ),
         ),
         ListTile(
-          leading: const Icon(Icons.link),
-          title: const Text('Link to a responder'),
-          onTap: () {
-            Navigator.of(context).push(MaterialPageRoute(
-              builder: (_) => const ObserverAddResponderScreen(),
-            ));
+          leading: const Icon(Icons.people),
+          title: const Text('Manage Responders'),
+          subtitle: const Text('Add or remove people you monitor'),
+          trailing: const Icon(Icons.arrow_forward_ios, size: 16),
+          onTap: () async {
+            // Wait for result from manage responders screen
+            final relationshipsChanged = await Navigator.of(context).push<bool>(
+              MaterialPageRoute(
+                builder: (_) => const ObserverManageRespondersScreen(),
+              ),
+            );
+            
+            // If relationships changed, notify our parent
+            if (relationshipsChanged == true && widget.onRelationshipsChanged != null) {
+              widget.onRelationshipsChanged!();
+            }
           },
         ),
       ],
