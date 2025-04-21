@@ -1,4 +1,3 @@
-
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -76,4 +75,10 @@ class _NotificationPermissionObserver extends NavigatorObserver {
       });
     }
   }
+}
+
+// Register cleanup handler for app termination
+void _cleanupResources() {
+  // Clean up the notification stream controller
+  NotificationHelper.dispose();
 }

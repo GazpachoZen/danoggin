@@ -32,6 +32,9 @@ class _QuizPageState extends State<QuizPage> with WidgetsBindingObserver {
 
   Timer? alertTimer;
   Timer? responseTimer;
+  
+  // Add notification subscription
+  late StreamSubscription<dynamic> _notificationSubscription;
 
   // Will be set based on settings
   Duration alertInterval = Duration(minutes: 5);
@@ -47,6 +50,41 @@ class _QuizPageState extends State<QuizPage> with WidgetsBindingObserver {
 
     // Add this - Check notification permissions after a short delay
     _checkNotificationPermissions();
+    
+    // Set up notification listener
+    _setupNotificationListener();
+  }
+  
+  // Add method to set up notification listener
+  void _setupNotificationListener() {
+    // Listen for notification events using a stream
+    _notificationSubscription = NotificationHelper.notificationEventStream.listen((event) {
+      // If app is already open and showing a question, refresh to the new question
+      if (mounted && !isLoading && !_isInitialLoad) {
+        print('Received notification event, refreshing question');
+        
+        // Cancel existing response timer
+        responseTimer?.cancel();
+        
+        // Refresh the question without triggering another notification
+        // We don't need to pass isScheduled=true here because we're responding to an event
+        setState(() {
+          currentQuestion = pack.getNextQuestion();
+          displayedChoices = currentQuestion.getShuffledChoices();
+          selectedAnswer = null;
+          feedback = null;
+          _uiDisabled = false;
+          _isRetryAttempt = false;
+          _previousIncorrectAnswer = null;
+        });
+        
+        // Set new timeout
+        responseTimer?.cancel();
+        responseTimer = Timer(responseTimeout, _handleTimeout);
+        
+        print('Question refreshed due to notification event');
+      }
+    });
   }
 
 // Add this method to check notification permissions
@@ -94,6 +132,7 @@ class _QuizPageState extends State<QuizPage> with WidgetsBindingObserver {
 
   @override
   void dispose() {
+    _notificationSubscription.cancel();
     alertTimer?.cancel();
     responseTimer?.cancel();
     WidgetsBinding.instance.removeObserver(this);
@@ -184,12 +223,16 @@ class _QuizPageState extends State<QuizPage> with WidgetsBindingObserver {
           );
         }
 
-        loadRandomQuestion();
+        // Pass isScheduled=true to indicate this is a scheduled alert
+        loadRandomQuestion(isScheduled: true);
       }
     });
   }
 
-  void loadRandomQuestion() {
+  // Add flag to track initial app load
+  bool _isInitialLoad = true;
+
+  void loadRandomQuestion({bool isScheduled = false}) {
     currentQuestion = pack.getNextQuestion(); // Using the new method
     displayedChoices = currentQuestion.getShuffledChoices();
     selectedAnswer = null;
@@ -203,12 +246,19 @@ class _QuizPageState extends State<QuizPage> with WidgetsBindingObserver {
     responseTimer?.cancel();
     responseTimer = Timer(responseTimeout, _handleTimeout);
 
-    // Use the NotificationHelper to show the check-in notification
-    NotificationHelper.showAlert(
-      id: 1,
-      title: 'Danoggin Check-In',
-      body: 'Time to answer a quick question!',
-    );
+    // Only show alert with refresh event if it's a scheduled update (not initial load)
+    if (isScheduled || !_isInitialLoad) {
+      // Use the NotificationHelper to show the check-in notification
+      NotificationHelper.showAlert(
+        id: 1, // Use 1 as the ID for check-in notifications
+        title: 'Danoggin Check-In',
+        body: 'Time to answer a quick question!',
+        triggerRefresh: isScheduled, // Only trigger refresh for scheduled alerts
+      );
+    } else {
+      // First load, just mark that we've completed initial load
+      _isInitialLoad = false;
+    }
   }
 
   void _handleTimeout() async {
@@ -226,8 +276,18 @@ class _QuizPageState extends State<QuizPage> with WidgetsBindingObserver {
         result: _isRetryAttempt ? 'missed_retry' : 'missed',
         questionPrompt: currentQuestion.prompt,
       );
+      
+      // Cancel any outstanding check-in notifications since we've now handled the timeout
+      await NotificationHelper.cancelNotification(1); // Use 1 as the ID for check-in notifications
+      
+      // Show a consolidated missed check-in notification - use a direct approach instead
+      await NotificationHelper.showAlert(
+        id: 2, // Use ID 2 for missed check-in notifications
+        title: 'Missed Check-in',
+        body: 'You have missed a check-in. Tap to continue.',
+      );
 
-      // Show an alert notification
+      // Show an alert notification in the app
       NotificationHelper.showInAppAlert(
         context,
         'Missed Check-in',
@@ -242,6 +302,9 @@ class _QuizPageState extends State<QuizPage> with WidgetsBindingObserver {
     if (selectedAnswer == null) return;
 
     responseTimer?.cancel();
+    
+    // Cancel any outstanding check-in notifications to prevent confusion
+    await NotificationHelper.cancelNotification(1); // Check-in notification ID
 
     final isCorrect = selectedAnswer == currentQuestion.correctAnswer;
 
@@ -257,6 +320,9 @@ class _QuizPageState extends State<QuizPage> with WidgetsBindingObserver {
         result: 'correct',
         questionPrompt: currentQuestion.prompt,
       );
+      
+      // Also cancel any missed check-in notifications on successful answer
+      await NotificationHelper.cancelNotification(2); // Missed check-in notification ID
     } else {
       // Incorrect answer case
       if (!_isRetryAttempt) {

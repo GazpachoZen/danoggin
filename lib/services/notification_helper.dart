@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'dart:async';
 
 class NotificationHelper {
   static final FlutterLocalNotificationsPlugin _notifications =
@@ -9,6 +10,14 @@ class NotificationHelper {
   static const String _channelId = 'danoggin_alerts';
   static const String _channelName = 'Danoggin Alerts';
   static const String _channelDescription = 'Alerts for check-in issues';
+  
+  // Add a stream controller for notification events
+  static final StreamController<dynamic> _notificationStreamController = 
+      StreamController<dynamic>.broadcast();
+  
+  // Expose the stream
+  static Stream<dynamic> get notificationEventStream => 
+      _notificationStreamController.stream;
 
   /// Initialize the notification plugin
   static Future<void> initialize() async {
@@ -27,6 +36,8 @@ class NotificationHelper {
       initSettings,
       onDidReceiveNotificationResponse: (NotificationResponse response) {
         print('Notification clicked: ${response.id}');
+        // Add this line to broadcast the notification event
+        _notificationStreamController.add(response);
       },
     );
 
@@ -42,6 +53,15 @@ class NotificationHelper {
         .resolvePlatformSpecificImplementation<
             AndroidFlutterLocalNotificationsPlugin>()
         ?.createNotificationChannel(channel);
+        
+    // Set up the background notification handler
+    final androidPlugin = _notifications.resolvePlatformSpecificImplementation<
+        AndroidFlutterLocalNotificationsPlugin>();
+    if (androidPlugin != null) {
+      androidPlugin.createNotificationChannel(channel).then((_) {
+        print('Notification channel created successfully');
+      });
+    }
 
     _isInitialized = true;
     print('Notifications initialized successfully');
@@ -69,6 +89,7 @@ class NotificationHelper {
     required int id,
     required String title,
     required String body,
+    bool triggerRefresh = true, // Add this parameter to control when to emit event
   }) async {
     if (!_isInitialized) {
       await initialize();
@@ -94,6 +115,12 @@ class NotificationHelper {
         body,
         platformDetails,
       );
+      
+      // Only emit the event if triggerRefresh is true
+      if (triggerRefresh) {
+        _notificationStreamController.add({'id': id, 'title': title, 'body': body});
+        print('Emitted notification event for refresh');
+      }
 
       print('Alert notification sent: $title - $body');
     } catch (e) {
@@ -110,6 +137,26 @@ class NotificationHelper {
       body:
           'This is a test notification. If you see this, notifications are working!',
     );
+  }
+  
+  /// Cancel/remove a specific notification by ID
+  static Future<void> cancelNotification(int id) async {
+    try {
+      await _notifications.cancel(id);
+      print('Notification with ID $id canceled');
+    } catch (e) {
+      print('Error canceling notification: $e');
+    }
+  }
+  
+  /// Cancel all notifications
+  static Future<void> cancelAllNotifications() async {
+    try {
+      await _notifications.cancelAll();
+      print('All notifications canceled');
+    } catch (e) {
+      print('Error canceling all notifications: $e');
+    }
   }
 
   /// Show an in-app alert dialog as a backup for system notifications
@@ -130,7 +177,6 @@ class NotificationHelper {
     );
   }
 
-  /// Show a notification permissions dialog
   /// Show a notification permissions dialog
   static Future<void> showPermissionDialog(BuildContext context) async {
     bool enabled = false;
@@ -201,5 +247,10 @@ class NotificationHelper {
         ],
       ),
     );
+  }
+  
+  // Add cleanup method to dispose of the stream controller
+  static void dispose() {
+    _notificationStreamController.close();
   }
 }
