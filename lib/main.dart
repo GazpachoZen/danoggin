@@ -10,6 +10,7 @@ import 'screens/role_selection_screen.dart';
 import 'screens/splash_screen.dart';
 import 'services/notification_service.dart';
 import 'services/notification_helper.dart';
+import 'theme/app_theme.dart';  // Import your theme
 
 void main() async {
   // Ensure Flutter binding is initialized
@@ -26,13 +27,7 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'Danoggin',
-      theme: ThemeData(
-        primarySwatch: Colors.deepPurple,
-        colorScheme: ColorScheme.fromSeed(
-          seedColor: Colors.deepPurple,
-          brightness: Brightness.light,
-        ),
-      ),
+      theme: AppTheme.lightTheme,
       home: SplashScreen(),
       // Add this to check permissions after the app loads
       navigatorObservers: [

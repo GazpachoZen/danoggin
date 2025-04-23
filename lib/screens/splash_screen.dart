@@ -7,6 +7,8 @@ import 'package:danoggin/screens/quiz_page.dart';
 import 'package:danoggin/screens/observer_page.dart';
 import 'package:danoggin/screens/role_selection_screen.dart';
 import 'package:danoggin/services/notification_helper.dart';
+import 'package:danoggin/theme/app_colors.dart';  // Import your theme
+
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({Key? key}) : super(key: key);
@@ -101,71 +103,69 @@ class _SplashScreenState extends State<SplashScreen>
   }
 
   @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-
-    return Scaffold(
-      backgroundColor: theme.primaryColor,
-      body: SafeArea(
-        child: Center(
-          child: FadeTransition(
-            opacity: _fadeInAnimation,
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Image.asset(
-                  'assets/images/danoggin_512x512.png',
-                  width: 200,
-                  height: 200,
+// In splash_screen.dart
+@override
+Widget build(BuildContext context) {
+  return Scaffold(
+    // Use the skyBlue color for the background
+    backgroundColor: AppColors.skyBlue,
+    body: SafeArea(
+      child: Center(
+        child: FadeTransition(
+          opacity: _fadeInAnimation,
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Image.asset(
+                'assets/images/danoggin_512x512.png',
+                width: 200,
+                height: 200,
+              ),
+              const SizedBox(height: 40),
+              // App name with the deep blue color
+              Text(
+                'Danoggin',
+                style: TextStyle(
+                  color: AppColors.deepBlue,
+                  fontSize: 42,
+                  fontWeight: FontWeight.bold,
                 ),
-                const SizedBox(height: 40),
-                // App name
-                Text(
-                  'Danoggin',
+              ),
+              const SizedBox(height: 40),
+              // Status message with deep blue
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 24.0),
+                child: Text(
+                  _statusMessage,
                   style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 42,
-                    fontWeight: FontWeight.bold,
+                    color: AppColors.deepBlue.withOpacity(0.9),
+                    fontSize: 16,
                   ),
+                  textAlign: TextAlign.center,
                 ),
-                const SizedBox(height: 40),
-                // Status message and loading indicator
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 24.0),
-                  child: Text(
-                    _statusMessage,
-                    style: TextStyle(
-                      color: Colors.white.withOpacity(0.9),
-                      fontSize: 16,
-                    ),
-                    textAlign: TextAlign.center,
-                  ),
+              ),
+              const SizedBox(height: 24),
+              if (!_error)
+                CircularProgressIndicator(
+                  valueColor: AlwaysStoppedAnimation<Color>(AppColors.deepBlue),
+                )
+              else
+                ElevatedButton(
+                  onPressed: () {
+                    setState(() {
+                      _error = false;
+                      _statusMessage = "Retrying...";
+                    });
+                    _initializeApp();
+                  },
+                  child: const Text('Retry'),
                 ),
-                const SizedBox(height: 24),
-                if (!_error)
-                  CircularProgressIndicator(
-                    valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
-                  )
-                else
-                  ElevatedButton(
-                    onPressed: () {
-                      setState(() {
-                        _error = false;
-                        _statusMessage = "Retrying...";
-                      });
-                      _initializeApp();
-                    },
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.white,
-                      foregroundColor: theme.primaryColor,
-                    ),
-                    child: const Text('Retry'),
-                  ),
-              ],
-            ),
+            ],
           ),
         ),
       ),
-    );
-  }
+    ),
+  );
+}
+
 }

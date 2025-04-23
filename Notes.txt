@@ -28,29 +28,57 @@ Sean:	Pixel 9 Pro XL, Android 15
 
 --------------------
 
-Splash Screen Image (danoggin_splash.png)
-This is the logo that appears centered on the splash screen with the app name and loading indicator below it.
+5. Update Your UI Components
+You'll want to update various UI components to use your new color scheme. Here are a few examples:
+For QuizPage:
 
-Dimensions: 512x512 pixels (1:1 aspect ratio)
-Format: PNG with transparency
-Content suggestions:
+dart// In quiz_page.dart, update the feedback colors
 
-A simple, recognizable logo
-Use the app's primary color scheme (purple tones)
-Keep details minimal as it will be viewed briefly
-Leave some padding around the edges
+	if (feedback != null)
+	  Text(
+		feedback!,
+		style: TextStyle(
+		  fontSize: 20,
+		  color: feedback == '✅ Correct!'
+			  ? AppColors.success
+			  : (feedback == '❌ Incorrect. Try again.'
+				  ? AppColors.warning
+				  : AppColors.error),
+		),
+	  ),
+	  
+For Buttons and UI Elements:
+
+	dartElevatedButton(
+	  style: ElevatedButton.styleFrom(
+		backgroundColor: isSelected ? AppColors.coral : AppColors.midBlue,
+	  ),
+	  onPressed: () { /* ... */ },
+	  child: Text('Submit'),
+	),
 
 
+---------------------
 
-Welcome Image (danoggin_welcome.png)
-This appears at the top of the role selection screen when the app is launched for the first time.
+I'm now interested in making sure that some of the configuration settings for a responder do not get into a confusing state. Specifically, the timeout interval for responding to a question should never be more than half of the time between questions; it should also never be more than 15 minutes. Said another way, the time between questions can never be less than twice the time limit for answering a question. Can we somehow limit the behavior of the two input sliders accordingly?
 
-Dimensions: Approximately 600x400 pixels (3:2 aspect ratio)
-Format: PNG with transparency
-Content suggestions:
+---------------------
 
-A welcoming, friendly illustration
-Could show the app's purpose (perhaps showing a responder and observer)
-More detailed than the splash logo
-Should complement the "Welcome to Danoggin!" text that appears below it
+Refactor the larger files (quiz_page.dart)
+
+---------------------
+
+As an administrator, I need a way to purge stale observers and responders from Firestore.
+
+---------------------
+
+Presently, all of the images used for question packs are assumed to be available in our assets/images folder. I would prefer these to be stored in the cloud. It would be even better if this was somehow tucked away in the same eco-system as the question packs. What are our options?
+
+---------------------
+
+Sometimes the text doesn't fit the buttons. Change font size for that one button as needed.
+
+---------------------
+
+
 
