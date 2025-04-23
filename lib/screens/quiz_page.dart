@@ -12,6 +12,10 @@ import 'package:danoggin/services/auth_service.dart';
 import 'package:danoggin/services/notification_helper.dart';
 
 class QuizPage extends StatefulWidget {
+  final UserRole currentRole;
+  
+  const QuizPage({super.key, required this.currentRole});
+
   @override
   _QuizPageState createState() => _QuizPageState();
 }
@@ -24,7 +28,7 @@ class _QuizPageState extends State<QuizPage> with WidgetsBindingObserver {
   bool isLoading = true;
   TimeOfDay? startHour;
   TimeOfDay? endHour;
-  late Question currentQuestion;
+  Question? currentQuestion;
   List<AnswerOption> displayedChoices = [];
 
   AnswerOption? selectedAnswer;
@@ -44,14 +48,20 @@ class _QuizPageState extends State<QuizPage> with WidgetsBindingObserver {
   
   // New flag to track if a timeout is already being handled
   bool _timeoutActive = false;
+  
+  // Add flag to track initial app load
+  bool _isInitialLoad = true;
 
   @override
   void initState() {
     super.initState();
+    // Initialize currentRole from widget parameter
+    currentRole = widget.currentRole;
+    
     WidgetsBinding.instance.addObserver(this);
     loadPackFromFirestore();
-
-    // Add this - Check notification permissions after a short delay
+    
+    // Check notification permissions after a short delay
     _checkNotificationPermissions();
     
     // Set up notification listener
@@ -75,7 +85,7 @@ class _QuizPageState extends State<QuizPage> with WidgetsBindingObserver {
         // Refresh the question without triggering another notification
         setState(() {
           currentQuestion = pack.getNextQuestion();
-          displayedChoices = currentQuestion.getShuffledChoices();
+          displayedChoices = currentQuestion!.getShuffledChoices();
           selectedAnswer = null;
           feedback = null;
           _uiDisabled = false;
@@ -92,7 +102,7 @@ class _QuizPageState extends State<QuizPage> with WidgetsBindingObserver {
     });
   }
 
-// Add this method to check notification permissions
+  // Add this method to check notification permissions
   Future<void> _checkNotificationPermissions() async {
     // Wait for UI to be fully initialized
     await Future.delayed(Duration(seconds: 2));
@@ -178,8 +188,10 @@ class _QuizPageState extends State<QuizPage> with WidgetsBindingObserver {
     try {
       final doc = await QuestionPack.loadFromFirestore('demo_pack');
       final prefs = await SharedPreferences.getInstance();
-      final roleStr = prefs.getString('userRole');
-      currentRole = UserRoleExtension.fromString(roleStr) ?? UserRole.responder;
+      
+      // Don't overwrite currentRole that was set from widget parameter
+      // final roleStr = prefs.getString('userRole');
+      // currentRole = UserRoleExtension.fromString(roleStr) ?? UserRole.responder;
 
       pack = doc;
 
@@ -234,12 +246,9 @@ class _QuizPageState extends State<QuizPage> with WidgetsBindingObserver {
     });
   }
 
-  // Add flag to track initial app load
-  bool _isInitialLoad = true;
-
   void loadRandomQuestion({bool isScheduled = false}) {
     currentQuestion = pack.getNextQuestion(); // Using the new method
-    displayedChoices = currentQuestion.getShuffledChoices();
+    displayedChoices = currentQuestion!.getShuffledChoices();
     selectedAnswer = null;
     feedback = null;
 
@@ -284,7 +293,7 @@ class _QuizPageState extends State<QuizPage> with WidgetsBindingObserver {
       await logCheckIn(
         responderId: currentRole.name,
         result: _isRetryAttempt ? 'missed_retry' : 'missed',
-        questionPrompt: currentQuestion.prompt,
+        questionPrompt: currentQuestion!.prompt,
       );
       
       // Cancel any outstanding check-in notifications since we've now handled the timeout
@@ -317,7 +326,7 @@ class _QuizPageState extends State<QuizPage> with WidgetsBindingObserver {
     // Cancel any outstanding check-in notifications to prevent confusion
     await NotificationHelper.cancelNotification(1); // Check-in notification ID
 
-    final isCorrect = selectedAnswer == currentQuestion.correctAnswer;
+    final isCorrect = selectedAnswer == currentQuestion!.correctAnswer;
 
     if (isCorrect) {
       // Correct answer case
@@ -329,7 +338,7 @@ class _QuizPageState extends State<QuizPage> with WidgetsBindingObserver {
       await logCheckIn(
         responderId: currentRole.name,
         result: 'correct',
-        questionPrompt: currentQuestion.prompt,
+        questionPrompt: currentQuestion!.prompt,
       );
       
       // Also cancel any missed check-in notifications on successful answer
@@ -349,7 +358,7 @@ class _QuizPageState extends State<QuizPage> with WidgetsBindingObserver {
         await logCheckIn(
           responderId: currentRole.name,
           result: 'incorrect_first_attempt',
-          questionPrompt: currentQuestion.prompt,
+          questionPrompt: currentQuestion!.prompt,
         );
 
         // Restart the timer for the second attempt
@@ -365,7 +374,7 @@ class _QuizPageState extends State<QuizPage> with WidgetsBindingObserver {
         await logCheckIn(
           responderId: currentRole.name,
           result: 'incorrect',
-          questionPrompt: currentQuestion.prompt,
+          questionPrompt: currentQuestion!.prompt,
         );
       }
     }
@@ -373,9 +382,48 @@ class _QuizPageState extends State<QuizPage> with WidgetsBindingObserver {
 
   @override
   Widget build(BuildContext context) {
-    // ... existing code ...
+    // Show loading indicator if still loading or question is not initialized
+    if (isLoading || currentQuestion == null) {
+      return Scaffold(
+        appBar: AppBar(
+          title: Text(
+              'Danoggin (${currentRole.name[0].toUpperCase()}${currentRole.name.substring(1)})'),
+          actions: [
+            IconButton(
+              icon: const Icon(Icons.settings),
+              onPressed: () async {
+                final newRole = await Navigator.push<UserRole>(
+                  context,
+                  MaterialPageRoute(
+                      builder: (context) =>
+                          SettingsPage(currentRole: currentRole)),
+                );
+                if (newRole != null && newRole != currentRole) {
+                  final prefs = await SharedPreferences.getInstance();
+                  await prefs.setString('userRole', newRole.name);
+                  setState(() {
+                    currentRole = newRole;
+                  });
+                }
+              },
+            ),
+          ],
+        ),
+        body: Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              CircularProgressIndicator(),
+              SizedBox(height: 16),
+              Text("Loading your next question...",
+                  style: TextStyle(fontSize: 16, color: Colors.grey[700])),
+            ],
+          ),
+        ),
+      );
+    }
 
-    // In the UI section, modify the buttons to respect the disabled state:
+    // Main UI when question is loaded
     return Scaffold(
       appBar: AppBar(
         title: Text(
@@ -406,13 +454,12 @@ class _QuizPageState extends State<QuizPage> with WidgetsBindingObserver {
           ),
         ],
       ),
-      // ... existing Scaffold properties ...
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            Text(currentQuestion.prompt, style: TextStyle(fontSize: 24)),
+            Text(currentQuestion!.prompt, style: TextStyle(fontSize: 24)),
             SizedBox(height: 24),
             GridView.count(
               crossAxisCount: 2,

@@ -7,46 +7,33 @@ import 'models/user_role.dart';
 import 'screens/quiz_page.dart';
 import 'screens/observer_page.dart';
 import 'screens/role_selection_screen.dart';
+import 'screens/splash_screen.dart';
 import 'services/notification_service.dart';
 import 'services/notification_helper.dart';
 
 void main() async {
+  // Ensure Flutter binding is initialized
   WidgetsFlutterBinding.ensureInitialized();
   
-  // Initialize notification system first
-  await NotificationHelper.initialize();
-  
-  print('Starting Firebase init...');
-  await Firebase.initializeApp();
-  print('Firebase initialized.');
-
-  print('Ensuring anonymous sign-in...');
-  await AuthService.ensureSignedIn();
-  print('User signed in: ${AuthService.currentUserId}');
-
-  print('Checking role...');
-  final uid = AuthService.currentUserId;
-  final role = await UserRepository.getUserRole(uid);
-  print('Role from Firestore: $role');
-
-  runApp(MyApp(initialRole: role));
+  // Run the app with splash screen
+  runApp(const MyApp());
 }
 
 class MyApp extends StatelessWidget {
-  final UserRole? initialRole;
-
-  const MyApp({super.key, required this.initialRole});
+  const MyApp({super.key});
 
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'Danoggin',
-      theme: ThemeData(primarySwatch: Colors.deepPurple),
-      home: initialRole == null
-          ? RoleSelectionScreen()
-          : (initialRole == UserRole.responder
-              ? QuizPage()
-              : ObserverPage()),
+      theme: ThemeData(
+        primarySwatch: Colors.deepPurple,
+        colorScheme: ColorScheme.fromSeed(
+          seedColor: Colors.deepPurple,
+          brightness: Brightness.light,
+        ),
+      ),
+      home: SplashScreen(),
       // Add this to check permissions after the app loads
       navigatorObservers: [
         _NotificationPermissionObserver(),
@@ -64,7 +51,10 @@ class _NotificationPermissionObserver extends NavigatorObserver {
     super.didPush(route, previousRoute);
     
     // Only check permissions once, after initial screen loads
-    if (!_permissionCheckDone && route.settings.name == null) {
+    // Skip for splash screen
+    if (!_permissionCheckDone && 
+        route.settings.name == null && 
+        !(route.settings.arguments is SplashScreen)) {
       _permissionCheckDone = true;
       
       // Delay slightly to ensure UI is fully loaded

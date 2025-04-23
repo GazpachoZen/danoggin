@@ -32,7 +32,7 @@ class _SettingsPageState extends State<SettingsPage> {
     Navigator.of(context).pushAndRemoveUntil(
       MaterialPageRoute(
         builder: (_) => selectedRole == UserRole.responder
-            ? QuizPage()
+            ? QuizPage(currentRole: selectedRole)  // Pass the currentRole parameter
             : ObserverPage(),
       ),
       (route) => false,

@@ -14,17 +14,16 @@ import 'package:danoggin/services/notification_helper.dart';
 
 Future<void> requestNotificationPermissions() async {
   // Request permission for notifications
-  final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin = 
+  final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
       FlutterLocalNotificationsPlugin();
-      
+
   // For Android, there's no explicit permissions request in this version
   // The channel creation handles this automatically
-  
+
   // For iOS we would request permissions, but since you're on Android, this is less relevant
-  
+
   print("Notification permission handled through channel creation");
 }
-
 
 class ObserverPage extends StatefulWidget {
   const ObserverPage({super.key});
@@ -38,11 +37,11 @@ class _ObserverPageState extends State<ObserverPage> {
   final Duration pollInterval = Duration(minutes: 2);
   String? lastAcknowledgedId;
   String? lastNotifiedId;
-  
+
   // Add state for responder selection
   String? _selectedResponderUid;
   Map<String, String> _responderMap = {}; // Map of responder UIDs to names
-  
+
   List<QueryDocumentSnapshot> _currentCheckIns = [];
   Timer? _dataRefreshTimer;
 
@@ -65,10 +64,11 @@ class _ObserverPageState extends State<ObserverPage> {
           .collection('users')
           .doc(observerUid)
           .get();
-      
+
       final userData = observerDoc.data() as Map<String, dynamic>?;
-      final observingMap = userData?['observing'] as Map<String, dynamic>? ?? {};
-      
+      final observingMap =
+          userData?['observing'] as Map<String, dynamic>? ?? {};
+
       setState(() {
         _responderMap = Map<String, String>.from(observingMap);
         // Select the first responder by default if we haven't selected one yet
@@ -77,7 +77,8 @@ class _ObserverPageState extends State<ObserverPage> {
         } else if (_responderMap.isEmpty) {
           // Clear selection if no responders are available
           _selectedResponderUid = null;
-        } else if (_selectedResponderUid != null && !_responderMap.containsKey(_selectedResponderUid)) {
+        } else if (_selectedResponderUid != null &&
+            !_responderMap.containsKey(_selectedResponderUid)) {
           // If current selection is no longer valid, reset to first available
           _selectedResponderUid = _responderMap.keys.first;
         }
@@ -140,104 +141,110 @@ class _ObserverPageState extends State<ObserverPage> {
     _pollingTimer = Timer.periodic(duration, (_) => _checkResponderStatus());
   }
 
-
-Future<void> _checkResponderStatus() async {
-  try {
-    // Get the responder UIDs that this observer is linked to
-    final observerUid = AuthService.currentUserId;
-    final observerDoc = await FirebaseFirestore.instance
-        .collection('users')
-        .doc(observerUid)
-        .get();
-    
-    final userData = observerDoc.data() as Map<String, dynamic>?;
-    final observingMap = userData?['observing'] as Map<String, dynamic>? ?? {};
-    final responderUids = observingMap.keys.toList();
-    
-    if (responderUids.isEmpty) {
-      print("No linked responders found");
-      return;
-    }
-    
-    // Track notifications sent in this polling cycle to avoid duplicates
-    List<String> notifiedInThisCycle = [];
-    
-    // Check each linked responder
-    for (final responderUid in responderUids) {
-      final responderName = observingMap[responderUid];
-      
-      // Use get() to force a fresh read from Firestore
-      final snapshot = await FirebaseFirestore.instance
-          .collection('responder_status')
-          .doc(responderUid)
-          .collection('check_ins')
-          .orderBy('timestamp', descending: true)
-          .limit(1)
+  Future<void> _checkResponderStatus() async {
+    try {
+      // Get the responder UIDs that this observer is linked to
+      final observerUid = AuthService.currentUserId;
+      final observerDoc = await FirebaseFirestore.instance
+          .collection('users')
+          .doc(observerUid)
           .get();
-  
-      final now = DateTime.now();
-      print("Checking responder $responderName ($responderUid) @ ${now.hour}:${now.minute}:${now.second}");
-  
-      if (snapshot.docs.isEmpty) continue;
-      
-      final doc = snapshot.docs.first;
-      final data = doc.data();
-      final result = data['result'] as String;
-      final timestamp = DateTime.tryParse(data['timestamp'] as String);
-      final docId = doc.id;
-      
-      // Skip if we can't parse the timestamp
-      if (timestamp == null) continue;
-      
-      final checkInAge = now.difference(timestamp);
-      final mostRecentTimeStr = DateFormat('M/d h:mma').format(timestamp).toLowerCase();
-      
-      print("Found check-in: id=$docId, result=$result, age=${checkInAge.inMinutes}m");
-      
-      // Create a unique identifier for this check-in
-      final checkInKey = "$responderUid:$docId";
-      
-      // Only notify for recent check-ins that are missed or incorrect
-      if ((result == 'missed' || result == 'incorrect') && 
-          checkInAge.inHours < 24) {  // Only consider relatively recent check-ins (last 24h)
-        
-        // Check if we've already acknowledged this issue
-        final isAcknowledged = checkInKey == lastAcknowledgedId;
-        
-        // Check if we've already notified about this issue in this polling cycle
-        final alreadyNotifiedThisCycle = notifiedInThisCycle.contains(checkInKey);
-        
-        if (!isAcknowledged && !alreadyNotifiedThisCycle) {
-          print("Issue detected: $responderName had a $result check-in");
-          
-          // Mark this as notified in this cycle to avoid duplicate notifications
-          notifiedInThisCycle.add(checkInKey);
-          
-          // Update tracking of last notification - this is only to track the 
-          // very last notification sent, not to prevent repeated notifications
-          setState(() {
-            lastNotifiedId = checkInKey;
-          });
-          
-          // Save to persistent storage
-          final prefs = await SharedPreferences.getInstance();
-          await prefs.setString('lastNotifiedId', checkInKey);
-          
-          // Show notification
-          await NotificationHelper.showAlert(
-            id: responderUid.hashCode.abs(),
-            title: 'Danoggin Alert',
-            body: '$responderName had a $result check-in at $mostRecentTimeStr',
-          );
-          
-          print("Notification sent for $responderName's $result check-in");
+
+      final userData = observerDoc.data() as Map<String, dynamic>?;
+      final observingMap =
+          userData?['observing'] as Map<String, dynamic>? ?? {};
+      final responderUids = observingMap.keys.toList();
+
+      if (responderUids.isEmpty) {
+        print("No linked responders found");
+        return;
+      }
+
+      // Track notifications sent in this polling cycle to avoid duplicates
+      List<String> notifiedInThisCycle = [];
+
+      // Check each linked responder
+      for (final responderUid in responderUids) {
+        final responderName = observingMap[responderUid];
+
+        // Use get() to force a fresh read from Firestore
+        final snapshot = await FirebaseFirestore.instance
+            .collection('responder_status')
+            .doc(responderUid)
+            .collection('check_ins')
+            .orderBy('timestamp', descending: true)
+            .limit(1)
+            .get();
+
+        final now = DateTime.now();
+        print(
+            "Checking responder $responderName ($responderUid) @ ${now.hour}:${now.minute}:${now.second}");
+
+        if (snapshot.docs.isEmpty) continue;
+
+        final doc = snapshot.docs.first;
+        final data = doc.data();
+        final result = data['result'] as String;
+        final timestamp = DateTime.tryParse(data['timestamp'] as String);
+        final docId = doc.id;
+
+        // Skip if we can't parse the timestamp
+        if (timestamp == null) continue;
+
+        final checkInAge = now.difference(timestamp);
+        final mostRecentTimeStr =
+            DateFormat('M/d h:mma').format(timestamp).toLowerCase();
+
+        print(
+            "Found check-in: id=$docId, result=$result, age=${checkInAge.inMinutes}m");
+
+        // Create a unique identifier for this check-in
+        final checkInKey = "$responderUid:$docId";
+
+        // Only notify for recent check-ins that are missed or incorrect
+        if ((result == 'missed' || result == 'incorrect') &&
+            checkInAge.inHours < 24) {
+          // Only consider relatively recent check-ins (last 24h)
+
+          // Check if we've already acknowledged this issue
+          final isAcknowledged = checkInKey == lastAcknowledgedId;
+
+          // Check if we've already notified about this issue in this polling cycle
+          final alreadyNotifiedThisCycle =
+              notifiedInThisCycle.contains(checkInKey);
+
+          if (!isAcknowledged && !alreadyNotifiedThisCycle) {
+            print("Issue detected: $responderName had a $result check-in");
+
+            // Mark this as notified in this cycle to avoid duplicate notifications
+            notifiedInThisCycle.add(checkInKey);
+
+            // Update tracking of last notification - this is only to track the
+            // very last notification sent, not to prevent repeated notifications
+            setState(() {
+              lastNotifiedId = checkInKey;
+            });
+
+            // Save to persistent storage
+            final prefs = await SharedPreferences.getInstance();
+            await prefs.setString('lastNotifiedId', checkInKey);
+
+            // Show notification
+            await NotificationHelper.showAlert(
+              id: responderUid.hashCode.abs(),
+              title: 'Danoggin Alert',
+              body:
+                  '$responderName had a $result check-in at $mostRecentTimeStr',
+            );
+
+            print("Notification sent for $responderName's $result check-in");
+          }
         }
       }
+    } catch (e) {
+      print("Error in _checkResponderStatus: $e");
     }
-  } catch (e) {
-    print("Error in _checkResponderStatus: $e");
   }
-}
 
   Future<void> _testNotifications() async {
     try {
@@ -249,16 +256,16 @@ Future<void> _checkResponderStatus() async {
         print('Error checking notification permissions: $e');
         // If we can't check, assume they're enabled
       }
-      
+
       if (!enabled) {
         // Show manual instructions if notifications are disabled
         NotificationHelper.openNotificationSettings(context);
         return;
       }
-      
+
       // Test notification
       await NotificationHelper.testNotification();
-      
+
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('Test notification sent!'),
@@ -282,7 +289,7 @@ Future<void> _checkResponderStatus() async {
     if (_responderMap.isEmpty) {
       return const SizedBox.shrink();
     }
-    
+
     return Card(
       margin: EdgeInsets.only(bottom: 16.0),
       child: Padding(
@@ -309,8 +316,10 @@ Future<void> _checkResponderStatus() async {
                     backgroundColor: Colors.grey[200],
                     selectedColor: Colors.deepPurple[100],
                     labelStyle: TextStyle(
-                      color: isSelected ? Colors.deepPurple[800] : Colors.black87,
-                      fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                      color:
+                          isSelected ? Colors.deepPurple[800] : Colors.black87,
+                      fontWeight:
+                          isSelected ? FontWeight.bold : FontWeight.normal,
                     ),
                   );
                 }).toList(),
@@ -329,15 +338,15 @@ Future<void> _checkResponderStatus() async {
         child: Text('No responders linked yet. Add a responder to monitor.'),
       );
     }
-    
+
     if (_selectedResponderUid == null) {
       return const Center(
         child: Text('No responder selected'),
       );
     }
-    
+
     final responderName = _responderMap[_selectedResponderUid] ?? 'Unknown';
-    
+
     return StreamBuilder<QuerySnapshot>(
       stream: FirebaseFirestore.instance
           .collection('responder_status')
@@ -350,24 +359,24 @@ Future<void> _checkResponderStatus() async {
         if (!checkInSnapshot.hasData) {
           return const Center(child: CircularProgressIndicator());
         }
-        
+
         final docs = checkInSnapshot.data!.docs;
-        
+
         if (docs.isEmpty) {
           return const Center(child: Text('No check-ins found.'));
         }
-        
+
         final latest = docs.first;
         final latestId = latest.id;
         final latestData = latest.data() as Map<String, dynamic>;
         final latestResult = latestData['result'];
-        
+
         // Use a combined key of responderUid:checkInId for acknowledgements
         final latestKey = "$_selectedResponderUid:$latestId";
         final needsAck =
-          (latestResult == 'missed' || latestResult == 'incorrect') &&
-          latestKey != lastAcknowledgedId;
-        
+            (latestResult == 'missed' || latestResult == 'incorrect') &&
+                latestKey != lastAcknowledgedId;
+
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -385,7 +394,8 @@ Future<void> _checkResponderStatus() async {
                 itemCount: docs.length,
                 itemBuilder: (context, index) {
                   final doc = docs[index];
-                  return _buildCheckInTile(doc.id, doc.data() as Map<String, dynamic>);
+                  return _buildCheckInTile(
+                      doc.id, doc.data() as Map<String, dynamic>);
                 },
               ),
             ),
@@ -436,37 +446,36 @@ Future<void> _checkResponderStatus() async {
             tooltip: 'Test Notifications',
             onPressed: _testNotifications,
           ),
+          IconButton(
+            icon: const Icon(Icons.settings),
+            onPressed: () async {
+              final result = await Navigator.push<dynamic>(
+                context,
+                MaterialPageRoute(
+                  builder: (_) => SettingsPage(currentRole: UserRole.observer),
+                ),
+              );
 
-IconButton(
-  icon: const Icon(Icons.settings),
-  onPressed: () async {
-    final result = await Navigator.push<dynamic>(
-      context,
-      MaterialPageRoute(
-        builder: (_) => SettingsPage(currentRole: UserRole.observer),
-      ),
-    );
-
-    // If result is a Boolean 'true', relationships have changed
-    if (result == true) {
-      await _loadResponders(); // Refresh the responder list
-      setState(() {}); // Update the UI
-    }
-    // If result is a UserRole, handle role change as before
-    else if (result != null && result != UserRole.observer) {
-      final prefs = await SharedPreferences.getInstance();
-      await prefs.setString('userRole', result.name);
-      Navigator.of(context).pushReplacement(
-        MaterialPageRoute(
-          builder: (_) => result == UserRole.responder
-              ? QuizPage()
-              : ObserverPage(),
-        ),
-      );
-    }
-  },
-),
-
+              // If result is a Boolean 'true', relationships have changed
+              if (result == true) {
+                await _loadResponders(); // Refresh the responder list
+                setState(() {}); // Update the UI
+              }
+              // If result is a UserRole, handle role change as before
+              else if (result != null && result != UserRole.observer) {
+                final prefs = await SharedPreferences.getInstance();
+                await prefs.setString('userRole', result.name);
+                Navigator.of(context).pushReplacement(
+                  MaterialPageRoute(
+                    builder: (_) => result == UserRole.responder
+                        ? QuizPage(
+                            currentRole: result) // Pass the role parameter
+                        : ObserverPage(),
+                  ),
+                );
+              }
+            },
+          ),
         ],
       ),
       body: Container(
@@ -480,11 +489,10 @@ IconButton(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             // Responder selector
-            if (_responderMap.length > 1) 
-              _buildResponderSelector(),
-            
+            if (_responderMap.length > 1) _buildResponderSelector(),
+
             // Selected responder info
-            if (_selectedResponderUid != null && _responderMap.isNotEmpty) 
+            if (_selectedResponderUid != null && _responderMap.isNotEmpty)
               Padding(
                 padding: const EdgeInsets.only(bottom: 16.0),
                 child: Text(
@@ -492,7 +500,7 @@ IconButton(
                   style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                 ),
               ),
-            
+
             // Check-in list
             Expanded(
               child: _buildCheckInList(),
@@ -513,57 +521,59 @@ IconButton(
     try {
       // Create a unique key for this check-in
       final checkInKey = "$responderUid:$checkInId";
-      
+
       // Check if we've already notified for this
       if (checkInKey == lastNotifiedId || checkInKey == lastAcknowledgedId) {
         print("Already notified or acknowledged for check-in: $checkInKey");
         return;
       }
-      
+
       print("🔔 Preparing to send notification for $responderName");
-      
+
       // First update our state to prevent duplicate notifications
       setState(() {
         lastNotifiedId = checkInKey;
       });
-      
+
       // Use direct notification method for more reliable delivery
-      const AndroidNotificationDetails androidDetails = AndroidNotificationDetails(
-        'danoggin_alerts',  // different channel ID
+      const AndroidNotificationDetails androidDetails =
+          AndroidNotificationDetails(
+        'danoggin_alerts', // different channel ID
         'Danoggin Urgent Alerts',
-        channelDescription: 'Used for critical alerts about missed or incorrect check-ins',
+        channelDescription:
+            'Used for critical alerts about missed or incorrect check-ins',
         importance: Importance.high,
         priority: Priority.high,
         enableVibration: true,
         playSound: true,
         icon: 'ic_stat_warning',
       );
-      
-      const NotificationDetails platformDetails = 
+
+      const NotificationDetails platformDetails =
           NotificationDetails(android: androidDetails);
-      
+
       // Generate a unique notification ID based on the check-in
       final notificationId = checkInId.hashCode.abs();
-      
+
       print("🔔 Sending notification with ID: $notificationId");
-      
+
       // Use the plugin directly
-      final FlutterLocalNotificationsPlugin notifications = 
+      final FlutterLocalNotificationsPlugin notifications =
           FlutterLocalNotificationsPlugin();
-      
+
       await notifications.show(
         notificationId,
         'Danoggin Alert: $result',
         '$responderName had a $result check-in at $timeStr',
         platformDetails,
       );
-      
+
       print("🔔 Notification sent successfully!");
-      
+
       // Save the notification in a local database for persistence
       final prefs = await SharedPreferences.getInstance();
       await prefs.setString('lastNotifiedId', checkInKey);
-      
+
       // Also show a snackbar in the UI
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -574,11 +584,10 @@ IconButton(
           ),
         );
       }
-      
     } catch (e, stackTrace) {
       print("❌ Error sending notification: $e");
       print(stackTrace);
-      
+
       // Show error in UI
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -596,32 +605,31 @@ IconButton(
 Future<void> testDirectNotification() async {
   try {
     print("Testing direct notification...");
-    
+
     const AndroidNotificationDetails androidPlatformChannelSpecifics =
         AndroidNotificationDetails(
-      'danoggin_direct_test',  // Channel ID
-      'Danoggin Test Channel',  // Channel name
+      'danoggin_direct_test', // Channel ID
+      'Danoggin Test Channel', // Channel name
       channelDescription: 'Channel for testing notifications',
       importance: Importance.max,
       priority: Priority.high,
       ticker: 'ticker',
     );
-    
+
     const NotificationDetails platformChannelSpecifics =
         NotificationDetails(android: androidPlatformChannelSpecifics);
-        
+
     // Generate a unique ID
     final int notificationId = DateTime.now().millisecond;
-    
+
     await FlutterLocalNotificationsPlugin().show(
       notificationId,
       'Plain Test Notification',
       'This is a simple notification from Danoggin',
       platformChannelSpecifics,
     );
-    
+
     print("Direct test notification sent!");
-    
   } catch (e) {
     print("Error sending direct test notification: $e");
   }
@@ -632,16 +640,16 @@ void initNotifications() {
   // Initialize notification plugin
   const AndroidInitializationSettings initializationSettingsAndroid =
       AndroidInitializationSettings('@mipmap/ic_launcher');
-      
+
   const InitializationSettings initializationSettings =
       InitializationSettings(android: initializationSettingsAndroid);
-      
+
   FlutterLocalNotificationsPlugin().initialize(
     initializationSettings,
     onDidReceiveNotificationResponse: (NotificationResponse details) {
       print("Notification clicked: ${details.id}");
     },
   );
-  
+
   print("Notifications initialized");
 }

@@ -1,4 +1,3 @@
-
 import 'package:flutter/material.dart';
 import 'package:danoggin/models/user_role.dart';
 import 'package:danoggin/screens/quiz_page.dart';
@@ -37,7 +36,7 @@ class _RoleSelectionScreenState extends State<RoleSelectionScreen> {
     Navigator.of(context).pushReplacement(
       MaterialPageRoute(
         builder: (_) => selectedRole == UserRole.responder
-            ? QuizPage()
+            ? QuizPage(currentRole: selectedRole!)
             : const ObserverPage(),
       ),
     );
@@ -99,6 +98,4 @@ class _RoleSelectionScreenState extends State<RoleSelectionScreen> {
       ),
     );
   }
-
-
 }
