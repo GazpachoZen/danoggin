@@ -13,7 +13,7 @@ import 'package:danoggin/services/notification_helper.dart';
 
 class QuizPage extends StatefulWidget {
   final UserRole currentRole;
-  
+
   const QuizPage({super.key, required this.currentRole});
 
   @override
@@ -30,13 +30,14 @@ class _QuizPageState extends State<QuizPage> with WidgetsBindingObserver {
   TimeOfDay? endHour;
   Question? currentQuestion;
   List<AnswerOption> displayedChoices = [];
+  String _userName = "Responder"; // Default value
 
   AnswerOption? selectedAnswer;
   String? feedback;
 
   Timer? alertTimer;
   Timer? responseTimer;
-  
+
   // Add notification subscription
   late StreamSubscription<dynamic> _notificationSubscription;
 
@@ -45,43 +46,65 @@ class _QuizPageState extends State<QuizPage> with WidgetsBindingObserver {
   Duration responseTimeout = Duration(minutes: 1);
 
   late UserRole currentRole;
-  
+
   // New flag to track if a timeout is already being handled
   bool _timeoutActive = false;
-  
+
   // Add flag to track initial app load
   bool _isInitialLoad = true;
 
+Future<void> _loadUserName() async {
+  try {
+    final uid = AuthService.currentUserId;
+    final userDoc = await FirebaseFirestore.instance
+        .collection('users')
+        .doc(uid)
+        .get();
+    
+    if (userDoc.exists) {
+      final userData = userDoc.data();
+      if (userData != null && userData.containsKey('name')) {
+        setState(() {
+          _userName = userData['name'] as String;
+        });
+      }
+    }
+  } catch (e) {
+    print('Error loading user name: $e');
+  }
+}
   @override
   void initState() {
     super.initState();
     // Initialize currentRole from widget parameter
     currentRole = widget.currentRole;
-    
+
     WidgetsBinding.instance.addObserver(this);
-    loadPackFromFirestore();
-    
+    _loadUserName(); // Add this line
+  loadPackFromFirestore();
+
     // Check notification permissions after a short delay
     _checkNotificationPermissions();
-    
+
     // Set up notification listener
     _setupNotificationListener();
   }
-  
+
   // Add method to set up notification listener
   void _setupNotificationListener() {
     // Listen for notification events using a stream
-    _notificationSubscription = NotificationHelper.notificationEventStream.listen((event) {
+    _notificationSubscription =
+        NotificationHelper.notificationEventStream.listen((event) {
       // If app is already open and showing a question, refresh to the new question
       if (mounted && !isLoading && !_isInitialLoad) {
         print('Received notification event, refreshing question');
-        
+
         // Cancel existing response timer
         responseTimer?.cancel();
-        
+
         // Reset timeout state
         _timeoutActive = false;
-        
+
         // Refresh the question without triggering another notification
         setState(() {
           currentQuestion = pack.getNextQuestion();
@@ -92,11 +115,11 @@ class _QuizPageState extends State<QuizPage> with WidgetsBindingObserver {
           _isRetryAttempt = false;
           _previousIncorrectAnswer = null;
         });
-        
+
         // Set new timeout
         responseTimer?.cancel();
         responseTimer = Timer(responseTimeout, _handleTimeout);
-        
+
         print('Question refreshed due to notification event');
       }
     });
@@ -188,7 +211,7 @@ class _QuizPageState extends State<QuizPage> with WidgetsBindingObserver {
     try {
       final doc = await QuestionPack.loadFromFirestore('demo_pack');
       final prefs = await SharedPreferences.getInstance();
-      
+
       // Don't overwrite currentRole that was set from widget parameter
       // final roleStr = prefs.getString('userRole');
       // currentRole = UserRoleExtension.fromString(roleStr) ?? UserRole.responder;
@@ -268,7 +291,8 @@ class _QuizPageState extends State<QuizPage> with WidgetsBindingObserver {
         id: 1, // Use 1 as the ID for check-in notifications
         title: 'Danoggin Check-In',
         body: 'Time to answer a quick question!',
-        triggerRefresh: isScheduled, // Only trigger refresh for scheduled alerts
+        triggerRefresh:
+            isScheduled, // Only trigger refresh for scheduled alerts
       );
     } else {
       // First load, just mark that we've completed initial load
@@ -279,7 +303,7 @@ class _QuizPageState extends State<QuizPage> with WidgetsBindingObserver {
   void _handleTimeout() async {
     // Only handle timeout if it's not already being handled
     if (_timeoutActive) return;
-    
+
     if (selectedAnswer == null) {
       setState(() {
         _timeoutActive = true; // Mark timeout as active
@@ -295,26 +319,18 @@ class _QuizPageState extends State<QuizPage> with WidgetsBindingObserver {
         result: _isRetryAttempt ? 'missed_retry' : 'missed',
         questionPrompt: currentQuestion!.prompt,
       );
-      
+
       // Cancel any outstanding check-in notifications since we've now handled the timeout
-      await NotificationHelper.cancelNotification(1); // Use 1 as the ID for check-in notifications
-      
-      // REMOVED: The second notification that was here
-      
-      // Show an alert notification in the app with callback to reset state
-      NotificationHelper.showInAppAlert(
-        context,
-        'Missed Check-in',
-        _isRetryAttempt
-            ? 'You missed answering the second chance. This will be recorded as a missed check-in.'
-            : 'You missed answering the check-in question. This will be recorded as a missed check-in.',
-        onAcknowledge: () {
-          // Reset timeout state when user acknowledges
+      await NotificationHelper.cancelNotification(
+          1); // Use 1 as the ID for check-in notifications
+
+      Future.delayed(Duration(seconds: 3), () {
+        if (mounted) {
           setState(() {
             _timeoutActive = false;
           });
-        },
-      );
+        }
+      });
     }
   }
 
@@ -322,7 +338,7 @@ class _QuizPageState extends State<QuizPage> with WidgetsBindingObserver {
     if (selectedAnswer == null) return;
 
     responseTimer?.cancel();
-    
+
     // Cancel any outstanding check-in notifications to prevent confusion
     await NotificationHelper.cancelNotification(1); // Check-in notification ID
 
@@ -340,9 +356,10 @@ class _QuizPageState extends State<QuizPage> with WidgetsBindingObserver {
         result: 'correct',
         questionPrompt: currentQuestion!.prompt,
       );
-      
+
       // Also cancel any missed check-in notifications on successful answer
-      await NotificationHelper.cancelNotification(2); // Missed check-in notification ID
+      await NotificationHelper.cancelNotification(
+          2); // Missed check-in notification ID
     } else {
       // Incorrect answer case
       if (!_isRetryAttempt) {
@@ -386,8 +403,7 @@ class _QuizPageState extends State<QuizPage> with WidgetsBindingObserver {
     if (isLoading || currentQuestion == null) {
       return Scaffold(
         appBar: AppBar(
-          title: Text(
-              'Danoggin (${currentRole.name[0].toUpperCase()}${currentRole.name.substring(1)})'),
+          title: Text('Danoggin: $_userName'),
           actions: [
             IconButton(
               icon: const Icon(Icons.settings),
@@ -426,8 +442,7 @@ class _QuizPageState extends State<QuizPage> with WidgetsBindingObserver {
     // Main UI when question is loaded
     return Scaffold(
       appBar: AppBar(
-        title: Text(
-            'Danoggin (${currentRole.name[0].toUpperCase()}${currentRole.name.substring(1)})'),
+        title: Text('Danoggin: $_userName'),
         actions: [
           IconButton(
             icon: const Icon(Icons.notifications),
