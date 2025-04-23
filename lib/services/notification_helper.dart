@@ -161,15 +161,21 @@ class NotificationHelper {
 
   /// Show an in-app alert dialog as a backup for system notifications
   static void showInAppAlert(
-      BuildContext context, String title, String message) {
+      BuildContext context, String title, String message, {VoidCallback? onAcknowledge}) {
     showDialog(
       context: context,
+      barrierDismissible: false, // Force user to acknowledge
       builder: (context) => AlertDialog(
         title: Text(title),
         content: Text(message),
         actions: [
           TextButton(
-            onPressed: () => Navigator.pop(context),
+            onPressed: () {
+              Navigator.pop(context);
+              if (onAcknowledge != null) {
+                onAcknowledge();
+              }
+            },
             child: Text('OK'),
           ),
         ],

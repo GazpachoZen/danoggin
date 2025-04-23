@@ -41,6 +41,9 @@ class _QuizPageState extends State<QuizPage> with WidgetsBindingObserver {
   Duration responseTimeout = Duration(minutes: 1);
 
   late UserRole currentRole;
+  
+  // New flag to track if a timeout is already being handled
+  bool _timeoutActive = false;
 
   @override
   void initState() {
@@ -66,8 +69,10 @@ class _QuizPageState extends State<QuizPage> with WidgetsBindingObserver {
         // Cancel existing response timer
         responseTimer?.cancel();
         
+        // Reset timeout state
+        _timeoutActive = false;
+        
         // Refresh the question without triggering another notification
-        // We don't need to pass isScheduled=true here because we're responding to an event
         setState(() {
           currentQuestion = pack.getNextQuestion();
           displayedChoices = currentQuestion.getShuffledChoices();
@@ -242,6 +247,7 @@ class _QuizPageState extends State<QuizPage> with WidgetsBindingObserver {
     _uiDisabled = false;
     _isRetryAttempt = false;
     _previousIncorrectAnswer = null;
+    _timeoutActive = false; // Reset timeout flag for new question
 
     responseTimer?.cancel();
     responseTimer = Timer(responseTimeout, _handleTimeout);
@@ -262,8 +268,12 @@ class _QuizPageState extends State<QuizPage> with WidgetsBindingObserver {
   }
 
   void _handleTimeout() async {
+    // Only handle timeout if it's not already being handled
+    if (_timeoutActive) return;
+    
     if (selectedAnswer == null) {
       setState(() {
+        _timeoutActive = true; // Mark timeout as active
         feedback = _isRetryAttempt
             ? '⏰ You missed the second chance.'
             : '⏰ You missed the question.';
@@ -280,20 +290,21 @@ class _QuizPageState extends State<QuizPage> with WidgetsBindingObserver {
       // Cancel any outstanding check-in notifications since we've now handled the timeout
       await NotificationHelper.cancelNotification(1); // Use 1 as the ID for check-in notifications
       
-      // Show a consolidated missed check-in notification - use a direct approach instead
-      await NotificationHelper.showAlert(
-        id: 2, // Use ID 2 for missed check-in notifications
-        title: 'Missed Check-in',
-        body: 'You have missed a check-in. Tap to continue.',
-      );
-
-      // Show an alert notification in the app
+      // REMOVED: The second notification that was here
+      
+      // Show an alert notification in the app with callback to reset state
       NotificationHelper.showInAppAlert(
         context,
         'Missed Check-in',
         _isRetryAttempt
             ? 'You missed answering the second chance. This will be recorded as a missed check-in.'
             : 'You missed answering the check-in question. This will be recorded as a missed check-in.',
+        onAcknowledge: () {
+          // Reset timeout state when user acknowledges
+          setState(() {
+            _timeoutActive = false;
+          });
+        },
       );
     }
   }

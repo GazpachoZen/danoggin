@@ -25,3 +25,32 @@ q Quit (terminate the application on the device).
 Pat:	iPhone, iOS 18
 Teresa:	iPhone, iOS 18.4
 Sean:	Pixel 9 Pro XL, Android 15
+
+--------------------
+
+Splash Screen Image (danoggin_splash.png)
+This is the logo that appears centered on the splash screen with the app name and loading indicator below it.
+
+Dimensions: 512x512 pixels (1:1 aspect ratio)
+Format: PNG with transparency
+Content suggestions:
+
+A simple, recognizable logo
+Use the app's primary color scheme (purple tones)
+Keep details minimal as it will be viewed briefly
+Leave some padding around the edges
+
+
+
+Welcome Image (danoggin_welcome.png)
+This appears at the top of the role selection screen when the app is launched for the first time.
+
+Dimensions: Approximately 600x400 pixels (3:2 aspect ratio)
+Format: PNG with transparency
+Content suggestions:
+
+A welcoming, friendly illustration
+Could show the app's purpose (perhaps showing a responder and observer)
+More detailed than the splash logo
+Should complement the "Welcome to Danoggin!" text that appears below it
+
