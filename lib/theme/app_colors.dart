@@ -20,4 +20,8 @@ class AppColors {
   static const success = Color(0xFF4CAF50);
   static const warning = Color(0xFFFFC107);
   static const error = Color(0xFFE53935);
+
+  // Custom
+// In lib/theme/app_colors.dart
+static const lightGray = Color(0xFFEEEEEE); // Add this line
 }

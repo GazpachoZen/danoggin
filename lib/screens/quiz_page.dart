@@ -10,6 +10,7 @@ import 'package:danoggin/screens/settings_page.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:danoggin/services/auth_service.dart';
 import 'package:danoggin/services/notification_helper.dart';
+import 'package:danoggin/theme/app_colors.dart';
 
 class QuizPage extends StatefulWidget {
   final UserRole currentRole;
@@ -487,33 +488,37 @@ Future<void> _loadUserName() async {
                 final isPreviousIncorrect = answer == _previousIncorrectAnswer;
                 final isDisabled = _uiDisabled || isPreviousIncorrect;
 
-                return ElevatedButton(
-                  onPressed: isDisabled
-                      ? null
-                      : () {
-                          setState(() {
-                            selectedAnswer = answer;
-                            feedback = null;
-                          });
-                        },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: isSelected ? Colors.blueAccent : null,
-                    padding: EdgeInsets.all(4),
-                    // Visually indicate the previously incorrect answer
-                    disabledBackgroundColor: isPreviousIncorrect
-                        ? Colors.red.withOpacity(0.3)
-                        : null,
-                  ),
-                  child: answer.render(disabled: isDisabled),
-                );
-              }).toList(),
+// In quiz_page.dart, for answer option buttons
+return ElevatedButton(
+  onPressed: isDisabled
+      ? null
+      : () {
+          setState(() {
+            selectedAnswer = answer;
+            feedback = null;
+          });
+        },
+  style: ElevatedButton.styleFrom(
+    backgroundColor: isSelected ? AppColors.coral : AppColors.lightGray, // Changed here
+    padding: EdgeInsets.all(4),
+    // Visually indicate the previously incorrect answer
+    disabledBackgroundColor: isPreviousIncorrect
+        ? Colors.red.withOpacity(0.3)
+        : null,
+  ),
+  child: answer.render(disabled: isDisabled),
+);              }).toList(),
             ),
             SizedBox(height: 16),
-            ElevatedButton(
-              onPressed:
-                  (_uiDisabled || selectedAnswer == null) ? null : submitAnswer,
-              child: Text('Submit'),
-            ),
+// In quiz_page.dart, for submit button
+ElevatedButton(
+  onPressed: (_uiDisabled || selectedAnswer == null) ? null : submitAnswer,
+  style: ElevatedButton.styleFrom(
+    backgroundColor: AppColors.midBlue, // Keep this button blue
+    foregroundColor: AppColors.offWhite, // White text for contrast
+  ),
+  child: Text('Submit'),
+),
             SizedBox(height: 24),
             if (feedback != null)
               Text(

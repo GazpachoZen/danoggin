@@ -22,13 +22,14 @@ class AppTheme {
         foregroundColor: AppColors.offWhite,
         elevation: 0,
       ),
-      elevatedButtonTheme: ElevatedButtonThemeData(
-        style: ElevatedButton.styleFrom(
-          backgroundColor: AppColors.midBlue,
-          foregroundColor: AppColors.offWhite,
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-        ),
-      ),
+// In lib/theme/app_theme.dart
+elevatedButtonTheme: ElevatedButtonThemeData(
+  style: ElevatedButton.styleFrom(
+    backgroundColor: AppColors.lightGray, // Changed from midBlue to lightGray
+    foregroundColor: AppColors.textDark, // Changed text color to dark for better contrast
+    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+  ),
+),
       textButtonTheme: TextButtonThemeData(
         style: TextButton.styleFrom(
           foregroundColor: AppColors.deepBlue,
