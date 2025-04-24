@@ -76,9 +76,10 @@ Presently, all of the images used for question packs are assumed to be available
 
 ---------------------
 
-Sometimes the text doesn't fit the buttons. Change font size for that one button as needed.
+Sometimes the text doesn't fit the buttons. Change font size for that one button as needed. (Washington, D.C. vs Mexico City - the first breaks uncomfortably, the 2nd doesn't)
 
 ---------------------
 
+Make it harder to accidentally terminate Danoggin. 
 
 
