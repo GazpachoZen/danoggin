@@ -12,6 +12,9 @@ import 'package:danoggin/services/auth_service.dart';
 import 'package:danoggin/services/notification_helper.dart';
 import 'package:danoggin/theme/app_colors.dart';
 
+// Add this near the top of the file, after imports
+const bool kDevModeEnabled = true; // Set to false for production
+
 class QuizPage extends StatefulWidget {
   final UserRole currentRole;
 
@@ -32,6 +35,7 @@ class _QuizPageState extends State<QuizPage> with WidgetsBindingObserver {
   Question? currentQuestion;
   List<AnswerOption> displayedChoices = [];
   String _userName = "Responder"; // Default value
+
 
   AnswerOption? selectedAnswer;
   String? feedback;
@@ -399,57 +403,13 @@ Future<void> _loadUserName() async {
   }
 
   @override
-  Widget build(BuildContext context) {
-    // Show loading indicator if still loading or question is not initialized
-    if (isLoading || currentQuestion == null) {
-      return Scaffold(
-        appBar: AppBar(
-          title: Text('Danoggin: $_userName'),
-          actions: [
-            IconButton(
-              icon: const Icon(Icons.settings),
-              onPressed: () async {
-                final newRole = await Navigator.push<UserRole>(
-                  context,
-                  MaterialPageRoute(
-                      builder: (context) =>
-                          SettingsPage(currentRole: currentRole)),
-                );
-                if (newRole != null && newRole != currentRole) {
-                  final prefs = await SharedPreferences.getInstance();
-                  await prefs.setString('userRole', newRole.name);
-                  setState(() {
-                    currentRole = newRole;
-                  });
-                }
-              },
-            ),
-          ],
-        ),
-        body: Center(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              CircularProgressIndicator(),
-              SizedBox(height: 16),
-              Text("Loading your next question...",
-                  style: TextStyle(fontSize: 16, color: Colors.grey[700])),
-            ],
-          ),
-        ),
-      );
-    }
-
-    // Main UI when question is loaded
+Widget build(BuildContext context) {
+  // Show loading indicator if still loading or question is not initialized
+  if (isLoading || currentQuestion == null) {
     return Scaffold(
       appBar: AppBar(
         title: Text('Danoggin: $_userName'),
         actions: [
-          IconButton(
-            icon: const Icon(Icons.notifications),
-            tooltip: 'Test Notifications',
-            onPressed: _testNotifications,
-          ),
           IconButton(
             icon: const Icon(Icons.settings),
             onPressed: () async {
@@ -470,75 +430,138 @@ Future<void> _loadUserName() async {
           ),
         ],
       ),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
+      body: Center(
         child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
+          mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Text(currentQuestion!.prompt, style: TextStyle(fontSize: 24)),
-            SizedBox(height: 24),
-            GridView.count(
-              crossAxisCount: 2,
-              shrinkWrap: true,
-              crossAxisSpacing: 12,
-              mainAxisSpacing: 12,
-              childAspectRatio: 1.0,
-              children: displayedChoices.map((answer) {
-                final isSelected = selectedAnswer == answer;
-                final isPreviousIncorrect = answer == _previousIncorrectAnswer;
-                final isDisabled = _uiDisabled || isPreviousIncorrect;
-
-// In quiz_page.dart, for answer option buttons
-return ElevatedButton(
-  onPressed: isDisabled
-      ? null
-      : () {
-          setState(() {
-            selectedAnswer = answer;
-            feedback = null;
-          });
-        },
-  style: ElevatedButton.styleFrom(
-    backgroundColor: isSelected ? AppColors.coral : AppColors.lightGray, // Changed here
-    padding: EdgeInsets.all(4),
-    // Visually indicate the previously incorrect answer
-    disabledBackgroundColor: isPreviousIncorrect
-        ? Colors.red.withOpacity(0.3)
-        : null,
-  ),
-  child: answer.render(disabled: isDisabled),
-);              }).toList(),
-            ),
+            CircularProgressIndicator(),
             SizedBox(height: 16),
-// In quiz_page.dart, for submit button
-ElevatedButton(
-  onPressed: (_uiDisabled || selectedAnswer == null) ? null : submitAnswer,
-  style: ElevatedButton.styleFrom(
-    backgroundColor: AppColors.midBlue, // Keep this button blue
-    foregroundColor: AppColors.offWhite, // White text for contrast
-  ),
-  child: Text('Submit'),
-),
-            SizedBox(height: 24),
-            if (feedback != null)
-              Text(
-                feedback!,
-                style: TextStyle(
-                  fontSize: 20,
-                  color: feedback == '✅ Correct!'
-                      ? Colors.green
-                      : (feedback == '❌ Incorrect. Try again.'
-                          ? Colors.orange
-                          : Colors.red),
-                ),
-              ),
+            Text("Loading your next question...",
+                style: TextStyle(fontSize: 16, color: Colors.grey[700])),
           ],
         ),
       ),
     );
   }
 
-  Future<void> _testNotifications() async {
+  // Main UI when question is loaded
+  return Scaffold(
+    appBar: AppBar(
+      title: Text('Danoggin: $_userName'),
+      actions: [
+        // Add this dev mode refresh button
+        if (kDevModeEnabled)
+          IconButton(
+            icon: const Icon(Icons.refresh),
+            tooltip: 'Load new question (dev only)',
+            onPressed: () {
+              // Cancel existing timers first
+              responseTimer?.cancel();
+              
+              // Load a new question
+              loadRandomQuestion();
+              
+              // Show a snackbar to confirm
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text('Question refreshed (dev mode)'),
+                  duration: Duration(seconds: 1),
+                ),
+              );
+            },
+          ),
+        IconButton(
+          icon: const Icon(Icons.notifications),
+          tooltip: 'Test Notifications',
+          onPressed: _testNotifications,
+        ),
+        IconButton(
+          icon: const Icon(Icons.settings),
+          onPressed: () async {
+            final newRole = await Navigator.push<UserRole>(
+              context,
+              MaterialPageRoute(
+                  builder: (context) =>
+                      SettingsPage(currentRole: currentRole)),
+            );
+            if (newRole != null && newRole != currentRole) {
+              final prefs = await SharedPreferences.getInstance();
+              await prefs.setString('userRole', newRole.name);
+              setState(() {
+                currentRole = newRole;
+              });
+            }
+          },
+        ),
+      ],
+    ),
+    body: Padding(
+      padding: const EdgeInsets.all(16.0),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Text(currentQuestion!.prompt, style: TextStyle(fontSize: 24)),
+          SizedBox(height: 24),
+          GridView.count(
+            crossAxisCount: 2,
+            shrinkWrap: true,
+            crossAxisSpacing: 12,
+            mainAxisSpacing: 12,
+            childAspectRatio: 1.0,
+            children: displayedChoices.map((answer) {
+              final isSelected = selectedAnswer == answer;
+              final isPreviousIncorrect = answer == _previousIncorrectAnswer;
+              final isDisabled = _uiDisabled || isPreviousIncorrect;
+
+              return ElevatedButton(
+                onPressed: isDisabled
+                    ? null
+                    : () {
+                        setState(() {
+                          selectedAnswer = answer;
+                          feedback = null;
+                        });
+                      },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: isSelected ? AppColors.coral : AppColors.lightGray,
+                  padding: EdgeInsets.all(4),
+                  disabledBackgroundColor: isPreviousIncorrect
+                      ? Colors.red.withOpacity(0.3)
+                      : null,
+                ),
+                child: answer.render(disabled: isDisabled),
+              );
+            }).toList(),
+          ),
+          SizedBox(height: 16),
+          ElevatedButton(
+            onPressed: (_uiDisabled || selectedAnswer == null) ? null : submitAnswer,
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppColors.midBlue,
+              foregroundColor: AppColors.offWhite,
+            ),
+            child: Text('Submit'),
+          ),
+          SizedBox(height: 24),
+          if (feedback != null)
+            Text(
+              feedback!,
+              style: TextStyle(
+                fontSize: 20,
+                color: feedback == '✅ Correct!'
+                    ? Colors.green
+                    : (feedback == '❌ Incorrect. Try again.'
+                        ? Colors.orange
+                        : Colors.red),
+              ),
+            ),
+        ],
+      ),
+    ),
+  );
+}
+  
+    Future<void> _testNotifications() async {
     try {
       // Try to check if notifications are enabled
       bool enabled = true;

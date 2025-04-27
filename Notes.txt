@@ -92,6 +92,7 @@ Make it harder to accidentally terminate Danoggin.
 Make Danoggin auto-start when phone powers up.
 
 ---------------------
+When testing the code, it would be nice for the responder's appbar have a means of immediately calling up another question without our having to wait for the interval timer to go off. Can you please add such a feature, remembering that we'll want to easily add and remove this feature as needed during development.
 ---------------------
 ---------------------
 ---------------------
