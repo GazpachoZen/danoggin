@@ -86,9 +86,89 @@ Make Danoggin auto-start when phone powers up.
 Questions in the demo_pack still have newly_uploaded flag
 
 ---------------------
-
-
 ---------------------
 ---------------------
 ---------------------
 Customizable question packs
+
+Marvel
+	Thor                 Thanos
+	Iron Man             Loki
+	Hulk                 Dr. Doom
+	Red Widow            Doctor Octopus
+	Vision               
+	Captain America      
+	Hawkeye              
+	Shang Chi            
+	Deadpool             
+	Daredevil            
+	Luke Cage            
+	Starlord             
+	Rocket               
+	Gamora
+	Dr. Strange          
+	Spiderman            
+	Wong
+	Bucky
+
+Marvel (X-Men)
+	Professor X          Magneto
+	Mystique             
+	Goblin               
+	Rogue                
+	Gambit               
+
+Trek
+	Kirk
+	Spock
+	Bones
+	Uhura
+	Scotty
+	Sulu
+	Chekov
+	Khan
+
+DC
+	Superman
+	Batman
+	Robin
+	Green Lantern
+	Flash
+	Joker
+	Riddler
+	Lex Luthor
+	Catwoman
+
+Star Wars
+	Luke
+	Leah
+	Han Solo
+	Darth Vader
+	Lando
+	Jar Jar
+	C3PO
+	R2D2
+	Chewbacka
+
+Lord of the Rings
+	Bilbo
+	Sam
+	Merri
+	Pippin
+	Frodo
+	Golum
+	Gandalf
+	Boromir
+	Sauramon
+	Gimli
+	Legolas
+
+Gilligan's Island
+	Gilligan
+	Skipper
+	Professor
+	MaryAnne
+	Ginger
+	Mr. Howle
+	Mrs. Howle
+
