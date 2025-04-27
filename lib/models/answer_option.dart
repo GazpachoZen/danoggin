@@ -7,24 +7,39 @@
 //------------------------------------------------------------------------
 
 import 'package:flutter/material.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 
 class AnswerOption {
   final String? text;
   final String? imagePath;
+  final String? imageUrl; // New field for cloud storage URLs
 
-  const AnswerOption({this.text, this.imagePath});
+  const AnswerOption({
+    this.text, 
+    this.imagePath, 
+    this.imageUrl,
+  });
 
   factory AnswerOption.fromJson(Map<String, dynamic> json) {
     return AnswerOption(
       text: json['text'] as String?,
       imagePath: json['imagePath'] as String?,
+      imageUrl: json['imageUrl'] as String?,
     );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      if (text != null) 'text': text,
+      if (imagePath != null) 'imagePath': imagePath,
+      if (imageUrl != null) 'imageUrl': imageUrl,
+    };
   }
 
   Widget render({bool disabled = false}) {
     return LayoutBuilder(
       builder: (context, constraints) {
-        final hasImage = imagePath != null;
+        final hasImage = imagePath != null || imageUrl != null;
         final hasText = text != null;
 
         // max size inside square button
@@ -52,10 +67,7 @@ class AnswerOption {
                           0,      0,      0,      1, 0,
                         ])
                       : ColorFilter.mode(Colors.transparent, BlendMode.color),
-                  child: Image.asset(
-                    imagePath!,
-                    fit: BoxFit.contain,
-                  ),
+                  child: _buildImage(),
                 ),
               ),
             if (hasText)
@@ -79,6 +91,49 @@ class AnswerOption {
       },
     );
   }
+
+  // Helper method to determine which image source to use
+Widget _buildImage() {
+  if (imageUrl != null && imageUrl!.isNotEmpty) {
+    return Stack(
+      children: [
+        CachedNetworkImage(
+          imageUrl: imageUrl!,
+          fit: BoxFit.contain,
+          placeholder: (context, url) => CircularProgressIndicator(),
+          errorWidget: (context, url, error) => Image.asset(imagePath!),
+        ),
+        Positioned(
+          top: 0, right: 0,
+          child: Container(
+            padding: EdgeInsets.all(2),
+            color: Colors.blue.withOpacity(0.7),
+            child: Icon(Icons.cloud, size: 16, color: Colors.white),
+          ),
+        ),
+      ],
+    );
+  } else if (imagePath != null && imagePath!.isNotEmpty) {
+    return Stack(
+      children: [
+        Image.asset(
+          imagePath!,
+          fit: BoxFit.contain,
+        ),
+        Positioned(
+          top: 0, right: 0,
+          child: Container(
+            padding: EdgeInsets.all(2),
+            color: Colors.amber.withOpacity(0.7),
+            child: Icon(Icons.folder, size: 16, color: Colors.white),
+          ),
+        ),
+      ],
+    );
+  } else {
+    return Icon(Icons.image_not_supported);
+  }
+}
 
   @override
   String toString() => text ?? '[Image Answer]';

@@ -38,6 +38,12 @@ dependencies:
   timezone: ^0.9.2
   intl: ^0.19.0
   timeago: ^3.6.0
+  
+  # Add these new dependencies with null safety compatible versions
+  firebase_storage: ^12.4.5  # As suggested by the error message
+  cached_network_image: ^3.3.0
+  path_provider: ^2.1.0
+  connectivity_plus: ^5.0.0
 
 
   # The following adds the Cupertino Icons font to your application.

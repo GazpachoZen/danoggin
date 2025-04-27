@@ -29,6 +29,14 @@ class Question {
           .toList(),
     );
   }
+  
+  Map<String, dynamic> toJson() {
+    return {
+      'prompt': prompt,
+      'correctAnswer': correctAnswer.toJson(),
+      'decoyAnswers': decoyAnswers.map((a) => a.toJson()).toList(),
+    };
+  }
 
   List<AnswerOption> getShuffledChoices() {
     final random = Random();

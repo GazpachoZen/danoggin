@@ -1,11 +1,14 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'question.dart';
 import 'dart:math';
+import 'dart:async';
+import 'package:flutter/foundation.dart';
 
 class QuestionPack {
   final String id;
   final String name;
   final List<Question> questions;
+  final String? imageFolder; // Reference to cloud storage folder
   
   // Add these properties to track state
   late List<Question> _shuffledQuestions;
@@ -15,6 +18,7 @@ class QuestionPack {
     required this.id,
     required this.name,
     required this.questions,
+    this.imageFolder,
   }) {
     // Initialize shuffled questions
     resetSequence();
@@ -51,7 +55,16 @@ class QuestionPack {
       questions: (json['questions'] as List)
           .map((item) => Question.fromJson(item))
           .toList(),
+      imageFolder: json['imageFolder'] as String?,
     );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'name': name,
+      'questions': questions.map((q) => q.toJson()).toList(),
+      if (imageFolder != null) 'imageFolder': imageFolder,
+    };
   }
 
   static Future<QuestionPack> loadFromFirestore(String packId) async {
@@ -62,9 +75,22 @@ class QuestionPack {
 
     final data = doc.data();
     if (data == null) {
-      throw Exception('No data found for pack \$packId');
+      throw Exception('No data found for pack $packId');
     }
 
     return QuestionPack.fromJson(doc.id, data);
+  }
+  
+  // Add a method to save/update the pack in Firestore
+  Future<void> saveToFirestore() async {
+    try {
+      await FirebaseFirestore.instance
+          .collection('question_packs')
+          .doc(id)
+          .set(toJson());
+    } catch (e) {
+      debugPrint('Error saving question pack: $e');
+      rethrow;
+    }
   }
 }
