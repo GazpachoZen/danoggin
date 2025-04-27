@@ -26,11 +26,18 @@ Pat:	iPhone, iOS 18
 Teresa:	iPhone, iOS 18.4
 Sean:	Pixel 9 Pro XL, Android 15
 
+GIT - associating with cloud repository
+	git remote remove origin
+	
 Bitbucket
 	Gazpacho / bluevista@gmail.com
 	git remote add origin https://Gazpacho@bitbucket.org/Gazpacho/danoggin.git
 	git push -u master
-	
+
+GitHub
+	git remote add origin https://github.com/GazpachoZen/danoggin.git
+	git push -u origin master
+
 --------------------
 
 5. Update Your UI Components
@@ -74,7 +81,9 @@ As an administrator, I need a way to purge stale observers and responders from F
 
 ---------------------
 ---------------------
-Sometimes the text doesn't fit the buttons. Change font size for that one button as needed. (Washington, D.C. vs Mexico City - the first breaks uncomfortably, the 2nd doesn't)
+For questions that do not have images, the answers shown do not always fit comfortably within the bounds of the buttons on the display. For example... if possible answer is "Mexico City" it nicely breaks into two lines on the space. However, if the answer is "Washington D.C.", the line break happens between the "o" and the "n" in the word "Washington", creating an awkward display.
+
+Is it possible to determine if the answer does not fit comfortably inside the button and adjust the font size as necessary to make it fit nicely? We should strive to keep the default font size as-is for answers that already fit. In other words, we go to smaller font sizes only when needed.
 
 ---------------------
 Make it harder to accidentally terminate Danoggin. 
@@ -83,13 +92,12 @@ Make it harder to accidentally terminate Danoggin.
 Make Danoggin auto-start when phone powers up.
 
 ---------------------
-Questions in the demo_pack still have newly_uploaded flag
-
 ---------------------
 ---------------------
 ---------------------
 ---------------------
-Customizable question packs
+Presently the danoggin app is hard-coded to use only the "demo_pack" set of questions. Eventually, there may be any number of possible question packs. Any particular "responder" will want to sign up for any number of the question packs. We will need a way to manage this selection process from the responder's settings page. How would you approach these code changes?
+---------------------
 
 Marvel
 	Thor                 Thanos

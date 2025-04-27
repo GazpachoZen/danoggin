@@ -93,48 +93,24 @@ class AnswerOption {
   }
 
   // Helper method to determine which image source to use
+// Helper method to determine which image source to use
 Widget _buildImage() {
   if (imageUrl != null && imageUrl!.isNotEmpty) {
-    return Stack(
-      children: [
-        CachedNetworkImage(
-          imageUrl: imageUrl!,
-          fit: BoxFit.contain,
-          placeholder: (context, url) => CircularProgressIndicator(),
-          errorWidget: (context, url, error) => Image.asset(imagePath!),
-        ),
-        Positioned(
-          top: 0, right: 0,
-          child: Container(
-            padding: EdgeInsets.all(2),
-            color: Colors.blue.withOpacity(0.7),
-            child: Icon(Icons.cloud, size: 16, color: Colors.white),
-          ),
-        ),
-      ],
+    return CachedNetworkImage(
+      imageUrl: imageUrl!,
+      fit: BoxFit.contain,
+      placeholder: (context, url) => CircularProgressIndicator(),
+      errorWidget: (context, url, error) => Image.asset(imagePath!),
     );
   } else if (imagePath != null && imagePath!.isNotEmpty) {
-    return Stack(
-      children: [
-        Image.asset(
-          imagePath!,
-          fit: BoxFit.contain,
-        ),
-        Positioned(
-          top: 0, right: 0,
-          child: Container(
-            padding: EdgeInsets.all(2),
-            color: Colors.amber.withOpacity(0.7),
-            child: Icon(Icons.folder, size: 16, color: Colors.white),
-          ),
-        ),
-      ],
+    return Image.asset(
+      imagePath!,
+      fit: BoxFit.contain,
     );
   } else {
     return Icon(Icons.image_not_supported);
   }
 }
-
   @override
   String toString() => text ?? '[Image Answer]';
 }
