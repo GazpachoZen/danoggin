@@ -69,64 +69,93 @@ For Buttons and UI Elements:
 	  child: Text('Submit'),
 	),
 
+=====================
+Attached are the source files for an app called Danoggin. It is a cognitive check-in application with two primary user roles: Responders and Observers. The app is designed to monitor cognitive awareness or alertness through regular quiz-like check-ins. Also attached are some key files in Python which are run external to the app itself and provide me with assorted admin functionality. Below is an overview of some key points. Please look at the source files and confirm the description below, then await further instruction.
+
+Main roles...
+- Responders: Users who answer periodic quiz questions
+- Observers: Users who monitor responders' performance on check-ins
+
+Main Functionality...
+- Question-based check-ins with multiple-choice answers
+- Scheduled notifications to prompt responders to complete check-ins
+- Tracking of missed/incorrect responses
+- Observer dashboard to monitor responder performance
+- Relationship management between responders and observers
+
+Architecture...
+- Flutter-based mobile app with Firebase backend
+- FireStore for data storage
+- Firebase Cloud Storage for image assets
+- Firebase Authentication for user management
+
+Admin Tools...
+- Python scripts for backend management
+- Firebase management utilities
 
 ---------------------
-I'm now interested in making sure that some of the configuration settings for a responder do not get into a confusing state. Specifically, the timeout interval for responding to a question should never be more than half of the time between questions; it should also never be more than 15 minutes. Said another way, the time between questions can never be less than twice the time limit for answering a question. Can we somehow limit the behavior of the two input sliders accordingly?
-
+I'm interested in making sure that some of the configuration settings for a responder do not get into a confusing state. Specifically, the timeout interval for responding to a question should never be more than half of the time between questions; it should also never be more than 15 minutes. Said another way, the time between questions can never be less than twice the time limit for answering a question. Can we somehow limit the behavior of the two input sliders accordingly?
 ---------------------
 Refactor the larger files (quiz_page.dart)
-
----------------------
-As an administrator, I need a way to purge stale observers and responders from Firestore.
-
 ---------------------
 ---------------------
-For questions that do not have images, the answers shown do not always fit comfortably within the bounds of the buttons on the display. For example... if possible answer is "Mexico City" it nicely breaks into two lines on the space. However, if the answer is "Washington D.C.", the line break happens between the "o" and the "n" in the word "Washington", creating an awkward display.
-
-Is it possible to determine if the answer does not fit comfortably inside the button and adjust the font size as necessary to make it fit nicely? We should strive to keep the default font size as-is for answers that already fit. In other words, we go to smaller font sizes only when needed.
-
+---------------------
 ---------------------
 Make it harder to accidentally terminate Danoggin. 
-
 ---------------------
 Make Danoggin auto-start when phone powers up.
+---------------------
+---------------------
+---------------------
+---------------------
+---------------------
+Presently the danoggin app is hard-coded to use only the "demo_pack" set of questions. Eventually, there will be numerous question packs. Each "responder" will want to sign up for any number of the question packs. We will need a way to manage this selection process from the responder's settings page. When multiple question packs are in play, the responder should be presented with questions from each pack randomly. We will want to maintain our efforts to ensure that all questions within a pack are presented before re-shuffling. Which question packs a responder subscribes to should be remembered from run to run. 
 
----------------------
-When testing the code, it would be nice for the responder's appbar have a means of immediately calling up another question without our having to wait for the interval timer to go off. Can you please add such a feature, remembering that we'll want to easily add and remove this feature as needed during development.
----------------------
----------------------
----------------------
----------------------
-Presently the danoggin app is hard-coded to use only the "demo_pack" set of questions. Eventually, there may be any number of possible question packs. Any particular "responder" will want to sign up for any number of the question packs. We will need a way to manage this selection process from the responder's settings page. How would you approach these code changes?
+How would you approach these code changes?
 ---------------------
 
 Marvel
-	Thor                 Thanos
-	Iron Man             Loki
-	Hulk                 Dr. Doom
-	Red Widow            Doctor Octopus
-	Vision               
-	Captain America      
-	Hawkeye              
-	Shang Chi            
-	Deadpool             
-	Daredevil            
-	Luke Cage            
-	Starlord             
-	Rocket               
-	Gamora
-	Dr. Strange          
-	Spiderman            
-	Wong
-	Bucky
+	Thor | Chris Hemsworth
+	Iron Man | Robert Downey Jr.
+	Hulk | Mark Ruffalo
+	Black Widow | Scarlett Johansson
+	Vision | Paul Bettany
+	Captain America | Chris Evans
+	Hawkeye | Jeremy Renner
+	Shang-Chi | Simu Liu
+	Deadpool | Ryan Reynolds
+	Daredevil | Charlie Cox
+	Luke Cage | Mike Colter
+	Star-Lord | Chris Pratt
+	Rocket | Bradley Cooper
+	Gamora | Zoe Saldana
+	Dr. Strange | Benedict Cumberbatch
+	Spider-Man | Tom Holland
+	Winter Soldier | Sebastian Stan
+	Thanos | Josh Brolin
+	Loki | Tom Hiddleston
+	Green Goblin | Willem Dafoe
+	Nick Fury | Samuel L. Jackson
+	Falcon | Anthony Mackie
+	War Machine | Don Cheadle
+	Wolverine | Hugh Jackman
+	Black Panther | Chadwick Boseman
+	Scarlet Witch | Elizabeth Olsen
+	Gamora | Zoe Saldaña
+	Captain Marvel | Brie Larson
+	Nick Fury | Samuel L. Jackson
+	Ultron | James Spader
+	Ant Man | Paul Rudd
 
 Marvel (X-Men)
-	Professor X          Magneto
+	Professor X          
 	Mystique             
-	Goblin               
 	Rogue                
 	Gambit               
-
+	Magneto
+	Cyclops
+	Beast
+	
 Trek
 	Kirk
 	Spock
@@ -136,6 +165,8 @@ Trek
 	Sulu
 	Chekov
 	Khan
+	Captain Pickard
+	Commander Data
 
 DC
 	Superman
