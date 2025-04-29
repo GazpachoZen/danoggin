@@ -68,11 +68,7 @@ class _SettingsPageState extends State<SettingsPage> {
           leading: IconButton(
             icon: Icon(Icons.arrow_back),
             onPressed: () {
-              if (_relationshipsChanged) {
-                Navigator.of(context).pop(true);
-              } else {
-                Navigator.of(context).pop();
-              }
+            Navigator.of(context).pop(_relationshipsChanged);
             },
           ),
         ),

@@ -11,6 +11,8 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:danoggin/services/auth_service.dart';
 import 'package:danoggin/services/notification_helper.dart';
 import 'package:danoggin/theme/app_colors.dart';
+import 'package:danoggin/services/question_manager.dart';
+import 'package:danoggin/services/question_pack_service.dart';
 
 // Add this near the top of the file, after imports
 const bool kDevModeEnabled = true; // Set to false for production
@@ -28,7 +30,6 @@ class _QuizPageState extends State<QuizPage> with WidgetsBindingObserver {
   bool _uiDisabled = false;
   bool _isRetryAttempt = false;
   AnswerOption? _previousIncorrectAnswer;
-  late QuestionPack pack;
   bool isLoading = true;
   TimeOfDay? startHour;
   TimeOfDay? endHour;
@@ -36,6 +37,9 @@ class _QuizPageState extends State<QuizPage> with WidgetsBindingObserver {
   List<AnswerOption> displayedChoices = [];
   String _userName = "Responder"; // Default value
 
+  // New variables for multiple question packs
+  late QuestionManager questionManager;
+  List<QuestionPack> subscribedPacks = [];
 
   AnswerOption? selectedAnswer;
   String? feedback;
@@ -58,26 +62,27 @@ class _QuizPageState extends State<QuizPage> with WidgetsBindingObserver {
   // Add flag to track initial app load
   bool _isInitialLoad = true;
 
-Future<void> _loadUserName() async {
-  try {
-    final uid = AuthService.currentUserId;
-    final userDoc = await FirebaseFirestore.instance
-        .collection('users')
-        .doc(uid)
-        .get();
-    
-    if (userDoc.exists) {
-      final userData = userDoc.data();
-      if (userData != null && userData.containsKey('name')) {
-        setState(() {
-          _userName = userData['name'] as String;
-        });
+  Future<void> _loadUserName() async {
+    try {
+      final uid = AuthService.currentUserId;
+      final userDoc = await FirebaseFirestore.instance
+          .collection('users')
+          .doc(uid)
+          .get();
+      
+      if (userDoc.exists) {
+        final userData = userDoc.data();
+        if (userData != null && userData.containsKey('name')) {
+          setState(() {
+            _userName = userData['name'] as String;
+          });
+        }
       }
+    } catch (e) {
+      print('Error loading user name: $e');
     }
-  } catch (e) {
-    print('Error loading user name: $e');
   }
-}
+
   @override
   void initState() {
     super.initState();
@@ -85,8 +90,8 @@ Future<void> _loadUserName() async {
     currentRole = widget.currentRole;
 
     WidgetsBinding.instance.addObserver(this);
-    _loadUserName(); // Add this line
-  loadPackFromFirestore();
+    _loadUserName();
+    loadPackFromFirestore();
 
     // Check notification permissions after a short delay
     _checkNotificationPermissions();
@@ -112,7 +117,7 @@ Future<void> _loadUserName() async {
 
         // Refresh the question without triggering another notification
         setState(() {
-          currentQuestion = pack.getNextQuestion();
+          currentQuestion = questionManager.getNextQuestion();
           displayedChoices = currentQuestion!.getShuffledChoices();
           selectedAnswer = null;
           feedback = null;
@@ -153,13 +158,16 @@ Future<void> _loadUserName() async {
         barrierDismissible: false, // User must respond to dialog
         builder: (context) => AlertDialog(
           title: Text('Important: Enable Notifications'),
-          content: Text(
-              'Notifications are currently disabled for Danoggin. As a Responder, '
-              'you need notifications to be alerted when it\'s time for a check-in.\n\n'
+          content: Text('Notifications appear to be disabled for this app. '
+              'As a Responder, you need notifications to be alerted when it\'s time for a check-in.\n\n'
               'Please enable notifications for this app in your device settings to '
               'ensure you receive check-in alerts.'),
           actions: [
             TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: Text('Later'),
+            ),
+            ElevatedButton(
               onPressed: () {
                 Navigator.pop(context);
                 // Show manual instructions
@@ -214,14 +222,17 @@ Future<void> _loadUserName() async {
 
   Future<void> loadPackFromFirestore() async {
     try {
-      final doc = await QuestionPack.loadFromFirestore('demo_pack');
+      // Load all subscribed packs instead of just demo_pack
+      subscribedPacks = await QuestionPackService.loadSubscribedPacks();
+      
+      // Create question manager with all packs
+      questionManager = QuestionManager(subscribedPacks);
+      
       final prefs = await SharedPreferences.getInstance();
 
       // Don't overwrite currentRole that was set from widget parameter
       // final roleStr = prefs.getString('userRole');
       // currentRole = UserRoleExtension.fromString(roleStr) ?? UserRole.responder;
-
-      pack = doc;
 
       final startStr = prefs.getString('startHour') ?? '08:00';
       final endStr = prefs.getString('endHour') ?? '20:00';
@@ -238,7 +249,7 @@ Future<void> _loadUserName() async {
       });
       startAlertLoop();
     } catch (e) {
-      print('Error loading pack: $e');
+      print('Error loading packs: $e');
     }
   }
 
@@ -275,7 +286,8 @@ Future<void> _loadUserName() async {
   }
 
   void loadRandomQuestion({bool isScheduled = false}) {
-    currentQuestion = pack.getNextQuestion(); // Using the new method
+    // Use the question manager to get a random question from any pack
+    currentQuestion = questionManager.getNextQuestion();
     displayedChoices = currentQuestion!.getShuffledChoices();
     selectedAnswer = null;
     feedback = null;
@@ -402,166 +414,221 @@ Future<void> _loadUserName() async {
     }
   }
 
+  // Add method to show question pack progress (for debugging)
+  void _showPackProgress() {
+    final progress = questionManager.getPacksProgress();
+    
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text('Question Pack Progress'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: subscribedPacks.map((pack) {
+            final packInfo = progress[pack.id];
+            final completed = packInfo?['completed'] ?? 0;
+            final total = packInfo?['total'] ?? 0;
+            final percent = total > 0 ? (completed / total * 100).toStringAsFixed(1) : '0';
+            
+            return ListTile(
+              title: Text(pack.name),
+              subtitle: Text('$completed / $total questions ($percent%)'),
+            );
+          }).toList(),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: Text('Close'),
+          ),
+        ],
+      ),
+    );
+  }
+
   @override
-Widget build(BuildContext context) {
-  // Show loading indicator if still loading or question is not initialized
-  if (isLoading || currentQuestion == null) {
+  Widget build(BuildContext context) {
+    // Show loading indicator if still loading or question is not initialized
+    if (isLoading || currentQuestion == null) {
+      return Scaffold(
+        appBar: AppBar(
+          title: Text('Danoggin: $_userName'),
+          actions: [
+            IconButton(
+              icon: const Icon(Icons.settings),
+              onPressed: () async {
+                final result = await Navigator.push<dynamic>(
+                  context,
+                  MaterialPageRoute(
+                      builder: (context) =>
+                          SettingsPage(currentRole: currentRole)),
+                );
+                
+                // If result is true (boolean), pack selections or relationships have changed
+                if (result == true) {
+                  // Reload the question packs to reflect new selections
+                  await loadPackFromFirestore();
+                  setState(() {}); // Refresh UI
+                }
+                // Handle role changes as before
+                else if (result != null && result != currentRole) {
+                  final prefs = await SharedPreferences.getInstance();
+                  await prefs.setString('userRole', result.name);
+                  setState(() {
+                    currentRole = result;
+                  });
+                }
+              },
+            ),
+          ],
+        ),
+        body: Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              CircularProgressIndicator(),
+              SizedBox(height: 16),
+              Text("Loading your next question...",
+                  style: TextStyle(fontSize: 16, color: Colors.grey[700])),
+            ],
+          ),
+        ),
+      );
+    }
+
+    // Main UI when question is loaded
     return Scaffold(
       appBar: AppBar(
         title: Text('Danoggin: $_userName'),
         actions: [
+          // Add this dev mode refresh button
+          if (kDevModeEnabled)
+            IconButton(
+              icon: const Icon(Icons.refresh),
+              tooltip: 'Load new question (dev only)',
+              onPressed: () {
+                // Cancel existing timers first
+                responseTimer?.cancel();
+                
+                // Load a new question
+                loadRandomQuestion();
+                
+                // Show a snackbar to confirm
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text('Question refreshed (dev mode)'),
+                    duration: Duration(seconds: 1),
+                  ),
+                );
+              },
+            ),
+          // Add debug button to show pack progress in dev mode
+          if (kDevModeEnabled)
+            IconButton(
+              icon: const Icon(Icons.analytics),
+              tooltip: 'Show pack progress (dev only)',
+              onPressed: _showPackProgress,
+            ),
+          IconButton(
+            icon: const Icon(Icons.notifications),
+            tooltip: 'Test Notifications',
+            onPressed: _testNotifications,
+          ),
           IconButton(
             icon: const Icon(Icons.settings),
             onPressed: () async {
-              final newRole = await Navigator.push<UserRole>(
+              final result = await Navigator.push<dynamic>(
                 context,
                 MaterialPageRoute(
                     builder: (context) =>
                         SettingsPage(currentRole: currentRole)),
               );
-              if (newRole != null && newRole != currentRole) {
+              
+              // If result is true (boolean), pack selections or relationships have changed
+              if (result == true) {
+                // Reload the question packs to reflect new selections
+                await loadPackFromFirestore();
+                setState(() {}); // Refresh UI
+              }
+              // Handle role changes as before
+              else if (result != null && result != currentRole) {
                 final prefs = await SharedPreferences.getInstance();
-                await prefs.setString('userRole', newRole.name);
+                await prefs.setString('userRole', result.name);
                 setState(() {
-                  currentRole = newRole;
+                  currentRole = result;
                 });
               }
             },
           ),
         ],
       ),
-      body: Center(
+      body: Padding(
+        padding: const EdgeInsets.all(16.0),
         child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            CircularProgressIndicator(),
+            Text(currentQuestion!.prompt, style: TextStyle(fontSize: 24)),
+            SizedBox(height: 24),
+            GridView.count(
+              crossAxisCount: 2,
+              shrinkWrap: true,
+              crossAxisSpacing: 12,
+              mainAxisSpacing: 12,
+              childAspectRatio: 1.0,
+              children: displayedChoices.map((answer) {
+                final isSelected = selectedAnswer == answer;
+                final isPreviousIncorrect = answer == _previousIncorrectAnswer;
+                final isDisabled = _uiDisabled || isPreviousIncorrect;
+
+                return ElevatedButton(
+                  onPressed: isDisabled
+                      ? null
+                      : () {
+                          setState(() {
+                            selectedAnswer = answer;
+                            feedback = null;
+                          });
+                        },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: isSelected ? AppColors.coral : AppColors.lightGray,
+                    padding: EdgeInsets.all(4),
+                    disabledBackgroundColor: isPreviousIncorrect
+                        ? Colors.red.withOpacity(0.3)
+                        : null,
+                  ),
+                  child: answer.render(disabled: isDisabled),
+                );
+              }).toList(),
+            ),
             SizedBox(height: 16),
-            Text("Loading your next question...",
-                style: TextStyle(fontSize: 16, color: Colors.grey[700])),
+            ElevatedButton(
+              onPressed: (_uiDisabled || selectedAnswer == null) ? null : submitAnswer,
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppColors.midBlue,
+                foregroundColor: AppColors.offWhite,
+              ),
+              child: Text('Submit'),
+            ),
+            SizedBox(height: 24),
+            if (feedback != null)
+              Text(
+                feedback!,
+                style: TextStyle(
+                  fontSize: 20,
+                  color: feedback == '✅ Correct!'
+                      ? Colors.green
+                      : (feedback == '❌ Incorrect. Try again.'
+                          ? Colors.orange
+                          : Colors.red),
+                ),
+              ),
           ],
         ),
       ),
     );
   }
-
-  // Main UI when question is loaded
-  return Scaffold(
-    appBar: AppBar(
-      title: Text('Danoggin: $_userName'),
-      actions: [
-        // Add this dev mode refresh button
-        if (kDevModeEnabled)
-          IconButton(
-            icon: const Icon(Icons.refresh),
-            tooltip: 'Load new question (dev only)',
-            onPressed: () {
-              // Cancel existing timers first
-              responseTimer?.cancel();
-              
-              // Load a new question
-              loadRandomQuestion();
-              
-              // Show a snackbar to confirm
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: Text('Question refreshed (dev mode)'),
-                  duration: Duration(seconds: 1),
-                ),
-              );
-            },
-          ),
-        IconButton(
-          icon: const Icon(Icons.notifications),
-          tooltip: 'Test Notifications',
-          onPressed: _testNotifications,
-        ),
-        IconButton(
-          icon: const Icon(Icons.settings),
-          onPressed: () async {
-            final newRole = await Navigator.push<UserRole>(
-              context,
-              MaterialPageRoute(
-                  builder: (context) =>
-                      SettingsPage(currentRole: currentRole)),
-            );
-            if (newRole != null && newRole != currentRole) {
-              final prefs = await SharedPreferences.getInstance();
-              await prefs.setString('userRole', newRole.name);
-              setState(() {
-                currentRole = newRole;
-              });
-            }
-          },
-        ),
-      ],
-    ),
-    body: Padding(
-      padding: const EdgeInsets.all(16.0),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          Text(currentQuestion!.prompt, style: TextStyle(fontSize: 24)),
-          SizedBox(height: 24),
-          GridView.count(
-            crossAxisCount: 2,
-            shrinkWrap: true,
-            crossAxisSpacing: 12,
-            mainAxisSpacing: 12,
-            childAspectRatio: 1.0,
-            children: displayedChoices.map((answer) {
-              final isSelected = selectedAnswer == answer;
-              final isPreviousIncorrect = answer == _previousIncorrectAnswer;
-              final isDisabled = _uiDisabled || isPreviousIncorrect;
-
-              return ElevatedButton(
-                onPressed: isDisabled
-                    ? null
-                    : () {
-                        setState(() {
-                          selectedAnswer = answer;
-                          feedback = null;
-                        });
-                      },
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: isSelected ? AppColors.coral : AppColors.lightGray,
-                  padding: EdgeInsets.all(4),
-                  disabledBackgroundColor: isPreviousIncorrect
-                      ? Colors.red.withOpacity(0.3)
-                      : null,
-                ),
-                child: answer.render(disabled: isDisabled),
-              );
-            }).toList(),
-          ),
-          SizedBox(height: 16),
-          ElevatedButton(
-            onPressed: (_uiDisabled || selectedAnswer == null) ? null : submitAnswer,
-            style: ElevatedButton.styleFrom(
-              backgroundColor: AppColors.midBlue,
-              foregroundColor: AppColors.offWhite,
-            ),
-            child: Text('Submit'),
-          ),
-          SizedBox(height: 24),
-          if (feedback != null)
-            Text(
-              feedback!,
-              style: TextStyle(
-                fontSize: 20,
-                color: feedback == '✅ Correct!'
-                    ? Colors.green
-                    : (feedback == '❌ Incorrect. Try again.'
-                        ? Colors.orange
-                        : Colors.red),
-              ),
-            ),
-        ],
-      ),
-    ),
-  );
-}
   
-    Future<void> _testNotifications() async {
+  Future<void> _testNotifications() async {
     try {
       // Try to check if notifications are enabled
       bool enabled = true;

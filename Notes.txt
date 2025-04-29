@@ -70,7 +70,7 @@ For Buttons and UI Elements:
 	),
 
 =====================
-Attached are the source files for an app called Danoggin. It is a cognitive check-in application with two primary user roles: Responders and Observers. The app is designed to monitor cognitive awareness or alertness through regular quiz-like check-ins. Also attached are some key files in Python which are run external to the app itself and provide me with assorted admin functionality. Below is an overview of some key points. Please look at the source files and confirm the description below, then await further instruction.
+Attached are the source files for an app called Danoggin. It is a cognitive check-in application with two primary user roles: Responders and Observers. The app is designed to monitor cognitive awareness through regular quiz-like check-ins. Admin functionality for the related Firestore database and images is provided through a family of Pythn scripts which will be provided separately if needed. Below is an overview of some key points. Please examine the source files then await further instruction.
 
 Main roles...
 - Responders: Users who answer periodic quiz questions
@@ -108,6 +108,7 @@ Make Danoggin auto-start when phone powers up.
 ---------------------
 ---------------------
 ---------------------
+The app presently uses anonymous authentication for Firebase. We need to button that up before making this app generally available. I'm not very familiar with Firebase. What would be the necessary steps?
 ---------------------
 Presently the danoggin app is hard-coded to use only the "demo_pack" set of questions. Eventually, there will be numerous question packs. Each "responder" will want to sign up for any number of the question packs. We will need a way to manage this selection process from the responder's settings page. When multiple question packs are in play, the responder should be presented with questions from each pack randomly. We will want to maintain our efforts to ensure that all questions within a pack are presented before re-shuffling. Which question packs a responder subscribes to should be remembered from run to run. 
 

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:danoggin/screens/responder_invite_code_screen.dart';
 import 'package:danoggin/screens/responder_manage_observers_screen.dart';
+import 'package:danoggin/widgets/question_pack_selector_widget.dart';
 
 class ResponderSettingsWidget extends StatefulWidget {
   // Add callback for relationship changes
@@ -80,18 +81,29 @@ class _ResponderSettingsWidgetState extends State<ResponderSettingsWidget> {
     }
   }
 
+  // Handler for pack selection changes
+  void _handlePackSelectionChanged() {
+    // Just trigger the callback to parent if needed
+    if (widget.onRelationshipsChanged != null) {
+      widget.onRelationshipsChanged!();
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
-    // Wrap in SingleChildScrollView to allow scrolling
+    // Go back to using SingleChildScrollView which works better in this context
     return SingleChildScrollView(
       physics: const AlwaysScrollableScrollPhysics(),
       child: Padding(
-        padding: const EdgeInsets.only(bottom: 16.0), // Add padding at the bottom
+        padding: const EdgeInsets.only(bottom: 32.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text('Hours of Operation',
-                style: TextStyle(fontWeight: FontWeight.bold)),
+            const Padding(
+              padding: EdgeInsets.only(top: 16.0),
+              child: Text('Hours of Operation',
+                  style: TextStyle(fontWeight: FontWeight.bold)),
+            ),
             Row(
               children: [
                 TextButton(
@@ -104,7 +116,7 @@ class _ResponderSettingsWidgetState extends State<ResponderSettingsWidget> {
                 ),
               ],
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: 8),
             Text('Alert Frequency: ${alertFrequencyMinutes.round()} min',
                 style: TextStyle(fontWeight: FontWeight.bold)),
             Slider(
@@ -115,7 +127,7 @@ class _ResponderSettingsWidgetState extends State<ResponderSettingsWidget> {
               label: '${alertFrequencyMinutes.round()} min',
               onChanged: (val) => setState(() => alertFrequencyMinutes = val),
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: 8),
             Text('Response Timeout: ${timeoutMinutes.toStringAsFixed(1)} min',
                 style: TextStyle(fontWeight: FontWeight.bold)),
             Slider(
@@ -133,6 +145,16 @@ class _ResponderSettingsWidgetState extends State<ResponderSettingsWidget> {
                 child: const Text('Save Settings'),
               ),
             ),
+            const Divider(height: 32),
+            
+            // Add the question pack selector with better spacing
+            Padding(
+              padding: const EdgeInsets.only(bottom: 8.0),
+              child: QuestionPackSelectorWidget(
+                onPacksChanged: _handlePackSelectionChanged,
+              ),
+            ),
+            
             const Divider(height: 32),
             ListTile(
               leading: const Icon(Icons.key),
@@ -166,6 +188,8 @@ class _ResponderSettingsWidgetState extends State<ResponderSettingsWidget> {
                 }
               },
             ),
+            // Add extra padding at the bottom
+            SizedBox(height: 32),
           ],
         ),
       ),
