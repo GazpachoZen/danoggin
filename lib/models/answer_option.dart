@@ -54,74 +54,58 @@ class AnswerOption {
         return Padding(
           padding: const EdgeInsets.all(8.0),
           child: Center(
-            child: _buildTextWithFontScaling(text ?? '', constraints, disabled),
+            child: _simplifiedTextRendering(text ?? '', constraints, disabled),
           ),
         );
       },
     );
   }
   
-  // This is the new core text rendering function that handles everything in one approach
-  Widget _buildTextWithFontScaling(String text, BoxConstraints constraints, bool disabled) {
-    // Get words for analysis
-    final words = text.split(' ');
-    final wordCount = words.length;
-    final charCount = text.length;
+  // Simplified text rendering with improved line breaking and sizing
+  Widget _simplifiedTextRendering(String text, BoxConstraints constraints, bool disabled) {
+    final textColor = disabled ? Colors.grey : Colors.black87;
     
-    // For single words, use a single AutoSizeText with smaller font if needed
-    if (wordCount <= 1) {
-      return AutoSizeText(
-        text,
-        textAlign: TextAlign.center,
-        maxLines: 1,
-        minFontSize: 18.0,
-        maxFontSize: 36.0,
-        style: TextStyle(
-          fontSize: 36.0,
-          color: disabled ? Colors.grey : Colors.black87,
-        ),
-      );
-    }
-    
-    // For two-word phrases like "New Delhi" or "Mediterranean Sea"
-    // Use a two-line layout regardless of word balance if total length is long enough
-    if (wordCount == 2 && charCount >= 12) {
-      // We'll use an approach where both lines share the same font size
-      // and are snugly packed vertically
-      return LayoutBuilder(
-        builder: (context, constraints) {
-          // Get the maximum available width
-          final maxWidth = constraints.maxWidth * 0.9;
-          
-          // Determine the font size needed for the longer word
-          TextSpan span1 = TextSpan(text: words[0], style: TextStyle(fontSize: 32.0));
-          TextSpan span2 = TextSpan(text: words[1], style: TextStyle(fontSize: 32.0));
-          
-          TextPainter painter1 = TextPainter(
-            text: span1,
-            textDirection: TextDirection.ltr,
+    return LayoutBuilder(
+      builder: (context, textConstraints) {
+        // First attempt: try fitting the text on a single line
+        final singleLineFits = _measureTextFits(
+          text, 
+          textConstraints.maxWidth * 0.95, 
+          32.0 // Initial large font size for single line
+        );
+        
+        if (singleLineFits) {
+          // If it fits on one line, use AutoSizeText with a larger font
+          return AutoSizeText(
+            text,
             textAlign: TextAlign.center,
+            style: TextStyle(fontSize: 32.0, color: textColor),
+            minFontSize: 18.0,
+            maxFontSize: 32.0,
+            maxLines: 1,
           );
-          TextPainter painter2 = TextPainter(
-            text: span2,
-            textDirection: TextDirection.ltr,
-            textAlign: TextAlign.center,
-          );
+        }
+        
+        // If single line doesn't fit, try to find a natural break point
+        final breakIndex = _findNaturalBreakPoint(text);
+        
+        if (breakIndex > 0) {
+          final firstLine = text.substring(0, breakIndex).trim();
+          final secondLine = text.substring(breakIndex).trim();
           
-          painter1.layout(maxWidth: maxWidth);
-          painter2.layout(maxWidth: maxWidth);
+          // Start with a large font size and reduce if needed
+          double fontSize = 28.0;
           
-          // Calculate optimal font size based on the longer word
-          double scale = 1.0;
-          if (painter1.width > maxWidth || painter2.width > maxWidth) {
-            double scale1 = painter1.width > maxWidth ? maxWidth / painter1.width : 1.0;
-            double scale2 = painter2.width > maxWidth ? maxWidth / painter2.width : 1.0;
-            scale = scale1 < scale2 ? scale1 : scale2;
+          // Find a font size where both lines fit
+          while (fontSize > 16.0) {
+            if (_measureTextFits(firstLine, textConstraints.maxWidth * 0.95, fontSize) &&
+                _measureTextFits(secondLine, textConstraints.maxWidth * 0.95, fontSize)) {
+              break; // Found a size that works
+            }
+            fontSize -= 2.0;
           }
           
-          double fontSize = (32.0 * scale).clamp(18.0, 32.0);
-          
-          // Return a tightly packed column of text
+          // Return the two-line layout with consistent font size
           return Container(
             height: constraints.maxHeight,
             child: Column(
@@ -129,132 +113,82 @@ class AnswerOption {
               mainAxisSize: MainAxisSize.min,
               children: [
                 Text(
-                  words[0],
+                  firstLine,
                   textAlign: TextAlign.center,
+                  overflow: TextOverflow.ellipsis,
                   style: TextStyle(
                     fontSize: fontSize,
-                    color: disabled ? Colors.grey : Colors.black87,
+                    color: textColor,
                     height: 0.95, // Tight line height
                   ),
                 ),
-                SizedBox(height: 0), // No additional space
+                SizedBox(height: 2), // Very small gap between lines
                 Text(
-                  words[1],
+                  secondLine,
                   textAlign: TextAlign.center,
+                  overflow: TextOverflow.ellipsis,
                   style: TextStyle(
                     fontSize: fontSize, // Same size as first line
-                    color: disabled ? Colors.grey : Colors.black87,
+                    color: textColor,
                     height: 0.95,
                   ),
                 ),
               ],
             ),
           );
-        },
-      );
-    }
-    
-    // For three or more words, check if we can split them into two balanced lines
-    if (wordCount >= 3) {
-      // Find the best split point for multi-word phrases
-      int midPoint = charCount ~/ 2;
-      int bestSplitIndex = -1;
-      
-      // Track position while traversing the text
-      int currentPos = 0;
-      for (int i = 0; i < words.length - 1; i++) {
-        currentPos += words[i].length + 1; // Word length plus space
-        
-        // Find split point closest to middle
-        if (bestSplitIndex == -1 || (currentPos - midPoint).abs() < (bestSplitIndex - midPoint).abs()) {
-          bestSplitIndex = currentPos;
         }
+        
+        // Fallback: use AutoSizeText to handle any case
+        return AutoSizeText(
+          text,
+          textAlign: TextAlign.center,
+          style: TextStyle(fontSize: 24.0, color: textColor),
+          minFontSize: 14.0,
+          maxFontSize: 24.0,
+          maxLines: 2,
+        );
+      },
+    );
+  }
+  
+  // Helper to find a natural break point in text (simplest version)
+  int _findNaturalBreakPoint(String text) {
+    // For simplicity, find approximately the middle of the text
+    // and then look for the nearest space
+    final middle = text.length ~/ 2;
+    
+    // Look for space character near the middle (search outward)
+    for (int offset = 0; offset < middle; offset++) {
+      // Check after the middle
+      if (middle + offset < text.length && text[middle + offset] == ' ') {
+        return middle + offset;
       }
       
-      // If we found a good split point, create a two-line layout
-      if (bestSplitIndex > 0) {
-        String firstLine = text.substring(0, bestSplitIndex).trim();
-        String secondLine = text.substring(bestSplitIndex).trim();
-        
-        return LayoutBuilder(
-          builder: (context, constraints) {
-            // Get the maximum available width
-            final maxWidth = constraints.maxWidth * 0.9;
-            
-            // Determine the font size needed for the longer line
-            TextSpan span1 = TextSpan(text: firstLine, style: TextStyle(fontSize: 28.0));
-            TextSpan span2 = TextSpan(text: secondLine, style: TextStyle(fontSize: 28.0));
-            
-            TextPainter painter1 = TextPainter(
-              text: span1,
-              textDirection: TextDirection.ltr,
-              textAlign: TextAlign.center,
-            );
-            TextPainter painter2 = TextPainter(
-              text: span2,
-              textDirection: TextDirection.ltr,
-              textAlign: TextAlign.center,
-            );
-            
-            painter1.layout(maxWidth: maxWidth);
-            painter2.layout(maxWidth: maxWidth);
-            
-            // Calculate optimal font size based on the longer line
-            double scale = 1.0;
-            if (painter1.width > maxWidth || painter2.width > maxWidth) {
-              double scale1 = painter1.width > maxWidth ? maxWidth / painter1.width : 1.0;
-              double scale2 = painter2.width > maxWidth ? maxWidth / painter2.width : 1.0;
-              scale = scale1 < scale2 ? scale1 : scale2;
-            }
-            
-            double fontSize = (28.0 * scale).clamp(14.0, 28.0);
-            
-            // Return a tightly packed column of text
-            return Container(
-              height: constraints.maxHeight,
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Text(
-                    firstLine,
-                    textAlign: TextAlign.center,
-                    style: TextStyle(
-                      fontSize: fontSize,
-                      color: disabled ? Colors.grey : Colors.black87,
-                      height: 0.95,
-                    ),
-                  ),
-                  SizedBox(height: 0),
-                  Text(
-                    secondLine,
-                    textAlign: TextAlign.center,
-                    style: TextStyle(
-                      fontSize: fontSize, // Same size as first line
-                      color: disabled ? Colors.grey : Colors.black87,
-                      height: 0.95,
-                    ),
-                  ),
-                ],
-              ),
-            );
-          },
-        );
+      // Check before the middle
+      if (middle - offset >= 0 && text[middle - offset] == ' ') {
+        return middle - offset;
       }
     }
     
-    // Fall back to FittedBox for all other cases
-    return FittedBox(
-      fit: BoxFit.contain,
-      child: Text(
-        text,
-        textAlign: TextAlign.center,
-        style: TextStyle(
-          fontSize: 32.0,
-          color: disabled ? Colors.grey : Colors.black87,
-        ),
-      ),
+    // No good break point found
+    return -1;
+  }
+  
+  // Helper to measure if text fits at a specific font size
+  bool _measureTextFits(String text, double maxWidth, double fontSize) {
+    final textSpan = TextSpan(
+      text: text,
+      style: TextStyle(fontSize: fontSize),
     );
+    
+    final textPainter = TextPainter(
+      text: textSpan,
+      textDirection: TextDirection.ltr,
+      textAlign: TextAlign.center,
+    );
+    
+    textPainter.layout(maxWidth: double.infinity);
+    return textPainter.width <= maxWidth;
   }
 
   // Helper method to determine which image source to use
