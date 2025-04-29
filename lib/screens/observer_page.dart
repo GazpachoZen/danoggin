@@ -11,6 +11,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:timeago/timeago.dart' as timeago;
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:danoggin/services/notification_helper.dart';
+import 'package:danoggin/utils/back_button_handler.dart';
 
 Future<void> requestNotificationPermissions() async {
   // Request permission for notifications
@@ -44,6 +45,9 @@ class _ObserverPageState extends State<ObserverPage> {
 
   List<QueryDocumentSnapshot> _currentCheckIns = [];
   Timer? _dataRefreshTimer;
+
+  // Add back button handler
+  final BackButtonHandler _backButtonHandler = BackButtonHandler();
 
   @override
   void initState() {
@@ -437,75 +441,81 @@ class _ObserverPageState extends State<ObserverPage> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Observer Dashboard'),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.notifications),
-            tooltip: 'Test Notifications',
-            onPressed: _testNotifications,
-          ),
-          IconButton(
-            icon: const Icon(Icons.settings),
-            onPressed: () async {
-              final result = await Navigator.push<dynamic>(
-                context,
-                MaterialPageRoute(
-                  builder: (_) => SettingsPage(currentRole: UserRole.observer),
-                ),
-              );
-
-              // If result is a Boolean 'true', relationships have changed
-              if (result == true) {
-                await _loadResponders(); // Refresh the responder list
-                setState(() {}); // Update the UI
-              }
-              // If result is a UserRole, handle role change as before
-              else if (result != null && result != UserRole.observer) {
-                final prefs = await SharedPreferences.getInstance();
-                await prefs.setString('userRole', result.name);
-                Navigator.of(context).pushReplacement(
+    // Add WillPopScope to handle back button press
+    return WillPopScope(
+      onWillPop: () =>
+          _backButtonHandler.handleBackPress(context, UserRole.observer),
+      child: Scaffold(
+        appBar: AppBar(
+          title: const Text('Observer Dashboard'),
+          actions: [
+            IconButton(
+              icon: const Icon(Icons.notifications),
+              tooltip: 'Test Notifications',
+              onPressed: _testNotifications,
+            ),
+            IconButton(
+              icon: const Icon(Icons.settings),
+              onPressed: () async {
+                final result = await Navigator.push<dynamic>(
+                  context,
                   MaterialPageRoute(
-                    builder: (_) => result == UserRole.responder
-                        ? QuizPage(
-                            currentRole: result) // Pass the role parameter
-                        : ObserverPage(),
+                    builder: (_) =>
+                        SettingsPage(currentRole: UserRole.observer),
                   ),
                 );
-              }
-            },
-          ),
-        ],
-      ),
-      body: Container(
-        constraints: BoxConstraints(
-          maxHeight: MediaQuery.of(context).size.height -
-              AppBar().preferredSize.height -
-              MediaQuery.of(context).padding.top,
-        ),
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            // Responder selector
-            if (_responderMap.length > 1) _buildResponderSelector(),
 
-            // Selected responder info
-            if (_selectedResponderUid != null && _responderMap.isNotEmpty)
-              Padding(
-                padding: const EdgeInsets.only(bottom: 16.0),
-                child: Text(
-                  'Monitoring: ${_responderMap[_selectedResponderUid] ?? "Unknown"}',
-                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                ),
-              ),
-
-            // Check-in list
-            Expanded(
-              child: _buildCheckInList(),
+                // If result is a Boolean 'true', relationships have changed
+                if (result == true) {
+                  await _loadResponders(); // Refresh the responder list
+                  setState(() {}); // Update the UI
+                }
+                // If result is a UserRole, handle role change as before
+                else if (result != null && result != UserRole.observer) {
+                  final prefs = await SharedPreferences.getInstance();
+                  await prefs.setString('userRole', result.name);
+                  Navigator.of(context).pushReplacement(
+                    MaterialPageRoute(
+                      builder: (_) => result == UserRole.responder
+                          ? QuizPage(
+                              currentRole: result) // Pass the role parameter
+                          : ObserverPage(),
+                    ),
+                  );
+                }
+              },
             ),
           ],
+        ),
+        body: Container(
+          constraints: BoxConstraints(
+            maxHeight: MediaQuery.of(context).size.height -
+                AppBar().preferredSize.height -
+                MediaQuery.of(context).padding.top,
+          ),
+          padding: const EdgeInsets.all(16.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              // Responder selector
+              if (_responderMap.length > 1) _buildResponderSelector(),
+
+              // Selected responder info
+              if (_selectedResponderUid != null && _responderMap.isNotEmpty)
+                Padding(
+                  padding: const EdgeInsets.only(bottom: 16.0),
+                  child: Text(
+                    'Monitoring: ${_responderMap[_selectedResponderUid] ?? "Unknown"}',
+                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                  ),
+                ),
+
+              // Check-in list
+              Expanded(
+                child: _buildCheckInList(),
+              ),
+            ],
+          ),
         ),
       ),
     );

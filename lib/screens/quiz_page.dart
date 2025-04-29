@@ -8,6 +8,7 @@ import 'package:danoggin/controllers/quiz_controller.dart';
 import 'package:danoggin/widgets/quiz/question_display.dart';
 import 'package:danoggin/widgets/quiz/answer_grid.dart';
 import 'package:danoggin/widgets/quiz/feedback_display.dart';
+import 'package:danoggin/utils/back_button_handler.dart';
 
 // Add this near the top of the file, after imports
 const bool kDevModeEnabled = true; // Set to false for production
@@ -25,6 +26,7 @@ class _QuizPageState extends State<QuizPage> with WidgetsBindingObserver {
   late QuizController _controller;
   bool _isInitialLoad = true;
   String _userName = "Responder"; // Default value
+  final BackButtonHandler _backButtonHandler = BackButtonHandler();
   
   @override
   void initState() {
@@ -151,12 +153,41 @@ class _QuizPageState extends State<QuizPage> with WidgetsBindingObserver {
 
   @override
   Widget build(BuildContext context) {
-    // Show loading indicator if still loading or question is not initialized
-    if (_controller.isLoading || _controller.currentQuestion == null) {
-      return _buildLoadingScreen();
-    }
+    // Handle back button press with WillPopScope
+    return WillPopScope(
+      onWillPop: () => _backButtonHandler.handleBackPress(context, _controller.currentRole),
+      child: _controller.isLoading || _controller.currentQuestion == null
+          ? _buildLoadingScreen()
+          : _buildMainScreen(),
+    );
+  }
+  
+  Widget _buildLoadingScreen() {
+    return Scaffold(
+      appBar: AppBar(
+        title: Text('Danoggin: $_userName'),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.settings),
+            onPressed: () => _navigateToSettings(),
+          ),
+        ],
+      ),
+      body: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            CircularProgressIndicator(),
+            SizedBox(height: 16),
+            Text("Loading your next question...",
+                style: TextStyle(fontSize: 16, color: Colors.grey[700])),
+          ],
+        ),
+      ),
+    );
+  }
 
-    // Main UI when question is loaded
+  Widget _buildMainScreen() {
     return Scaffold(
       appBar: _buildAppBar(),
       body: Padding(
@@ -185,31 +216,6 @@ class _QuizPageState extends State<QuizPage> with WidgetsBindingObserver {
             ),
             SizedBox(height: 24),
             FeedbackDisplay(feedback: _controller.feedback),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildLoadingScreen() {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text('Danoggin: $_userName'),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.settings),
-            onPressed: () => _navigateToSettings(),
-          ),
-        ],
-      ),
-      body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            CircularProgressIndicator(),
-            SizedBox(height: 16),
-            Text("Loading your next question...",
-                style: TextStyle(fontSize: 16, color: Colors.grey[700])),
           ],
         ),
       ),

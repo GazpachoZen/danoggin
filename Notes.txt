@@ -96,23 +96,25 @@ Admin Tools...
 ---------------------
 I'm interested in making sure that some of the configuration settings for a responder do not get into a confusing state. Specifically, the timeout interval for responding to a question should never be more than half of the time between questions; it should also never be more than 15 minutes. Said another way, the time between questions can never be less than twice the time limit for answering a question. Can we somehow limit the behavior of the two input sliders accordingly?
 ---------------------
-Refactor the larger files (quiz_page.dart)
+Try all this with Tracy's phone.
+---------------------
+Make installers and see if that works.
+---------------------
+As this gets ready to roll out to the field, we'll need a way of managing version numbers. Any suggestions?
+---------------------
+As a future capability, we'll eventually want the apps to notice that updates are available.
 ---------------------
 ---------------------
+Danoggin should auto-start when phone powers up. Please discuss how this is accomplished before suggesting any code changes.
 ---------------------
+Make a states and cities question pack. All the state capitals, etc.
 ---------------------
-Make it harder to accidentally terminate Danoggin. 
+We need to create an additional observer alert in case there's been no recent responder activity. This will address the situation where the responder has his phone powered down, or has killed the Danoggin app. It should be aware of the observer's active hours and take those into account. I'm guessing that will mean a minor change to what's stored in the Firestore database. Please give me your thoughts before making any suggestions for code changes.
 ---------------------
-Make Danoggin auto-start when phone powers up.
----------------------
----------------------
----------------------
+The lib/screens/observer_page.dart file has gotten rather large (see attached). Please re-factor it into more manageable parts, and take advantage of the shape of the existing folder tree as necessary.
 ---------------------
 The app presently uses anonymous authentication for Firebase. We need to button that up before making this app generally available. I'm not very familiar with Firebase. What would be the necessary steps?
 ---------------------
-Presently the danoggin app is hard-coded to use only the "demo_pack" set of questions. Eventually, there will be numerous question packs. Each "responder" will want to sign up for any number of the question packs. We will need a way to manage this selection process from the responder's settings page. When multiple question packs are in play, the responder should be presented with questions from each pack randomly. We will want to maintain our efforts to ensure that all questions within a pack are presented before re-shuffling. Which question packs a responder subscribes to should be remembered from run to run. 
-
-How would you approach these code changes?
 ---------------------
 
 Marvel
