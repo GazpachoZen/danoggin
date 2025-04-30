@@ -6,14 +6,18 @@ import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:intl/intl.dart';
 import 'package:danoggin/services/auth_service.dart';
 import 'package:danoggin/services/notification_helper.dart';
+import 'package:danoggin/repositories/responder_settings_repository.dart';
+import 'package:danoggin/controllers/inactvity_monitor.dart';
 
 class ObserverController {
   // State variables
   String? lastAcknowledgedId;
   String? lastNotifiedId;
+  String? lastInactivityAlertId;
   String? selectedResponderUid;
   Map<String, String> responderMap = {};
-  
+  int inactivityThresholdHours = 24; // Default value
+
   // Timer for background operations
   Timer? pollingTimer;
   Timer? dataRefreshTimer;
@@ -30,14 +34,27 @@ class ObserverController {
     dataRefreshTimer?.cancel();
   }
   
-  // Initialize and load data
+// Initialize and load data
   Future<void> initialize() async {
     await loadLastAcknowledged();
     await loadResponders();
+    await loadInactivityThreshold();
     startPollingLoop();
     startDataRefreshTimer();
   }
   
+  // Load inactivity threshold from Firestore
+  Future<void> loadInactivityThreshold() async {
+    try {
+      final uid = AuthService.currentUserId;
+      final threshold = await ResponderSettingsRepository.getInactivityThreshold(uid);
+      inactivityThresholdHours = threshold;
+      onStateChanged();
+    } catch (e) {
+      print('Error loading inactivity threshold: $e');
+    }
+  }
+
   // Load the last acknowledged check-in ID
   Future<void> loadLastAcknowledged() async {
     final prefs = await SharedPreferences.getInstance();
@@ -112,6 +129,7 @@ class ObserverController {
   }
 
   // Check the status of all responders
+// Check the status of all responders
   Future<void> checkResponderStatus() async {
     try {
       // Get the responder UIDs that this observer is linked to
@@ -151,7 +169,11 @@ class ObserverController {
         print(
             "Checking responder $responderName ($responderUid) @ ${now.hour}:${now.minute}:${now.second}");
 
-        if (snapshot.docs.isEmpty) continue;
+        if (snapshot.docs.isEmpty) {
+          // Handle case where no check-ins exist yet
+          print("No check-ins found for responder: $responderName");
+          continue;
+        }
 
         final doc = snapshot.docs.first;
         final data = doc.data();
@@ -209,6 +231,23 @@ class ObserverController {
             print("Notification sent for $responderName's $result check-in");
           }
         }
+        
+        // Check for inactivity (regardless of check-in result)
+        // Get the responder's active hours from Firestore
+        final activeHours = await ResponderSettingsRepository.getActiveHours(responderUid);
+        
+        // Perform inactivity check
+        await InactivityMonitor.checkResponderInactivity(
+          responderUid: responderUid,
+          responderName: responderName,
+          activeHours: activeHours,
+          inactivityThresholdHours: inactivityThresholdHours,
+          lastInactivityAlertKey: lastInactivityAlertId,
+          onAlertSent: (alertKey) {
+            lastInactivityAlertId = alertKey;
+            onStateChanged();
+          },
+        );
       }
     } catch (e) {
       print("Error in checkResponderStatus: $e");

@@ -2,13 +2,14 @@ import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:danoggin/services/auth_service.dart';
 import 'package:danoggin/repositories/user_repository.dart';
+import 'package:danoggin/repositories/responder_settings_repository.dart';
 import 'package:danoggin/models/user_role.dart';
 import 'package:danoggin/screens/quiz_page.dart';
 import 'package:danoggin/screens/observer_page.dart';
 import 'package:danoggin/screens/role_selection_screen.dart';
 import 'package:danoggin/services/notification_helper.dart';
-import 'package:danoggin/theme/app_colors.dart';  // Import your theme
-
+import 'package:danoggin/theme/app_colors.dart';
+import 'package:danoggin/utils/timezone_helper.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({Key? key}) : super(key: key);
@@ -53,11 +54,15 @@ class _SplashScreenState extends State<SplashScreen>
     super.dispose();
   }
 
-  Future<void> _initializeApp() async {
+Future<void> _initializeApp() async {
     try {
       // Initialize notification system first
       setState(() => _statusMessage = "Setting up notifications...");
       await NotificationHelper.initialize();
+
+      // Initialize time zone helper
+      setState(() => _statusMessage = "Initializing time zones...");
+      await TimezoneHelper.initialize();
 
       // Initialize Firebase
       setState(() => _statusMessage = "Connecting to services...");
@@ -77,6 +82,12 @@ class _SplashScreenState extends State<SplashScreen>
       final uid = AuthService.currentUserId;
       final role = await UserRepository.getUserRole(uid);
       print('Role from Firestore: $role');
+      
+      // Sync settings to Firestore if needed
+      if (role == UserRole.responder) {
+        setState(() => _statusMessage = "Syncing your settings...");
+        await ResponderSettingsRepository.syncLocalSettingsToFirestore(uid);
+      }
 
       // Small delay to allow animation to complete
       await Future.delayed(const Duration(milliseconds: 800));
@@ -102,7 +113,6 @@ class _SplashScreenState extends State<SplashScreen>
     }
   }
 
-  @override
 // In splash_screen.dart
 @override
 Widget build(BuildContext context) {

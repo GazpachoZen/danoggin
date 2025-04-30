@@ -1,6 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:danoggin/screens/observer_manage_responders_screen.dart';
+import 'package:danoggin/repositories/responder_settings_repository.dart';
+import 'package:danoggin/services/auth_service.dart';
+
+// Development mode flag - set to false for production
+const bool kDevModeEnabled = true;
 
 class ObserverSettingsWidget extends StatefulWidget {
   // Add a callback for relationship changes
@@ -17,11 +22,18 @@ class ObserverSettingsWidget extends StatefulWidget {
 
 class _ObserverSettingsWidgetState extends State<ObserverSettingsWidget> {
   double pollingIntervalMinutes = 2;
+  double inactivityThresholdHours = 24; // Default: 24 hours
 
+  // Min/max settings for inactivity threshold based on dev mode
+  final double _minInactivityHours = kDevModeEnabled ? 1 : 6;
+  final double _maxInactivityHours = 72;
+  final int _inactivityDivisions = kDevModeEnabled ? 71 : 11;
+  
   @override
   void initState() {
     super.initState();
     _loadPrefs();
+    _loadInactivityThreshold();
   }
 
   Future<void> _loadPrefs() async {
@@ -30,10 +42,48 @@ class _ObserverSettingsWidgetState extends State<ObserverSettingsWidget> {
       pollingIntervalMinutes = prefs.getDouble('observerPollInterval') ?? 2;
     });
   }
+  
+  Future<void> _loadInactivityThreshold() async {
+    try {
+      final uid = AuthService.currentUserId;
+      final threshold = await ResponderSettingsRepository.getInactivityThreshold(uid);
+      setState(() {
+        inactivityThresholdHours = threshold.toDouble();
+      });
+    } catch (e) {
+      print('Error loading inactivity threshold: $e');
+    }
+  }
 
   Future<void> _savePrefs() async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setDouble('observerPollInterval', pollingIntervalMinutes);
+    
+    // Save inactivity threshold to Firestore
+    try {
+      final uid = AuthService.currentUserId;
+      await ResponderSettingsRepository.saveInactivityThreshold(
+        observerUid: uid,
+        thresholdHours: inactivityThresholdHours.round(),
+      );
+      
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Settings saved successfully'),
+          duration: Duration(seconds: 2),
+        ),
+      );
+    } catch (e) {
+      print('Error saving inactivity threshold: $e');
+      
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Error saving settings: $e'),
+          backgroundColor: Colors.red,
+          duration: Duration(seconds: 3),
+        ),
+      );
+    }
   }
 
   @override
@@ -41,6 +91,7 @@ class _ObserverSettingsWidgetState extends State<ObserverSettingsWidget> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
+        // Polling interval setting
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
@@ -57,13 +108,53 @@ class _ObserverSettingsWidgetState extends State<ObserverSettingsWidget> {
           label: '${pollingIntervalMinutes.round()} min',
           onChanged: (val) => setState(() => pollingIntervalMinutes = val),
         ),
+        
+        const SizedBox(height: 24),
+        
+// Inactivity threshold setting
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text('Inactivity alert threshold: ${inactivityThresholdHours.round()} hours', 
+                style: TextStyle(fontSize: 16, color: Colors.deepPurple)),
+            Text('Range: ${_minInactivityHours.round()}-${_maxInactivityHours.round()}', 
+                style: TextStyle(fontSize: 14, color: Colors.grey)),
+          ],
+        ),
+        Slider(
+          value: inactivityThresholdHours,
+          min: _minInactivityHours,
+          max: _maxInactivityHours,
+          divisions: _inactivityDivisions,
+          label: '${inactivityThresholdHours.round()} hours',
+          onChanged: (val) => setState(() => inactivityThresholdHours = val),
+        ),
+        Padding(
+          padding: const EdgeInsets.only(bottom: 8.0),
+          child: Text(
+            kDevModeEnabled 
+                ? 'DEV MODE: Using 1-hour minimum for testing (set kDevModeEnabled = false for production)'
+                : 'Get alerted if a responder has no activity for longer than this threshold during their active hours.',
+            style: TextStyle(
+              fontSize: 12, 
+              color: kDevModeEnabled ? Colors.red[600] : Colors.grey[600], 
+              fontStyle: FontStyle.italic,
+              fontWeight: kDevModeEnabled ? FontWeight.bold : FontWeight.normal,
+            ),
+          ),
+        ),
+                
         const SizedBox(height: 16),
+        
+        // Save button
         Center(
           child: ElevatedButton(
             onPressed: _savePrefs,
             child: const Text('Save Settings'),
           ),
         ),
+        
+        // Manage responders section
         ListTile(
           leading: const Icon(Icons.people),
           title: const Text('Manage Responders'),

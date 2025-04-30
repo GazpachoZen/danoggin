@@ -3,6 +3,8 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:danoggin/screens/responder_invite_code_screen.dart';
 import 'package:danoggin/screens/responder_manage_observers_screen.dart';
 import 'package:danoggin/widgets/question_pack_selector_widget.dart';
+import 'package:danoggin/repositories/responder_settings_repository.dart';
+import 'package:danoggin/services/auth_service.dart';
 
 class ResponderSettingsWidget extends StatefulWidget {
   // Add callback for relationship changes
@@ -58,12 +60,45 @@ class _ResponderSettingsWidgetState extends State<ResponderSettingsWidget> {
     return local.format(context); // Uses device locale and AM/PM
   }
 
-  Future<void> _savePrefs() async {
+Future<void> _savePrefs() async {
     final prefs = await SharedPreferences.getInstance();
-    await prefs.setString('startHour', _formatTimeOfDay(startHour));
-    await prefs.setString('endHour', _formatTimeOfDay(endHour));
+    
+    // Format the hours for storage
+    final startHourStr = _formatTimeOfDay(startHour);
+    final endHourStr = _formatTimeOfDay(endHour);
+    
+    // Save locally to SharedPreferences
+    await prefs.setString('startHour', startHourStr);
+    await prefs.setString('endHour', endHourStr);
     await prefs.setDouble('alertFrequency', alertFrequencyMinutes);
     await prefs.setDouble('timeoutDuration', timeoutMinutes);
+    
+    // Sync to Firestore for observer visibility
+    try {
+      final uid = AuthService.currentUserId;
+      await ResponderSettingsRepository.saveActiveHours(
+        uid: uid,
+        startHour: startHourStr,
+        endHour: endHourStr,
+      );
+      
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Settings saved successfully'),
+          duration: Duration(seconds: 2),
+        ),
+      );
+    } catch (e) {
+      print('Error syncing settings to Firestore: $e');
+      
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Error saving cloud settings: $e'),
+          backgroundColor: Colors.red,
+          duration: Duration(seconds: 3),
+        ),
+      );
+    }
   }
 
   Future<void> _pickTime(BuildContext context, bool isStart) async {
