@@ -70,7 +70,7 @@ For Buttons and UI Elements:
 	),
 
 =====================
-Attached are the source files for an app called Danoggin. It is a cognitive check-in application with two primary user roles: Responders and Observers. The app is designed to monitor cognitive awareness through regular quiz-like check-ins. Admin functionality for the related Firestore database and images is provided through a family of Pythn scripts which will be provided separately if needed. Below is an overview of some key points. Please examine the source files then await further instruction.
+Attached are the source files for an app called Danoggin. It is a cognitive check-in application with two primary user roles: Responders and Observers. The app is designed to monitor cognitive awareness through regular quiz-like check-ins. Admin functionality for the related Firestore database and images is provided through a family of Python scripts. Below is an overview of some key points. Please examine the source files to the point of understanding them, but no summary is needed. Await further instruction.
 
 Main roles...
 - Responders: Users who answer periodic quiz questions
@@ -94,7 +94,7 @@ Admin Tools...
 - Firebase management utilities
 
 ---------------------
-I'm interested in making sure that some of the configuration settings for a responder do not get into a confusing state. Specifically, the timeout interval for responding to a question should never be more than half of the time between questions; it should also never be more than 15 minutes. Said another way, the time between questions can never be less than twice the time limit for answering a question. Can we somehow limit the behavior of the two input sliders accordingly?
+I'm interested in making sure that some of the configuration settings for a responder do not get into a confusing state. Specifically, the timeout interval for responding to a question should never be more than half of the time between questions; it should also never be more than 15 minutes. Said another way, the time between questions can never be less than twice the time limit for answering a question. Can we somehow limit the behavior of the two input sliders accordingly? Discuss your approach before making any code change suggestions.
 ---------------------
 Try all this with Tracy's phone.
 ---------------------

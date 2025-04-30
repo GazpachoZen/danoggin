@@ -289,40 +289,64 @@ class QuizController {
     }
   }
   
-  Future<void> logCheckIn({
-    required String result,
-    required String questionPrompt,
-  }) async {
-    try {
-      final now = DateTime.now();
+Future<void> logCheckIn({
+  required String result,
+  required String questionPrompt,
+}) async {
+  try {
+    final now = DateTime.now();
 
-      // Get the current user's UID from AuthService
-      final uid = AuthService.currentUserId;
+    // Get the current user's UID from AuthService
+    final uid = AuthService.currentUserId;
 
-      print(
-          "SAVE: Writing check-in data to responder_status/$uid/check_ins/${now.toIso8601String()}");
-      print(
-          "SAVE: Data: result=$result, prompt=$questionPrompt, timestamp=${now.toIso8601String()}");
+    print(
+        "SAVE: Writing check-in data to responder_status/$uid/check_ins/${now.toIso8601String()}");
+    print(
+        "SAVE: Data: result=$result, prompt=$questionPrompt, timestamp=${now.toIso8601String()}");
 
-      final doc = FirebaseFirestore.instance
-          .collection('responder_status')
-          .doc(uid) // Use the actual UID instead of static responderId
-          .collection('check_ins')
-          .doc(now.toIso8601String());
-
-      await doc.set({
-        'timestamp': now.toIso8601String(),
-        'result': result,
-        'prompt': questionPrompt,
-        'responderId': currentRole.name, // Keep this for backward compatibility/filtering
+    // First, ensure the parent document exists by creating it if needed
+    final responderStatusRef = FirebaseFirestore.instance
+        .collection('responder_status')
+        .doc(uid);
+    
+    // Get the document to check if it exists
+    final docSnapshot = await responderStatusRef.get();
+    
+    // If parent document doesn't exist, create it with basic metadata
+    if (!docSnapshot.exists) {
+      await responderStatusRef.set({
+        'createdAt': now.toIso8601String(),
+        'userId': uid,
+        'lastActivity': now.toIso8601String(),
+        // Add any other metadata you want to track at responder level
       });
-
-      print("SAVE: Successfully wrote check-in data!");
-    } catch (e, stackTrace) {
-      print("ERROR: Failed to log check-in: $e");
-      print("Stack trace: $stackTrace");
+      print("SAVE: Created parent responder_status document");
+    } else {
+      // Update the lastActivity timestamp in the parent document
+      await responderStatusRef.update({
+        'lastActivity': now.toIso8601String(),
+      });
+      print("SAVE: Updated lastActivity in parent document");
     }
+
+    // Now create the check-in document in the subcollection
+    final checkInRef = responderStatusRef
+        .collection('check_ins')
+        .doc(now.toIso8601String());
+
+    await checkInRef.set({
+      'timestamp': now.toIso8601String(),
+      'result': result,
+      'prompt': questionPrompt,
+      'responderId': currentRole.name, // Keep this for backward compatibility/filtering
+    });
+
+    print("SAVE: Successfully wrote check-in data!");
+  } catch (e, stackTrace) {
+    print("ERROR: Failed to log check-in: $e");
+    print("Stack trace: $stackTrace");
   }
+}
   
   Map<String, Map<String, dynamic>> getPacksProgress() {
     return questionManager.getPacksProgress();
