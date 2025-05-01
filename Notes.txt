@@ -102,12 +102,12 @@ Make installers and see if that works.
 ---------------------
 As this gets ready to roll out to the field, we'll need a way of managing version numbers. Any suggestions?
 ---------------------
-For the Python admin tool, we need to have a means of purging the responder_status informaton. We should highlight the entries that have no corresponding entry in the users area, as well as somehow showing how man checkins happened and when the most recent one was. Along these line, the admin ability to get rid of users should also help do housecleaning here.
 ---------------------
 JEI - remember to turn kDevModeEnabled back to false wherever it exists.
 ---------------------
 Danoggin should auto-start when phone powers up. Please discuss how this is accomplished before suggesting any code changes.
 ---------------------
+We currently have a button on the responder's appbar that brings up some stats regarding question pack usage. Let's get rid of that.
 ---------------------
 The app presently uses anonymous authentication for Firebase. We need to button that up before making this app generally available. I'm not very familiar with Firebase. What would be the necessary steps?
 ------------------------------------------ LATER...

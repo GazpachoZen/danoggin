@@ -24,6 +24,7 @@ class QuizPage extends StatefulWidget {
 
 class _QuizPageState extends State<QuizPage> with WidgetsBindingObserver {
   late QuizController _controller;
+  bool _isInitialLoad = true;
   String _userName = "Responder"; // Default value
   final BackButtonHandler _backButtonHandler = BackButtonHandler();
   
@@ -240,13 +241,7 @@ class _QuizPageState extends State<QuizPage> with WidgetsBindingObserver {
               );
             },
           ),
-        // Add debug button to show pack progress in dev mode
-        if (kDevModeEnabled)
-          IconButton(
-            icon: const Icon(Icons.analytics),
-            tooltip: 'Show pack progress (dev only)',
-            onPressed: () => _showPackProgress(),
-          ),
+        // Remove the debug button that shows pack progress
         IconButton(
           icon: const Icon(Icons.notifications),
           tooltip: 'Test Notifications',
@@ -257,37 +252,6 @@ class _QuizPageState extends State<QuizPage> with WidgetsBindingObserver {
           onPressed: () => _navigateToSettings(),
         ),
       ],
-    );
-  }
-
-  void _showPackProgress() {
-    final progress = _controller.getPacksProgress();
-    
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: Text('Question Pack Progress'),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: _controller.subscribedPacks.map((pack) {
-            final packInfo = progress[pack.id];
-            final completed = packInfo?['completed'] ?? 0;
-            final total = packInfo?['total'] ?? 0;
-            final percent = total > 0 ? (completed / total * 100).toStringAsFixed(1) : '0';
-            
-            return ListTile(
-              title: Text(pack.name),
-              subtitle: Text('$completed / $total questions ($percent%)'),
-            );
-          }).toList(),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: Text('Close'),
-          ),
-        ],
-      ),
     );
   }
 
