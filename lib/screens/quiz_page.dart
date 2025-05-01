@@ -24,7 +24,6 @@ class QuizPage extends StatefulWidget {
 
 class _QuizPageState extends State<QuizPage> with WidgetsBindingObserver {
   late QuizController _controller;
-  bool _isInitialLoad = true;
   String _userName = "Responder"; // Default value
   final BackButtonHandler _backButtonHandler = BackButtonHandler();
   

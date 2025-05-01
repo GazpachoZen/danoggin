@@ -3,7 +3,6 @@ import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:danoggin/models/user_role.dart';
 import 'package:danoggin/screens/settings_page.dart';
 import 'package:danoggin/screens/quiz_page.dart';
-import 'package:danoggin/services/auth_service.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:danoggin/utils/back_button_handler.dart';
 import 'package:danoggin/controllers/observer_controller.dart';
@@ -12,8 +11,8 @@ import 'package:danoggin/widgets/observer/check_in_list_widget.dart';
 
 Future<void> requestNotificationPermissions() async {
   // Request permission for notifications
-  final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
-      FlutterLocalNotificationsPlugin();
+  // final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
+  //     FlutterLocalNotificationsPlugin();
 
   // For Android, there's no explicit permissions request in this version
   // The channel creation handles this automatically

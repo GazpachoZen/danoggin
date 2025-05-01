@@ -20,8 +20,15 @@ class CheckInListWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     if (responderMap.isEmpty) {
-      return const Center(
-        child: Text('No responders linked yet. Add a responder to monitor.'),
+      return Center(
+        child: Text(
+          'No responders linked yet. Add a responder to monitor.',
+          style: const TextStyle(
+            fontSize: 44.0,  // Increased from default
+            color: Colors.black87,
+          ),
+          textAlign: TextAlign.center,
+        ),
       );
     }
 

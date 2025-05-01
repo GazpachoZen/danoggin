@@ -60,7 +60,7 @@ class _ResponderSettingsWidgetState extends State<ResponderSettingsWidget> {
     return local.format(context); // Uses device locale and AM/PM
   }
 
-Future<void> _savePrefs() async {
+  Future<void> _savePrefs() async {
     final prefs = await SharedPreferences.getInstance();
     
     // Format the hours for storage
@@ -126,107 +126,104 @@ Future<void> _savePrefs() async {
 
   @override
   Widget build(BuildContext context) {
-    // Go back to using SingleChildScrollView which works better in this context
-    return SingleChildScrollView(
-      physics: const AlwaysScrollableScrollPhysics(),
-      child: Padding(
-        padding: const EdgeInsets.only(bottom: 32.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const Padding(
-              padding: EdgeInsets.only(top: 16.0),
-              child: Text('Hours of Operation',
-                  style: TextStyle(fontWeight: FontWeight.bold)),
-            ),
-            Row(
-              children: [
-                TextButton(
-                  onPressed: () => _pickTime(context, true),
-                  child: Text('Start: ${_formatTimeOfDayAMPM(startHour)}'),
-                ),
-                TextButton(
-                  onPressed: () => _pickTime(context, false),
-                  child: Text('End: ${_formatTimeOfDayAMPM(endHour)}'),
-                ),
-              ],
-            ),
-            const SizedBox(height: 8),
-            Text('Alert Frequency: ${alertFrequencyMinutes.round()} min',
+    // Remove SingleChildScrollView and just use a Column
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 32.0),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Padding(
+            padding: EdgeInsets.only(top: 16.0),
+            child: Text('Hours of Operation',
                 style: TextStyle(fontWeight: FontWeight.bold)),
-            Slider(
-              value: alertFrequencyMinutes,
-              min: 5,
-              max: 360,
-              divisions: 71,
-              label: '${alertFrequencyMinutes.round()} min',
-              onChanged: (val) => setState(() => alertFrequencyMinutes = val),
-            ),
-            const SizedBox(height: 8),
-            Text('Response Timeout: ${timeoutMinutes.toStringAsFixed(1)} min',
-                style: TextStyle(fontWeight: FontWeight.bold)),
-            Slider(
-              value: timeoutMinutes,
-              min: 0.5,
-              max: 10,
-              divisions: 19,
-              label: '${timeoutMinutes.toStringAsFixed(1)} min',
-              onChanged: (val) => setState(() => timeoutMinutes = val),
-            ),
-            const SizedBox(height: 16),
-            Center(
-              child: ElevatedButton(
-                onPressed: _savePrefs,
-                child: const Text('Save Settings'),
+          ),
+          Row(
+            children: [
+              TextButton(
+                onPressed: () => _pickTime(context, true),
+                child: Text('Start: ${_formatTimeOfDayAMPM(startHour)}'),
               ),
-            ),
-            const Divider(height: 32),
-            
-            // Add the question pack selector with better spacing
-            Padding(
-              padding: const EdgeInsets.only(bottom: 8.0),
-              child: QuestionPackSelectorWidget(
-                onPacksChanged: _handlePackSelectionChanged,
+              TextButton(
+                onPressed: () => _pickTime(context, false),
+                child: Text('End: ${_formatTimeOfDayAMPM(endHour)}'),
               ),
+            ],
+          ),
+          const SizedBox(height: 8),
+          Text('Alert Frequency: ${alertFrequencyMinutes.round()} min',
+              style: TextStyle(fontWeight: FontWeight.bold)),
+          Slider(
+            value: alertFrequencyMinutes,
+            min: 5,
+            max: 360,
+            divisions: 71,
+            label: '${alertFrequencyMinutes.round()} min',
+            onChanged: (val) => setState(() => alertFrequencyMinutes = val),
+          ),
+          const SizedBox(height: 8),
+          Text('Response Timeout: ${timeoutMinutes.toStringAsFixed(1)} min',
+              style: TextStyle(fontWeight: FontWeight.bold)),
+          Slider(
+            value: timeoutMinutes,
+            min: 0.5,
+            max: 10,
+            divisions: 19,
+            label: '${timeoutMinutes.toStringAsFixed(1)} min',
+            onChanged: (val) => setState(() => timeoutMinutes = val),
+          ),
+          const SizedBox(height: 16),
+          Center(
+            child: ElevatedButton(
+              onPressed: _savePrefs,
+              child: const Text('Save Settings'),
             ),
-            
-            const Divider(height: 32),
-            ListTile(
-              leading: const Icon(Icons.key),
-              title: const Text('Show my invite code'),
-              trailing: const Icon(Icons.arrow_forward_ios, size: 16),
-              onTap: () {
-                Navigator.of(context).push(
-                  MaterialPageRoute(
-                    builder: (_) => const ResponderInviteCodeScreen(),
-                  ),
-                );
-              },
+          ),
+          const Divider(height: 32),
+          
+          // Add the question pack selector with better spacing
+          Padding(
+            padding: const EdgeInsets.only(bottom: 8.0),
+            child: QuestionPackSelectorWidget(
+              onPacksChanged: _handlePackSelectionChanged,
             ),
-            // Add new option for managing observers
-            ListTile(
-              leading: const Icon(Icons.people),
-              title: const Text('Who is observing me'),
-              subtitle: const Text('See and manage observers'),
-              trailing: const Icon(Icons.arrow_forward_ios, size: 16),
-              onTap: () async {
-                // Navigate to manage observers screen and await result
-                final relationshipsChanged = await Navigator.of(context).push<bool>(
-                  MaterialPageRoute(
-                    builder: (_) => const ResponderManageObserversScreen(),
-                  ),
-                );
-                
-                // If relationships changed and we have a callback, notify parent
-                if (relationshipsChanged == true && widget.onRelationshipsChanged != null) {
-                  widget.onRelationshipsChanged!();
-                }
-              },
-            ),
-            // Add extra padding at the bottom
-            SizedBox(height: 32),
-          ],
-        ),
+          ),
+          
+          const Divider(height: 32),
+          ListTile(
+            leading: const Icon(Icons.key),
+            title: const Text('Show my invite code'),
+            trailing: const Icon(Icons.arrow_forward_ios, size: 16),
+            onTap: () {
+              Navigator.of(context).push(
+                MaterialPageRoute(
+                  builder: (_) => const ResponderInviteCodeScreen(),
+                ),
+              );
+            },
+          ),
+          // Add new option for managing observers
+          ListTile(
+            leading: const Icon(Icons.people),
+            title: const Text('Who is observing me'),
+            subtitle: const Text('See and manage observers'),
+            trailing: const Icon(Icons.arrow_forward_ios, size: 16),
+            onTap: () async {
+              // Navigate to manage observers screen and await result
+              final relationshipsChanged = await Navigator.of(context).push<bool>(
+                MaterialPageRoute(
+                  builder: (_) => const ResponderManageObserversScreen(),
+                ),
+              );
+              
+              // If relationships changed and we have a callback, notify parent
+              if (relationshipsChanged == true && widget.onRelationshipsChanged != null) {
+                widget.onRelationshipsChanged!();
+              }
+            },
+          ),
+          // Add extra padding at the bottom
+          SizedBox(height: 32),
+        ],
       ),
     );
   }

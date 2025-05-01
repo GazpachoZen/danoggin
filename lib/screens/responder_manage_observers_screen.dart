@@ -101,7 +101,7 @@ class _ResponderManageObserversScreenState extends State<ResponderManageObserver
           .get();
       
       final linkedObserversData = Map<String, dynamic>.from(
-          responderDoc.data()?['linkedObservers'] as Map<String, dynamic> ?? {});
+          responderDoc.data()?['linkedObservers'] as Map<String, dynamic>);
       
       // Remove observer from responder's list
       linkedObserversData.remove(observerUid);
@@ -120,7 +120,7 @@ class _ResponderManageObserversScreenState extends State<ResponderManageObserver
       
       if (observerDoc.exists) {
         final observingData = Map<String, dynamic>.from(
-            observerDoc.data()?['observing'] as Map<String, dynamic> ?? {});
+            observerDoc.data()?['observing'] as Map<String, dynamic>);
         
         // Remove responder from observer's list
         observingData.remove(responderUid);

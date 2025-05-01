@@ -2,7 +2,6 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:intl/intl.dart';
 import 'package:danoggin/services/auth_service.dart';
 import 'package:danoggin/services/notification_helper.dart';
@@ -71,7 +70,7 @@ class ObserverController {
           .doc(observerUid)
           .get();
 
-      final userData = observerDoc.data() as Map<String, dynamic>?;
+      final userData = observerDoc.data();
       final observingMap =
           userData?['observing'] as Map<String, dynamic>? ?? {};
 
@@ -139,7 +138,7 @@ class ObserverController {
           .doc(observerUid)
           .get();
 
-      final userData = observerDoc.data() as Map<String, dynamic>?;
+      final userData = observerDoc.data();
       final observingMap =
           userData?['observing'] as Map<String, dynamic>? ?? {};
       final responderUids = observingMap.keys.toList();
