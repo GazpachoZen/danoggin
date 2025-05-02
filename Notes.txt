@@ -22,9 +22,9 @@ d Detach (terminate "flutter run" but leave application running).
 c Clear the screen
 q Quit (terminate the application on the device).
 
-Pat:	iPhone, iOS 18
-Teresa:	iPhone, iOS 18.4
-Sean:	Pixel 9 Pro XL, Android 15
+Pat:	iPhone, iOS 18				pobrien57@gmail.com 
+Teresa:	iPhone, iOS 18.4			tessjob60@gmail.com 
+Sean:	Pixel 9 Pro XL, Android 15	obrienseanpat@gmail.com
 
 GIT - associating with cloud repository
 	git remote remove origin
@@ -37,6 +37,34 @@ Bitbucket
 GitHub
 	git remote add origin https://github.com/GazpachoZen/danoggin.git
 	git push -u origin master
+
+-------------------------
+keytool -genkey -v -keystore danoggin_key.jks -keyalg RSA -keysize 2048 -validity 10000 -alias danoggin
+Password: Danoggin!!
+
+What is your first and last name?
+  [Unknown]:  John Ivory
+What is the name of your organizational unit?
+  [Unknown]:
+What is the name of your organization?
+  [Unknown]:  Blue Vista Solutions
+What is the name of your City or Locality?
+  [Unknown]:  New Hartford
+What is the name of your State or Province?
+  [Unknown]:  NY
+What is the two-letter country code for this unit?
+  [Unknown]:  US
+Is CN=John Ivory, OU=Unknown, O=Blue Vista Solutions, L=New Hartford, ST=NY, C=US correct?
+  [no]:  yes
+
+Generating 2,048 bit RSA key pair and self-signed certificate (SHA256withRSA) with a validity of 10,000 days
+        for: CN=John Ivory, OU=Unknown, O=Blue Vista Solutions, L=New Hartford, ST=NY, C=US
+[Storing danoggin_key.jks]
+
+--------------------
+
+flutter build apk --release
+build/app/outputs/flutter-apk/app-release.apk
 
 --------------------
 
@@ -107,7 +135,6 @@ JEI - remember to turn kDevModeEnabled back to false wherever it exists.
 ---------------------
 Danoggin should auto-start when phone powers up. Please discuss how this is accomplished before suggesting any code changes.
 ---------------------
-We currently have a button on the responder's appbar that brings up some stats regarding question pack usage. Let's get rid of that.
 ---------------------
 The app presently uses anonymous authentication for Firebase. We need to button that up before making this app generally available. I'm not very familiar with Firebase. What would be the necessary steps?
 ------------------------------------------ LATER...
@@ -117,8 +144,114 @@ As a future capability, we'll eventually want the apps to notice that updates ar
 ---------------------
 ---------------------
 ---------------------
----------------------
+------------------------------------------------------------------------
+What's left to do (according to Claude)...
 
+Version Management
+	Version Numbering System
+		Implement semantic versioning (e.g., 1.0.0-beta.1)
+		Add version information to the app UI (probably in settings)
+		Create a system to track database schema versions for Firebase
+		Consider a minimum supported version mechanism
+
+Technical Completeness
+	Error Handling
+		Comprehensive error logging and crash reporting
+		Graceful degradation when network is unavailable
+		User-friendly error messages for all failure cases
+	Data Backup/Recovery
+		Data migration strategy between versions
+		Consider backup mechanisms for check-in data
+		Document recovery procedures for admins
+	Performance Optimization
+		Check for memory leaks in long-running processes
+		Optimize Firebase queries (especially with pagination)
+		Test with large datasets
+
+User Experience Polish
+	Onboarding
+		Better first-run experience
+		Guided tour of features
+		Clear instructions for each role
+	Help & Documentation
+		In-app help system
+		FAQ section
+		Contact/support mechanism
+	Visual Consistency
+		Confirm all UI elements follow your design system
+		Proper loading states everywhere
+		Consistent spacing and typography
+
+Security & Privacy
+	Security Audit
+		Review Firebase security rules
+		Ensure sensitive data protection
+		Check for proper authentication flows
+	Privacy Policy
+		Document what data is collected
+		How data is used and stored
+		User data deletion policy
+
+Testing & QA
+	Testing Coverage
+		Unit tests for critical functions
+		Integration tests for Firebase interactions
+		UI automation tests for key user flows
+	Beta Testing Plan
+		Define beta participant selection criteria
+		Feedback collection mechanism
+		Issue tracking system
+	Device Compatibility
+		Test on various device sizes
+		Check different Android versions
+		Verify different network conditions
+
+Distribution Readiness
+	App Store Requirements
+		App icons for all required sizes
+		Store listing content (descriptions, screenshots)
+		Privacy policy URL for store listing
+		Age rating appropriateness
+	Distribution Method
+		Google Play Internal Testing
+		Firebase App Distribution
+		Release notes template
+	Analytics
+		Track key usage metrics
+		Monitor crash rates
+		User engagement tracking
+
+Admin Tools Enhancement
+	Additional Admin Features
+		User analytics dashboard
+		Bulk operations for user management
+		Export functionality for data analysis
+	Monitoring
+		System health monitoring
+		Alert system for critical issues
+		Database size monitoring
+
+Legal Considerations
+	Terms of Service
+		User agreement for beta testers
+		Liability limitations
+		Data use policies
+	Compliance
+		Privacy regulations (GDPR, CCPA if applicable)
+		Healthcare data considerations if relevant
+		Age restrictions if needed
+
+Emergency Planning
+	Rollback Procedures
+		Database rollback strategy
+		App version rollback plan
+		User notification system
+	Support Structure
+		Beta support contact method
+		Issue escalation process
+		Emergency response plan
+
+------------------------------------------------------------------------
 Marvel
 	Thor | Chris Hemsworth
 	Iron Man | Robert Downey Jr.
@@ -194,6 +327,7 @@ Star Wars
 	C3PO
 	R2D2
 	Chewbacka
+	Yoda
 
 Lord of the Rings
 	Bilbo
