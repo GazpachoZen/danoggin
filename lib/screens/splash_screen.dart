@@ -127,7 +127,7 @@ Widget build(BuildContext context) {
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               Image.asset(
-                'assets/images/danoggin_512x512.png',
+                'assets/images/danoggin_icon.png',
                 width: 200,
                 height: 200,
               ),

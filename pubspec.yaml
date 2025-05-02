@@ -105,7 +105,9 @@ flutter:
   # see https://flutter.dev/to/font-from-package
 
 flutter_launcher_icons:
-  android: true
+  android: "launcher_icon"
   ios: true
-  image_path: "assets/images/danoggin_512x512.png"
-  adaptive_icon_background: "#FFFFFF" # Optional - for Android adaptive icons
+  image_path: "assets/images/danoggin_icon.png"
+  #adaptive_icon_foreground: "assets/images/danoggin_icon.png"
+  adaptive_icon_background: "#3DA6CB" # Optional - for Android adaptive icons
+  remove_alpha_ios: true
