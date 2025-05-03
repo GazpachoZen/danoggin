@@ -1,3 +1,4 @@
+// Modified version of responder_settings_widget.dart
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:danoggin/screens/responder_invite_code_screen.dart';
@@ -26,6 +27,9 @@ class _ResponderSettingsWidgetState extends State<ResponderSettingsWidget> {
   double alertFrequencyMinutes = 5;
   double timeoutMinutes = 1;
 
+  // Constants for constraints
+  final double maxTimeoutMinutes = 15.0;
+  
   @override
   void initState() {
     super.initState();
@@ -34,13 +38,43 @@ class _ResponderSettingsWidgetState extends State<ResponderSettingsWidget> {
 
   Future<void> _loadPrefs() async {
     final prefs = await SharedPreferences.getInstance();
+    
+    // Load settings from preferences
+    final savedStartHour = _getTimeOfDay(prefs.getString('startHour'));
+    final savedEndHour = _getTimeOfDay(prefs.getString('endHour'));
+    final savedAlertFrequency = prefs.getDouble('alertFrequency');
+    final savedTimeout = prefs.getDouble('timeoutDuration');
+    
     setState(() {
-      startHour = _getTimeOfDay(prefs.getString('startHour')) ?? startHour;
-      endHour = _getTimeOfDay(prefs.getString('endHour')) ?? endHour;
-      alertFrequencyMinutes =
-          prefs.getDouble('alertFrequency') ?? alertFrequencyMinutes;
-      timeoutMinutes = prefs.getDouble('timeoutDuration') ?? timeoutMinutes;
+      startHour = savedStartHour ?? startHour;
+      endHour = savedEndHour ?? endHour;
+      
+      // Load alert frequency first
+      if (savedAlertFrequency != null) {
+        alertFrequencyMinutes = savedAlertFrequency;
+      }
+      
+      // Then load timeout ensuring it respects the constraints
+      if (savedTimeout != null) {
+        timeoutMinutes = _constrainTimeout(savedTimeout);
+      }
     });
+  }
+
+  // Helper method to constrain timeout value based on alert frequency
+  double _constrainTimeout(double timeout) {
+    // Never more than maxTimeoutMinutes
+    double constrainedTimeout = timeout > maxTimeoutMinutes ? maxTimeoutMinutes : timeout;
+    // Never more than half of alert frequency
+    constrainedTimeout = constrainedTimeout > alertFrequencyMinutes / 2 ? 
+        alertFrequencyMinutes / 2 : constrainedTimeout;
+    return constrainedTimeout;
+  }
+
+  // Get maximum timeout value based on current alert frequency
+  double get _maxTimeout {
+    return (alertFrequencyMinutes / 2) < maxTimeoutMinutes ? 
+        (alertFrequencyMinutes / 2) : maxTimeoutMinutes;
   }
 
   TimeOfDay? _getTimeOfDay(String? value) {
@@ -62,6 +96,9 @@ class _ResponderSettingsWidgetState extends State<ResponderSettingsWidget> {
 
   Future<void> _savePrefs() async {
     final prefs = await SharedPreferences.getInstance();
+    
+    // Ensure timeout conforms to constraints before saving
+    timeoutMinutes = _constrainTimeout(timeoutMinutes);
     
     // Format the hours for storage
     final startHourStr = _formatTimeOfDay(startHour);
@@ -124,9 +161,43 @@ class _ResponderSettingsWidgetState extends State<ResponderSettingsWidget> {
     }
   }
 
+  // Handle alert frequency changes
+  void _handleAlertFrequencyChanged(double newValue) {
+    setState(() {
+      alertFrequencyMinutes = newValue;
+      
+      // Auto-constrain timeout if needed
+      if (timeoutMinutes > _maxTimeout) {
+        timeoutMinutes = _maxTimeout;
+      }
+    });
+  }
+
+  // Handle timeout changes
+  void _handleTimeoutChanged(double newValue) {
+    setState(() {
+      // First, apply the new timeout value
+      timeoutMinutes = newValue;
+      
+      // If the new timeout is greater than half the alert frequency,
+      // increase the alert frequency to maintain the 2:1 ratio
+      if (timeoutMinutes > alertFrequencyMinutes / 2) {
+        alertFrequencyMinutes = timeoutMinutes * 2;
+        
+        // Round up to the nearest minute for cleaner UI
+        alertFrequencyMinutes = (alertFrequencyMinutes.ceil()).toDouble();
+      }
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
-    // Remove SingleChildScrollView and just use a Column
+    // Calculate the current max timeout based on our constraints
+    final currentMaxTimeout = _maxTimeout;
+    
+    // Determine the number of divisions for the timeout slider based on max value
+    final timeoutDivisions = (currentMaxTimeout * 2).round(); // 0.5 minute increments
+    
     return Padding(
       padding: const EdgeInsets.only(bottom: 32.0),
       child: Column(
@@ -154,11 +225,11 @@ class _ResponderSettingsWidgetState extends State<ResponderSettingsWidget> {
               style: TextStyle(fontWeight: FontWeight.bold)),
           Slider(
             value: alertFrequencyMinutes,
-            min: 5,
+            min: timeoutMinutes * 2, // Minimum is twice the current timeout
             max: 360,
             divisions: 71,
             label: '${alertFrequencyMinutes.round()} min',
-            onChanged: (val) => setState(() => alertFrequencyMinutes = val),
+            onChanged: _handleAlertFrequencyChanged,
           ),
           const SizedBox(height: 8),
           Text('Response Timeout: ${timeoutMinutes.toStringAsFixed(1)} min',
@@ -166,10 +237,18 @@ class _ResponderSettingsWidgetState extends State<ResponderSettingsWidget> {
           Slider(
             value: timeoutMinutes,
             min: 0.5,
-            max: 10,
-            divisions: 19,
+            max: currentMaxTimeout, // Dynamically calculated max
+            divisions: timeoutDivisions,
             label: '${timeoutMinutes.toStringAsFixed(1)} min',
-            onChanged: (val) => setState(() => timeoutMinutes = val),
+            onChanged: _handleTimeoutChanged,
+          ),
+          // Add a helper text to explain constraints
+          Padding(
+            padding: const EdgeInsets.only(top: 4.0, bottom: 8.0),
+            child: Text(
+              'Note: Response timeout cannot exceed half of alert frequency or 15 minutes.',
+              style: TextStyle(fontSize: 12, color: Colors.grey[600], fontStyle: FontStyle.italic),
+            ),
           ),
           const SizedBox(height: 16),
           Center(

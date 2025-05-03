@@ -1,42 +1,6 @@
 danoggin
-A wellness check app
-com.blue_vistas.danoggin
-
-Prefered versions...
-	Flutter 3.29.2
-	Java 17
-	Gradle 8.4
-	Kotlin 1.9.10
-	Android Gradle Plugin 8.1.1
-	Dart 3.3.x
-	
-flutter compatible plugins...
-	firebase_core
-	shared_preferences
-
-Flutter run key commands.
-r Hot reload.
-R Hot restart.
-h List all available interactive commands.
-d Detach (terminate "flutter run" but leave application running).
-c Clear the screen
-q Quit (terminate the application on the device).
-
-Pat:	iPhone, iOS 18				pobrien57@gmail.com 
-Teresa:	iPhone, iOS 18.4			tessjob60@gmail.com 
-Sean:	Pixel 9 Pro XL, Android 15	obrienseanpat@gmail.com
-
-GIT - associating with cloud repository
-	git remote remove origin
-	
-Bitbucket
-	Gazpacho / bluevista@gmail.com
-	git remote add origin https://Gazpacho@bitbucket.org/Gazpacho/danoggin.git
-	git push -u master
-
-GitHub
-	git remote add origin https://github.com/GazpachoZen/danoggin.git
-	git push -u origin master
+	A wellness check app
+	com.blue_vistas.danoggin
 
 -------------------------
 keytool -genkey -v -keystore danoggin_key.jks -keyalg RSA -keysize 2048 -validity 10000 -alias danoggin
@@ -61,43 +25,28 @@ Generating 2,048 bit RSA key pair and self-signed certificate (SHA256withRSA) wi
         for: CN=John Ivory, OU=Unknown, O=Blue Vista Solutions, L=New Hartford, ST=NY, C=US
 [Storing danoggin_key.jks]
 
---------------------
+-------------------------
+Pat:	iPhone, iOS 18				pobrien57@gmail.com 
+Teresa:	iPhone, iOS 18.4			tessjob60@gmail.com 
+Sean:	Pixel 9 Pro XL, Android 15	obrienseanpat@gmail.com
 
+GIT - associating with cloud repository
+	git remote remove origin
+	
+Bitbucket
+	Gazpacho / bluevista@gmail.com
+	git remote add origin https://Gazpacho@bitbucket.org/Gazpacho/danoggin.git
+	git push -u master
+
+GitHub
+	git remote add origin https://github.com/GazpachoZen/danoggin.git
+	git push -u origin master
+
+--------------------
 flutter build apk --release
 build/app/outputs/flutter-apk/app-release.apk
 
---------------------
-
-5. Update Your UI Components
-You'll want to update various UI components to use your new color scheme. Here are a few examples:
-For QuizPage:
-
-dart// In quiz_page.dart, update the feedback colors
-
-	if (feedback != null)
-	  Text(
-		feedback!,
-		style: TextStyle(
-		  fontSize: 20,
-		  color: feedback == '✅ Correct!'
-			  ? AppColors.success
-			  : (feedback == '❌ Incorrect. Try again.'
-				  ? AppColors.warning
-				  : AppColors.error),
-		),
-	  ),
-	  
-For Buttons and UI Elements:
-
-	dartElevatedButton(
-	  style: ElevatedButton.styleFrom(
-		backgroundColor: isSelected ? AppColors.coral : AppColors.midBlue,
-	  ),
-	  onPressed: () { /* ... */ },
-	  child: Text('Submit'),
-	),
-
-=====================
+================================================================================
 Attached are the source files for an app called Danoggin. It is a cognitive check-in application with two primary user roles: Responders and Observers. The app is designed to monitor cognitive awareness through regular quiz-like check-ins. Admin functionality for the related Firestore database and images is provided through a family of Python scripts. Below is an overview of some key points. Please examine the source files to the point of understanding them, but no summary is needed. Await further instruction.
 
 Main roles...
@@ -121,30 +70,30 @@ Admin Tools...
 - Python scripts for backend management
 - Firebase management utilities
 
+Additional...
+- We are using Firestore's mechanism for test releases.
+
 ---------------------
-I'm interested in making sure that some of the configuration settings for a responder do not get into a confusing state. Specifically, the timeout interval for responding to a question should never be more than half of the time between questions; it should also never be more than 15 minutes. Said another way, the time between questions can never be less than twice the time limit for answering a question. Can we somehow limit the behavior of the two input sliders accordingly? Discuss your approach before making any code change suggestions.
+---------------------
+---------------------
+---------------------
 ---------------------
 Try all this with Tracy's phone.
 ---------------------
-Make installers and see if that works.
----------------------
-As this gets ready to roll out to the field, we'll need a way of managing version numbers. Any suggestions?
----------------------
----------------------
 JEI - remember to turn kDevModeEnabled back to false wherever it exists.
 ---------------------
-Danoggin should auto-start when phone powers up. Please discuss how this is accomplished before suggesting any code changes.
 ---------------------
 ---------------------
-The app presently uses anonymous authentication for Firebase. We need to button that up before making this app generally available. I'm not very familiar with Firebase. What would be the necessary steps?
+The app presently uses anonymous authentication for Firebase. We should probably button that up before making this app generally available. I'm not very familiar with Firebase. What would be the necessary steps?
 ------------------------------------------ LATER...
 Make a states and cities question pack. All the state capitals, etc.
 ---------------------
 As a future capability, we'll eventually want the apps to notice that updates are available.
 ---------------------
+Danoggin should auto-start when phone powers up. Please discuss how this is accomplished before suggesting any code changes.
 ---------------------
 ---------------------
-------------------------------------------------------------------------
+================================================================================
 What's left to do (according to Claude)...
 
 Version Management
