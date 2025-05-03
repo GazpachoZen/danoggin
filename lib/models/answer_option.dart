@@ -44,10 +44,28 @@ class AnswerOption {
         
         // If we have an image, we'll use it and ignore text
         if (hasImage) {
-          return Container(
+          Widget imageWidget = Container(
             height: constraints.maxHeight * 0.8,
             child: _buildImage(),
           );
+          
+          // Apply grayscale filter when disabled
+          if (disabled) {
+            imageWidget = ColorFiltered(
+              colorFilter: ColorFilter.matrix([
+                0.2126, 0.7152, 0.0722, 0, 0,
+                0.2126, 0.7152, 0.0722, 0, 0,
+                0.2126, 0.7152, 0.0722, 0, 0,
+                0,      0,      0,      1, 0,
+              ]), // Grayscale matrix
+              child: Opacity(
+                opacity: 0.5, // Also reduce opacity for disabled state
+                child: imageWidget,
+              ),
+            );
+          }
+          
+          return imageWidget;
         }
         
         // Only use text if there's no image

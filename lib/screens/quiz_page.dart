@@ -9,6 +9,7 @@ import 'package:danoggin/widgets/quiz/question_display.dart';
 import 'package:danoggin/widgets/quiz/answer_grid.dart';
 import 'package:danoggin/widgets/quiz/feedback_display.dart';
 import 'package:danoggin/utils/back_button_handler.dart';
+import 'package:danoggin/theme/app_colors.dart';
 
 // Add this near the top of the file, after imports
 const bool kDevModeEnabled = true; // Set to false for production
@@ -26,12 +27,12 @@ class _QuizPageState extends State<QuizPage> with WidgetsBindingObserver {
   late QuizController _controller;
   String _userName = "Responder"; // Default value
   final BackButtonHandler _backButtonHandler = BackButtonHandler();
-  
+
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
-    
+
     // Initialize the quiz controller
     _controller = QuizController(
       currentRole: widget.currentRole,
@@ -39,7 +40,7 @@ class _QuizPageState extends State<QuizPage> with WidgetsBindingObserver {
         if (mounted) setState(() {});
       },
     );
-    
+
     _controller.initialize();
     _loadUserName();
     _checkNotificationPermissions();
@@ -58,7 +59,7 @@ class _QuizPageState extends State<QuizPage> with WidgetsBindingObserver {
       setState(() {});
     }
   }
-  
+
   Future<void> _loadUserName() async {
     final name = await _controller.loadUserName();
     if (mounted) {
@@ -154,13 +155,14 @@ class _QuizPageState extends State<QuizPage> with WidgetsBindingObserver {
   Widget build(BuildContext context) {
     // Handle back button press with WillPopScope
     return WillPopScope(
-      onWillPop: () => _backButtonHandler.handleBackPress(context, _controller.currentRole),
+      onWillPop: () =>
+          _backButtonHandler.handleBackPress(context, _controller.currentRole),
       child: _controller.isLoading || _controller.currentQuestion == null
           ? _buildLoadingScreen()
           : _buildMainScreen(),
     );
   }
-  
+
   Widget _buildLoadingScreen() {
     return Scaffold(
       appBar: AppBar(
@@ -208,9 +210,24 @@ class _QuizPageState extends State<QuizPage> with WidgetsBindingObserver {
             ),
             SizedBox(height: 16),
             ElevatedButton(
-              onPressed: (_controller.uiDisabled || _controller.selectedAnswer == null) 
-                ? null 
-                : () => _controller.submitAnswer(),
+              onPressed:
+                  (_controller.uiDisabled || _controller.selectedAnswer == null)
+                      ? null
+                      : () => _controller.submitAnswer(),
+              style: ElevatedButton.styleFrom(
+                // Use coral from your color palette for a stronger color
+                backgroundColor: _controller.selectedAnswer != null
+                    ? AppColors.coral
+                    : AppColors.lightGray,
+                padding:
+                    const EdgeInsets.symmetric(vertical: 12, horizontal: 24),
+                textStyle: TextStyle(
+                  fontSize: _controller.selectedAnswer != null
+                      ? 20
+                      : 16, // Larger font when active
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
               child: Text('Submit'),
             ),
             SizedBox(height: 24),
@@ -258,10 +275,11 @@ class _QuizPageState extends State<QuizPage> with WidgetsBindingObserver {
     final result = await Navigator.push<dynamic>(
       context,
       MaterialPageRoute(
-        builder: (context) => SettingsPage(currentRole: _controller.currentRole),
+        builder: (context) =>
+            SettingsPage(currentRole: _controller.currentRole),
       ),
     );
-    
+
     // If result is true (boolean), pack selections or relationships have changed
     if (result == true) {
       // Reload the question packs to reflect new selections

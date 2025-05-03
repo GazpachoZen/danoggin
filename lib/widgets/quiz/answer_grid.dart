@@ -29,20 +29,38 @@ class AnswerGrid extends StatelessWidget {
       children: choices.map((answer) {
         final isSelected = selectedAnswer == answer;
         final isPreviousIncorrect = answer == previousIncorrectAnswer;
-        final isAnswerDisabled = isDisabled || isPreviousIncorrect;
+        
+        // Determine button disabled state
+        final isButtonDisabled = isDisabled || isPreviousIncorrect;
+
+        // Determine background color based on state
+        Color backgroundColor;
+        if (isDisabled) {
+          // After answering, all buttons return to gray
+          backgroundColor = AppColors.lightGray;
+        } else if (isPreviousIncorrect) {
+          // Incorrect answer from first attempt gets light pink
+          backgroundColor = Colors.pink.shade100;
+        } else if (isSelected) {
+          // Selected answer uses coral from palette
+          backgroundColor = AppColors.coral;
+        } else {
+          // Default state uses light gray
+          backgroundColor = AppColors.lightGray;
+        }
 
         return ElevatedButton(
-          onPressed: isAnswerDisabled
+          onPressed: isButtonDisabled
               ? null
               : () => onAnswerSelected(answer),
           style: ElevatedButton.styleFrom(
-            backgroundColor: isSelected ? AppColors.coral : AppColors.lightGray,
+            backgroundColor: backgroundColor,
             padding: EdgeInsets.all(4),
-            disabledBackgroundColor: isPreviousIncorrect
-                ? Colors.red.withOpacity(0.3)
-                : null,
+            disabledBackgroundColor: isPreviousIncorrect && !isDisabled
+                ? Colors.pink.shade100  // Keep pink for previous incorrect during second attempt
+                : Colors.grey.shade300,  // Gray for all buttons after final answer
           ),
-          child: answer.render(disabled: isAnswerDisabled),
+          child: answer.render(disabled: isButtonDisabled),
         );
       }).toList(),
     );
