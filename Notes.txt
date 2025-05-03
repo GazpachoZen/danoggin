@@ -83,6 +83,7 @@ Try all this with Tracy's phone.
 JEI - remember to turn kDevModeEnabled back to false wherever it exists.
 ---------------------
 ---------------------
+It would be nice to have a mechanism for an observer to somehow coerce a related responder's app to present a question.
 ---------------------
 The app presently uses anonymous authentication for Firebase. We should probably button that up before making this app generally available. I'm not very familiar with Firebase. What would be the necessary steps?
 ------------------------------------------ LATER...

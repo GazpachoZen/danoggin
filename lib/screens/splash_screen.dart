@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:package_info_plus/package_info_plus.dart';
 import 'package:danoggin/services/auth_service.dart';
 import 'package:danoggin/repositories/user_repository.dart';
 import 'package:danoggin/repositories/responder_settings_repository.dart';
@@ -24,6 +25,10 @@ class _SplashScreenState extends State<SplashScreen>
   late Animation<double> _fadeInAnimation;
   String _statusMessage = "Initializing...";
   bool _error = false;
+  
+  // Add version info state variables
+  String _version = "";
+  String _buildNumber = "";
 
   @override
   void initState() {
@@ -44,8 +49,11 @@ class _SplashScreenState extends State<SplashScreen>
 
     _controller.forward();
 
-    // Start the initialization process
-    _initializeApp();
+    // Get version info then start the initialization process
+    _getVersionInfo().then((_) {
+      // Start the initialization process
+      _initializeApp();
+    });
   }
 
   @override
@@ -54,7 +62,22 @@ class _SplashScreenState extends State<SplashScreen>
     super.dispose();
   }
 
-Future<void> _initializeApp() async {
+  // New method to fetch version information
+  Future<void> _getVersionInfo() async {
+    try {
+      PackageInfo packageInfo = await PackageInfo.fromPlatform();
+      setState(() {
+        _version = packageInfo.version;
+        _buildNumber = packageInfo.buildNumber;
+      });
+      print('App version: $_version+$_buildNumber');
+    } catch (e) {
+      print('Error getting package info: $e');
+      // If we can't get version info, just continue with empty values
+    }
+  }
+
+  Future<void> _initializeApp() async {
     try {
       // Initialize notification system first
       setState(() => _statusMessage = "Setting up notifications...");
@@ -113,69 +136,79 @@ Future<void> _initializeApp() async {
     }
   }
 
-// In splash_screen.dart
-@override
-Widget build(BuildContext context) {
-  return Scaffold(
-    // Use the skyBlue color for the background
-    backgroundColor: AppColors.skyBlue,
-    body: SafeArea(
-      child: Center(
-        child: FadeTransition(
-          opacity: _fadeInAnimation,
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Image.asset(
-                'assets/images/danoggin_icon.png',
-                width: 200,
-                height: 200,
-              ),
-              const SizedBox(height: 40),
-              // App name with the deep blue color
-              Text(
-                'Danoggin',
-                style: TextStyle(
-                  color: AppColors.deepBlue,
-                  fontSize: 42,
-                  fontWeight: FontWeight.bold,
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      // Use the skyBlue color for the background
+      backgroundColor: AppColors.skyBlue,
+      body: SafeArea(
+        child: Center(
+          child: FadeTransition(
+            opacity: _fadeInAnimation,
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Image.asset(
+                  'assets/images/danoggin_icon.png',
+                  width: 200,
+                  height: 200,
                 ),
-              ),
-              const SizedBox(height: 40),
-              // Status message with deep blue
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 24.0),
-                child: Text(
-                  _statusMessage,
+                const SizedBox(height: 40),
+                // App name with the deep blue color
+                Text(
+                  'Danoggin',
                   style: TextStyle(
-                    color: AppColors.deepBlue.withOpacity(0.9),
-                    fontSize: 16,
+                    color: AppColors.deepBlue,
+                    fontSize: 42,
+                    fontWeight: FontWeight.bold,
                   ),
-                  textAlign: TextAlign.center,
                 ),
-              ),
-              const SizedBox(height: 24),
-              if (!_error)
-                CircularProgressIndicator(
-                  valueColor: AlwaysStoppedAnimation<Color>(AppColors.deepBlue),
-                )
-              else
-                ElevatedButton(
-                  onPressed: () {
-                    setState(() {
-                      _error = false;
-                      _statusMessage = "Retrying...";
-                    });
-                    _initializeApp();
-                  },
-                  child: const Text('Retry'),
+                // Display version number if available
+                if (_version.isNotEmpty)
+                  Padding(
+                    padding: const EdgeInsets.only(top: 8.0),
+                    child: Text(
+                      'v$_version (Build $_buildNumber)',
+                      style: TextStyle(
+                        color: AppColors.deepBlue.withOpacity(0.7),
+                        fontSize: 14,
+                      ),
+                    ),
+                  ),
+                const SizedBox(height: 40),
+                // Status message with deep blue
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 24.0),
+                  child: Text(
+                    _statusMessage,
+                    style: TextStyle(
+                      color: AppColors.deepBlue.withOpacity(0.9),
+                      fontSize: 16,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
                 ),
-            ],
+                const SizedBox(height: 24),
+                if (!_error)
+                  CircularProgressIndicator(
+                    valueColor: AlwaysStoppedAnimation<Color>(AppColors.deepBlue),
+                  )
+                else
+                  ElevatedButton(
+                    onPressed: () {
+                      setState(() {
+                        _error = false;
+                        _statusMessage = "Retrying...";
+                      });
+                      _initializeApp();
+                    },
+                    child: const Text('Retry'),
+                  ),
+              ],
+            ),
           ),
         ),
       ),
-    ),
-  );
-}
-
+    );
+  }
 }
