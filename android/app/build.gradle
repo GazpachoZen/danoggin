@@ -14,13 +14,13 @@ if (keystorePropertiesFile.exists()) {
 android {
     compileSdkVersion 34
     defaultConfig {
-        applicationId "com.blue_vistas.danoggin"
+        applicationId "com.bluevistasolutions.danoggin"
         minSdkVersion 23
         targetSdkVersion 34
         versionCode 5
         versionName "0.1.0"
     }
-    namespace = "com.blue_vistas.danoggin"
+    namespace = "com.bluevistasolutions.danoggin"
     compileSdk = flutter.compileSdkVersion
     ndkVersion = flutter.ndkVersion
 
