@@ -71,22 +71,25 @@ Admin Tools...
 - Firebase management utilities
 
 Additional...
-- We are using Firestore's mechanism for test releases.
+- We are using Firestore's mechanism for test Android releases and the Apple Store for iOS releases.
+================================================================================
 
 ---------------------
 ---------------------
 ---------------------
 ---------------------
+I'd like to be more judicious about what exactly is getting archived away with Git, especially as it pertains to what makes its way up to GitHub. 
 ---------------------
 Try all this with Tracy's phone.
 ---------------------
 JEI - remember to turn kDevModeEnabled back to false wherever it exists.
 ---------------------
+For the responder buttons, I find the "coral" highlight be too close to red. Can we change that to one of the blues?
 ---------------------
 It would be nice to have a mechanism for an observer to somehow coerce a related responder's app to present a question.
 ---------------------
 The app presently uses anonymous authentication for Firebase. We should probably button that up before making this app generally available. I'm not very familiar with Firebase. What would be the necessary steps?
------------------------------------------- LATER...
+>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> LATER...
 Make a states and cities question pack. All the state capitals, etc.
 ---------------------
 As a future capability, we'll eventually want the apps to notice that updates are available.
