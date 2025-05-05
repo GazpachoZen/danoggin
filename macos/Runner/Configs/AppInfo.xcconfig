@@ -8,7 +8,7 @@
 PRODUCT_NAME = danoggin
 
 // The application's bundle identifier
-PRODUCT_BUNDLE_IDENTIFIER = com.blue_vistas.danoggin
+PRODUCT_BUNDLE_IDENTIFIER = com.bluevistasolutions.danoggin
 
 // The copyright displayed in application information
-PRODUCT_COPYRIGHT = Copyright © 2025 com.blue_vistas. All rights reserved.
+PRODUCT_COPYRIGHT = Copyright © 2025 com.bluevistasolutions. All rights reserved.

@@ -1,6 +1,6 @@
 danoggin
 	A wellness check app
-	com.blue_vistas.danoggin
+	com.bluevistasolutions.danoggin
 
 -------------------------
 keytool -genkey -v -keystore danoggin_key.jks -keyalg RSA -keysize 2048 -validity 10000 -alias danoggin

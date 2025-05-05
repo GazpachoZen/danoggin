@@ -78,7 +78,7 @@ Unresolved reference: flutter_embedding_android
 **Fix:**
 Ensure `MainActivity.kt` looks like this:
 ```kotlin
-package com.blue_vistas.danoggin
+package com.bluevistasolutions.danoggin
 
 import io.flutter.embedding.android.FlutterActivity
 
