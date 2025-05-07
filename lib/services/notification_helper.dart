@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'dart:async';
+import 'package:device_info_plus/device_info_plus.dart';
 
 class NotificationHelper {
   static final FlutterLocalNotificationsPlugin _notifications =
@@ -19,6 +20,9 @@ class NotificationHelper {
   static Stream<dynamic> get notificationEventStream => 
       _notificationStreamController.stream;
 
+  // Track permission dialog state
+  static bool _permissionDialogShown = false;
+
   /// Initialize the notification plugin
   static Future<void> initialize() async {
     if (_isInitialized) return;
@@ -36,7 +40,6 @@ class NotificationHelper {
       initSettings,
       onDidReceiveNotificationResponse: (NotificationResponse response) {
         print('Notification clicked: ${response.id}');
-        // Add this line to broadcast the notification event
         _notificationStreamController.add(response);
       },
     );
@@ -49,53 +52,62 @@ class NotificationHelper {
       importance: Importance.high,
     );
 
-    await _notifications
-        .resolvePlatformSpecificImplementation<
-            AndroidFlutterLocalNotificationsPlugin>()
-        ?.createNotificationChannel(channel);
-        
-    // Set up the background notification handler
-    final androidPlugin = _notifications.resolvePlatformSpecificImplementation<
-        AndroidFlutterLocalNotificationsPlugin>();
+    final androidPlugin = _notifications
+        .resolvePlatformSpecificImplementation
+            <AndroidFlutterLocalNotificationsPlugin>();
+            
     if (androidPlugin != null) {
-      androidPlugin.createNotificationChannel(channel).then((_) {
-        print('Notification channel created successfully');
-      });
+      await androidPlugin.createNotificationChannel(channel);
+      print('Notification channel created successfully');
     }
-
+        
     _isInitialized = true;
     print('Notifications initialized successfully');
   }
 
   /// Check if notifications are enabled in system settings
   static Future<bool> areNotificationsEnabled() async {
-    final androidPlugin = _notifications.resolvePlatformSpecificImplementation<
-        AndroidFlutterLocalNotificationsPlugin>();
+    if (!_isInitialized) {
+      await initialize();
+    }
+    
+    final androidPlugin = _notifications.resolvePlatformSpecificImplementation
+        <AndroidFlutterLocalNotificationsPlugin>();
 
     if (androidPlugin == null) return false;
 
     try {
-      // If this method exists it will return true/false
-      return await androidPlugin.areNotificationsEnabled() ?? false;
+      // Check if notifications are enabled
+      final enabled = await androidPlugin.areNotificationsEnabled() ?? false;
+      print('Notification permission status: $enabled');
+      return enabled;
     } catch (e) {
-      // If the method doesn't exist, we can't check, so assume enabled
-      print('Could not check notification permissions: $e');
-      return true;
+      print('Error checking notification permissions: $e');
+      return false;
     }
   }
 
   /// Show notification with high priority
-  static Future<void> showAlert({
+  static Future<bool> showAlert({
     required int id,
     required String title,
     required String body,
-    bool triggerRefresh = true, // Add this parameter to control when to emit event
+    bool triggerRefresh = true,
   }) async {
+    print('Attempting to show notification: id=$id, title=$title');
+    
     if (!_isInitialized) {
       await initialize();
     }
 
     try {
+      // Check if notifications are enabled
+      final enabled = await areNotificationsEnabled();
+      if (!enabled) {
+        print('Notifications are not enabled for this app');
+        return false;
+      }
+
       const AndroidNotificationDetails androidDetails =
           AndroidNotificationDetails(
         _channelId,
@@ -116,27 +128,30 @@ class NotificationHelper {
         platformDetails,
       );
       
-      // Only emit the event if triggerRefresh is true
       if (triggerRefresh) {
         _notificationStreamController.add({'id': id, 'title': title, 'body': body});
         print('Emitted notification event for refresh');
       }
 
-      print('Alert notification sent: $title - $body');
+      print('Alert notification sent successfully');
+      return true;
     } catch (e) {
       print('Error showing notification: $e');
+      return false;
     }
   }
 
   /// Test notifications to verify they work
-  static Future<void> testNotification() async {
+  static Future<bool> testNotification() async {
     final id = DateTime.now().millisecond;
-    await showAlert(
+    final result = await showAlert(
       id: id,
       title: 'Danoggin Test',
-      body:
-          'This is a test notification. If you see this, notifications are working!',
+      body: 'This is a test notification. If you see this, notifications are working!',
     );
+    
+    print('Test notification result: $result');
+    return result;
   }
   
   /// Cancel/remove a specific notification by ID
@@ -159,50 +174,71 @@ class NotificationHelper {
     }
   }
 
-  /// Show an in-app alert dialog as a backup for system notifications
-  static void showInAppAlert(
-      BuildContext context, String title, String message, {VoidCallback? onAcknowledge}) {
-    showDialog(
-      context: context,
-      barrierDismissible: false, // Force user to acknowledge
-      builder: (context) => AlertDialog(
-        title: Text(title),
-        content: Text(message),
-        actions: [
-          TextButton(
-            onPressed: () {
-              Navigator.pop(context);
-              if (onAcknowledge != null) {
-                onAcknowledge();
-              }
-            },
-            child: Text('OK'),
-          ),
-        ],
-      ),
-    );
+  /// Check Android SDK version
+  static Future<int> _getAndroidSdkVersion() async {
+    try {
+      final deviceInfo = DeviceInfoPlugin();
+      final androidInfo = await deviceInfo.androidInfo;
+      return androidInfo.version.sdkInt;
+    } catch (e) {
+      print('Error getting Android SDK version: $e');
+      return 0; // Default to 0 if can't determine
+    }
   }
 
   /// Show a notification permissions dialog
   static Future<void> showPermissionDialog(BuildContext context) async {
+    // Don't show multiple times
+    if (_permissionDialogShown) return;
+    _permissionDialogShown = true;
+    
+    // Check current Android version
+    final sdkVersion = await _getAndroidSdkVersion();
+    print('Android SDK version: $sdkVersion');
+    
     bool enabled = false;
-
     try {
       enabled = await areNotificationsEnabled();
     } catch (e) {
       print('Error checking notification permissions: $e');
-      // If we can't check, don't show the dialog
-      return;
     }
 
     if (!enabled && context.mounted) {
+      // Prepare special instructions for Android 13+ (API 33+)
+      final String instructions = sdkVersion >= 33
+          ? 'On Android 13 or higher, you will need to explicitly grant notification permission when prompted.'
+          : 'You need to enable notifications in your device settings.';
+      
       showDialog(
         context: context,
+        barrierDismissible: false,
         builder: (context) => AlertDialog(
-          title: Text('Enable Notifications'),
-          content: Text('Notifications appear to be disabled for this app. '
-              'Notifications are important for alerting you to check-in issues. '
-              'Would you like to see instructions for enabling them?'),
+          title: const Text('Enable Notifications'),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'Danoggin requires notifications to function properly.',
+                style: TextStyle(fontWeight: FontWeight.bold),
+              ),
+              SizedBox(height: 8),
+              Text(instructions),
+              SizedBox(height: 12),
+              Text('To enable notifications for Danoggin:'),
+              SizedBox(height: 8),
+              Text('1. Open your device Settings'),
+              Text('2. Tap on Apps or Application Manager'),
+              Text('3. Find and tap on "Danoggin"'),
+              Text('4. Tap on Notifications'),
+              Text('5. Enable "Allow notifications"'),
+              SizedBox(height: 12),
+              Text(
+                'After enabling notifications, return to the app and tap the "Test Notifications" button in the app bar.',
+                style: TextStyle(fontStyle: FontStyle.italic),
+              ),
+            ],
+          ),
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(context),
@@ -213,7 +249,7 @@ class NotificationHelper {
                 Navigator.pop(context);
                 openNotificationSettings(context);
               },
-              child: Text('Show Instructions'),
+              child: Text('Show Settings Instructions'),
             ),
           ],
         ),

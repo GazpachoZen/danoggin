@@ -45,6 +45,10 @@ GitHub
 --------------------
 flutter build apk --release
 build/app/outputs/flutter-apk/app-release.apk
+https://console.firebase.google.com/project/danoggin-d0478/overview
+Then... "App distribution" on left side
+Make sure it's set to "Danoggin Android" at the top
+Drag and drop the release version
 
 ================================================================================
 Attached are the source files for an app called Danoggin. It is a cognitive check-in application with two primary user roles: Responders and Observers. The app is designed to monitor cognitive awareness through regular quiz-like check-ins. Admin functionality for the related Firestore database and images is provided through a family of Python scripts. Below is an overview of some key points. Please examine the source files to the point of understanding them, but no summary is needed. Await further instruction.
@@ -71,7 +75,8 @@ Admin Tools...
 - Firebase management utilities
 
 Additional...
-- We are using Firestore's mechanism for test Android releases and the Apple Store for iOS releases.
+- We are using Firestore's mechanism for test Android releases
+- We are using TestFlight from Apples' App Store Connect for releases on iOS
 ================================================================================
 
 ---------------------
@@ -96,6 +101,7 @@ As a future capability, we'll eventually want the apps to notice that updates ar
 ---------------------
 Danoggin should auto-start when phone powers up. Please discuss how this is accomplished before suggesting any code changes.
 ---------------------
+Add license agreement for the animal images I use.
 ---------------------
 ================================================================================
 What's left to do (according to Claude)...
@@ -304,3 +310,54 @@ Gilligan's Island
 	Mr. Howle
 	Mrs. Howle
 
+===========================
+
+END-USER LICENSE AGREEMENT (EULA) FOR DANOGGIN
+
+Effective Date: 5/6/2025
+
+This End-User License Agreement ("Agreement") is a legal agreement between you ("User") and Blue Vistas Solutions LLC ("Licensor") for the use of the mobile application "Danoggin" ("App"). By downloading, installing, or using the App, you agree to be bound by the terms of this Agreement.
+
+1. License Grant
+Licensor grants you a limited, non-exclusive, non-transferable, revocable license to use the App for personal, non-commercial purposes on your compatible mobile devices, subject to the terms of this Agreement.
+
+2. Restrictions
+You may not:
+
+Modify, reverse engineer, decompile, or disassemble the App.
+
+Distribute, resell, or sublicense the App to any third party.
+
+Use the App for any unlawful purpose or in a way that could harm others.
+
+Circumvent any security or authentication measures of the App.
+
+3. Ownership
+All intellectual property rights in and to the App, including source code, content, design, and trademarks, are and shall remain the exclusive property of Licensor or its licensors. This Agreement does not transfer any ownership rights to the User.
+
+4. Data and Privacy
+The App may collect and store certain data related to your usage to enable core features such as responder check-ins, observer alerts, and question response tracking. All data is handled in accordance with our [Privacy Policy] [insert link].
+
+5. Updates
+Licensor may issue updates or upgrades to the App from time to time. Such updates may be automatic or require manual installation and are subject to the terms of this Agreement.
+
+6. Termination
+This license is effective until terminated. It will terminate automatically without notice if you fail to comply with any term of this Agreement. Upon termination, you must delete all copies of the App from your devices.
+
+7. Disclaimer of Warranties
+The App is provided "as is" and "as available" without warranty of any kind. Licensor disclaims all warranties, express or implied, including but not limited to warranties of merchantability, fitness for a particular purpose, and non-infringement.
+
+8. Limitation of Liability
+To the maximum extent permitted by law, Licensor shall not be liable for any indirect, incidental, consequential, or special damages arising out of or in connection with the use or inability to use the App, even if advised of the possibility of such damages.
+
+9. Governing Law
+This Agreement shall be governed by and construed in accordance with the laws of the State of [Insert State], without regard to its conflict of law principles.
+
+10. Contact
+For questions about this Agreement or the App, contact:
+Blue Vistas Solutions LLC
+bluevista+danoggin@gmail.com
+
+----------------------------
+
+The app will periodically present a relatively trivial random question to a user over the course of a day. Whenever they answer incorrectly or neglect to answer at all, a notification is sent to a friend or relative that. This allows the Observer to know that something might be amiss and then check in on the Responder. It is meant to be a relatively non-intrusive way for somebody with a possible cognitive issue to maintain a level of independence while giving peace of mind to a care-giver.

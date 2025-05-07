@@ -1,14 +1,25 @@
 import 'package:flutter/material.dart';
 import 'screens/splash_screen.dart';
 import 'services/notification_helper.dart';
-import 'theme/app_theme.dart';  // Import your theme
+import 'theme/app_theme.dart';
 
 void main() async {
   // Ensure Flutter binding is initialized
   WidgetsFlutterBinding.ensureInitialized();
   
+  // Initialize notifications early but don't show dialogs yet
+  try {
+    await NotificationHelper.initialize();
+    print('Notification system initialized in main()');
+  } catch (e) {
+    print('Error initializing notifications in main(): $e');
+    // Continue even if notification initialization fails
+  }
+  
   // Run the app with splash screen
-  runApp(const MyApp());
+  runApp(AppLifecycleHandler(
+    child: const MyApp(),
+  ));
 }
 
 class MyApp extends StatelessWidget {
@@ -44,8 +55,9 @@ class _NotificationPermissionObserver extends NavigatorObserver {
       _permissionCheckDone = true;
       
       // Delay slightly to ensure UI is fully loaded
-      Future.delayed(Duration(seconds: 1), () async {
+      Future.delayed(Duration(seconds: 2), () async {
         if (navigator?.context != null) {
+          print('Checking notification permissions after app loaded');
           await NotificationHelper.showPermissionDialog(navigator!.context);
         }
       });
@@ -53,8 +65,33 @@ class _NotificationPermissionObserver extends NavigatorObserver {
   }
 }
 
-// TODO: Register cleanup handler for app termination
-// void _cleanupResources() {
-//   // Clean up the notification stream controller
-//   NotificationHelper.dispose();
-// }
+// App lifecycle handler to clean up resources
+class AppLifecycleHandler extends StatefulWidget {
+  final Widget child;
+  
+  const AppLifecycleHandler({Key? key, required this.child}) : super(key: key);
+  
+  @override
+  _AppLifecycleHandlerState createState() => _AppLifecycleHandlerState();
+}
+
+class _AppLifecycleHandlerState extends State<AppLifecycleHandler> with WidgetsBindingObserver {
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addObserver(this);
+  }
+  
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    // Clean up resources
+    NotificationHelper.dispose();
+    super.dispose();
+  }
+  
+  @override
+  Widget build(BuildContext context) {
+    return widget.child;
+  }
+}

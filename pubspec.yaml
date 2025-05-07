@@ -16,7 +16,7 @@ publish_to: 'none' # Remove this line if you wish to publish to pub.dev
 # https://developer.apple.com/library/archive/documentation/General/Reference/InfoPlistKeyReference/Articles/CoreFoundationKeys.html
 # In Windows, build-name is used as the major, minor, and patch parts
 # of the product and file versions while build-number is used as the build suffix.
-version: 0.1.0+6
+version: 0.1.0+9
 
 environment:
   sdk: ^3.5.4
@@ -40,6 +40,7 @@ dependencies:
   timeago: ^3.6.0
   auto_size_text: ^3.0.0
   package_info_plus: ^4.0.0
+  device_info_plus: ^9.0.0
   
   # Add these new dependencies with null safety compatible versions 
   firebase_storage: ^12.4.5  # As suggested by the error message

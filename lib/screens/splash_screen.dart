@@ -25,7 +25,7 @@ class _SplashScreenState extends State<SplashScreen>
   late Animation<double> _fadeInAnimation;
   String _statusMessage = "Initializing...";
   bool _error = false;
-  
+
   // Add version info state variables
   String _version = "";
   String _buildNumber = "";
@@ -81,7 +81,13 @@ class _SplashScreenState extends State<SplashScreen>
     try {
       // Initialize notification system first
       setState(() => _statusMessage = "Setting up notifications...");
-      await NotificationHelper.initialize();
+      try {
+        await NotificationHelper.initialize();
+        print('Notification system initialized successfully');
+      } catch (e) {
+        print('Error initializing notifications: $e');
+        // Continue with app initialization even if notifications fail
+      }
 
       // Initialize time zone helper
       setState(() => _statusMessage = "Initializing time zones...");
@@ -105,7 +111,7 @@ class _SplashScreenState extends State<SplashScreen>
       final uid = AuthService.currentUserId;
       final role = await UserRepository.getUserRole(uid);
       print('Role from Firestore: $role');
-      
+
       // Sync settings to Firestore if needed
       if (role == UserRole.responder) {
         setState(() => _statusMessage = "Syncing your settings...");
@@ -191,7 +197,8 @@ class _SplashScreenState extends State<SplashScreen>
                 const SizedBox(height: 24),
                 if (!_error)
                   CircularProgressIndicator(
-                    valueColor: AlwaysStoppedAnimation<Color>(AppColors.deepBlue),
+                    valueColor:
+                        AlwaysStoppedAnimation<Color>(AppColors.deepBlue),
                   )
                 else
                   ElevatedButton(
