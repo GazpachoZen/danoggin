@@ -51,7 +51,7 @@ Make sure it's set to "Danoggin Android" at the top
 Drag and drop the release version
 
 ================================================================================
-Attached are the source files for an app called Danoggin. It is a cognitive check-in application with two primary user roles: Responders and Observers. The app is designed to monitor cognitive awareness through regular quiz-like check-ins. Admin functionality for the related Firestore database and images is provided through a family of Python scripts. Below is an overview of some key points. Please examine the source files to the point of understanding them, but no summary is needed. Await further instruction.
+Attached are the source files for an app called Danoggin. It is a cognitive check-in application with two primary user roles: Responders and Observers. The app is designed to monitor cognitive awareness through regular quiz-like check-ins. Admin functionality for the related Firestore database and images is provided through a family of Python scripts. Below is an overview of some key points. Please examine the source files to the point of understanding them; DO NOT PROVIDE A SUMMARY. Await further instruction.
 
 Main roles...
 - Responders: Users who answer periodic quiz questions
@@ -75,8 +75,9 @@ Admin Tools...
 - Firebase management utilities
 
 Additional...
+- I do not have access to a Mac; I am not using xCode. My iOS builds are handled exclusively through codemagic.
 - We are using Firestore's mechanism for test Android releases
-- We are using TestFlight from Apples' App Store Connect for releases on iOS
+- We are using Diawi for releases on iOS
 ================================================================================
 
 ---------------------

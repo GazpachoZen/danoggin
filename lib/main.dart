@@ -24,6 +24,13 @@ void main() async {
     // Continue even if notification initialization fails
   }
 
+  // Catch any global errors during initialization
+  FlutterError.onError = (FlutterErrorDetails details) {
+    print('Flutter error caught: ${details.exception}');
+    print('Stack trace: ${details.stack}');
+    FlutterError.presentError(details);
+  };
+
   // Run the app with splash screen
   runApp(AppLifecycleHandler(
     child: const MyApp(),
