@@ -50,8 +50,8 @@ class AnswerGrid extends StatelessWidget {
           // Incorrect answer from first attempt gets light pink
           backgroundColor = Colors.pink.shade100;
         } else if (isSelected) {
-          // Selected answer uses coral from palette
-          backgroundColor = AppColors.coral;
+          // Selected answer uses midBlue from palette
+          backgroundColor = AppColors.midBlue;
         } else {
           // Default state uses light gray
           backgroundColor = AppColors.lightGray;

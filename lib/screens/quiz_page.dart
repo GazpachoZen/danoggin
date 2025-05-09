@@ -215,9 +215,9 @@ class _QuizPageState extends State<QuizPage> with WidgetsBindingObserver {
                       ? null
                       : () => _controller.submitAnswer(),
               style: ElevatedButton.styleFrom(
-                // Use coral from your color palette for a stronger color
+                // Use midBlue from your color palette for a stronger color
                 backgroundColor: _controller.selectedAnswer != null
-                    ? AppColors.coral
+                    ? AppColors.skyBlue
                     : AppColors.lightGray,
                 padding:
                     const EdgeInsets.symmetric(vertical: 12, horizontal: 24),
