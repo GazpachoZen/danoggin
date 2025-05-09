@@ -1,3 +1,11 @@
+// Copyright (c) 2025, Blue Vista Solutions.  All rights reserved.
+//
+// This source code is part of the Danoggin project and is intended for
+// internal or authorized use only. Unauthorized copying, modification, or
+// distribution of this file, via any medium, is strictly prohibited. For
+// licensing or permissions, contact: danoggin@blue-vistas.com
+//------------------------------------------------------------------------
+
 // widgets/question_pack_selector_widget.dart
 import 'package:flutter/material.dart';
 import 'package:danoggin/models/question_pack.dart';
@@ -5,17 +13,19 @@ import 'package:danoggin/services/question_pack_service.dart';
 
 class QuestionPackSelectorWidget extends StatefulWidget {
   final VoidCallback? onPacksChanged;
-  
+
   const QuestionPackSelectorWidget({
     super.key,
     this.onPacksChanged,
   });
 
   @override
-  State<QuestionPackSelectorWidget> createState() => _QuestionPackSelectorWidgetState();
+  State<QuestionPackSelectorWidget> createState() =>
+      _QuestionPackSelectorWidgetState();
 }
 
-class _QuestionPackSelectorWidgetState extends State<QuestionPackSelectorWidget> {
+class _QuestionPackSelectorWidgetState
+    extends State<QuestionPackSelectorWidget> {
   List<QuestionPack> _availablePacks = [];
   Set<String> _selectedPackIds = {};
   bool _isLoading = true;
@@ -28,14 +38,14 @@ class _QuestionPackSelectorWidgetState extends State<QuestionPackSelectorWidget>
 
   Future<void> _loadData() async {
     setState(() => _isLoading = true);
-    
+
     try {
       // Load all available packs
       final allPacks = await QuestionPackService.getAvailablePacks();
-      
+
       // Load user's current selections
       final userPacks = await QuestionPackService.getUserPacks();
-      
+
       setState(() {
         _availablePacks = allPacks;
         _selectedPackIds = Set.from(userPacks.subscribedPackIds);
@@ -49,19 +59,19 @@ class _QuestionPackSelectorWidgetState extends State<QuestionPackSelectorWidget>
 
   Future<void> _saveSelections() async {
     setState(() => _isLoading = true);
-    
+
     try {
       // Ensure at least one pack is selected
       if (_selectedPackIds.isEmpty) {
         _selectedPackIds.add('demo_pack');
       }
-      
+
       await QuestionPackService.updateUserPacks(_selectedPackIds.toList());
-      
+
       if (widget.onPacksChanged != null) {
         widget.onPacksChanged!();
       }
-      
+
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Question packs updated')),
       );
@@ -110,7 +120,7 @@ class _QuestionPackSelectorWidgetState extends State<QuestionPackSelectorWidget>
 
   Widget _buildCompactPackCheckbox(QuestionPack pack) {
     final isSelected = _selectedPackIds.contains(pack.id);
-    
+
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 4.0),
       child: CheckboxListTile(

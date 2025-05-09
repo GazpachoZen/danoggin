@@ -1,3 +1,11 @@
+// Copyright (c) 2025, Blue Vista Solutions.  All rights reserved.
+//
+// This source code is part of the Danoggin project and is intended for
+// internal or authorized use only. Unauthorized copying, modification, or
+// distribution of this file, via any medium, is strictly prohibited. For
+// licensing or permissions, contact: danoggin@blue-vistas.com
+//------------------------------------------------------------------------
+
 // Modified version of responder_settings_widget.dart
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -10,7 +18,7 @@ import 'package:danoggin/services/auth_service.dart';
 class ResponderSettingsWidget extends StatefulWidget {
   // Add callback for relationship changes
   final VoidCallback? onRelationshipsChanged;
-  
+
   const ResponderSettingsWidget({
     super.key,
     this.onRelationshipsChanged,
@@ -29,7 +37,7 @@ class _ResponderSettingsWidgetState extends State<ResponderSettingsWidget> {
 
   // Constants for constraints
   final double maxTimeoutMinutes = 15.0;
-  
+
   @override
   void initState() {
     super.initState();
@@ -38,22 +46,22 @@ class _ResponderSettingsWidgetState extends State<ResponderSettingsWidget> {
 
   Future<void> _loadPrefs() async {
     final prefs = await SharedPreferences.getInstance();
-    
+
     // Load settings from preferences
     final savedStartHour = _getTimeOfDay(prefs.getString('startHour'));
     final savedEndHour = _getTimeOfDay(prefs.getString('endHour'));
     final savedAlertFrequency = prefs.getDouble('alertFrequency');
     final savedTimeout = prefs.getDouble('timeoutDuration');
-    
+
     setState(() {
       startHour = savedStartHour ?? startHour;
       endHour = savedEndHour ?? endHour;
-      
+
       // Load alert frequency first
       if (savedAlertFrequency != null) {
         alertFrequencyMinutes = savedAlertFrequency;
       }
-      
+
       // Then load timeout ensuring it respects the constraints
       if (savedTimeout != null) {
         timeoutMinutes = _constrainTimeout(savedTimeout);
@@ -64,17 +72,20 @@ class _ResponderSettingsWidgetState extends State<ResponderSettingsWidget> {
   // Helper method to constrain timeout value based on alert frequency
   double _constrainTimeout(double timeout) {
     // Never more than maxTimeoutMinutes
-    double constrainedTimeout = timeout > maxTimeoutMinutes ? maxTimeoutMinutes : timeout;
+    double constrainedTimeout =
+        timeout > maxTimeoutMinutes ? maxTimeoutMinutes : timeout;
     // Never more than half of alert frequency
-    constrainedTimeout = constrainedTimeout > alertFrequencyMinutes / 2 ? 
-        alertFrequencyMinutes / 2 : constrainedTimeout;
+    constrainedTimeout = constrainedTimeout > alertFrequencyMinutes / 2
+        ? alertFrequencyMinutes / 2
+        : constrainedTimeout;
     return constrainedTimeout;
   }
 
   // Get maximum timeout value based on current alert frequency
   double get _maxTimeout {
-    return (alertFrequencyMinutes / 2) < maxTimeoutMinutes ? 
-        (alertFrequencyMinutes / 2) : maxTimeoutMinutes;
+    return (alertFrequencyMinutes / 2) < maxTimeoutMinutes
+        ? (alertFrequencyMinutes / 2)
+        : maxTimeoutMinutes;
   }
 
   TimeOfDay? _getTimeOfDay(String? value) {
@@ -96,20 +107,20 @@ class _ResponderSettingsWidgetState extends State<ResponderSettingsWidget> {
 
   Future<void> _savePrefs() async {
     final prefs = await SharedPreferences.getInstance();
-    
+
     // Ensure timeout conforms to constraints before saving
     timeoutMinutes = _constrainTimeout(timeoutMinutes);
-    
+
     // Format the hours for storage
     final startHourStr = _formatTimeOfDay(startHour);
     final endHourStr = _formatTimeOfDay(endHour);
-    
+
     // Save locally to SharedPreferences
     await prefs.setString('startHour', startHourStr);
     await prefs.setString('endHour', endHourStr);
     await prefs.setDouble('alertFrequency', alertFrequencyMinutes);
     await prefs.setDouble('timeoutDuration', timeoutMinutes);
-    
+
     // Sync to Firestore for observer visibility
     try {
       final uid = AuthService.currentUserId;
@@ -118,7 +129,7 @@ class _ResponderSettingsWidgetState extends State<ResponderSettingsWidget> {
         startHour: startHourStr,
         endHour: endHourStr,
       );
-      
+
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('Settings saved successfully'),
@@ -127,7 +138,7 @@ class _ResponderSettingsWidgetState extends State<ResponderSettingsWidget> {
       );
     } catch (e) {
       print('Error syncing settings to Firestore: $e');
-      
+
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('Error saving cloud settings: $e'),
@@ -165,7 +176,7 @@ class _ResponderSettingsWidgetState extends State<ResponderSettingsWidget> {
   void _handleAlertFrequencyChanged(double newValue) {
     setState(() {
       alertFrequencyMinutes = newValue;
-      
+
       // Auto-constrain timeout if needed
       if (timeoutMinutes > _maxTimeout) {
         timeoutMinutes = _maxTimeout;
@@ -178,12 +189,12 @@ class _ResponderSettingsWidgetState extends State<ResponderSettingsWidget> {
     setState(() {
       // First, apply the new timeout value
       timeoutMinutes = newValue;
-      
+
       // If the new timeout is greater than half the alert frequency,
       // increase the alert frequency to maintain the 2:1 ratio
       if (timeoutMinutes > alertFrequencyMinutes / 2) {
         alertFrequencyMinutes = timeoutMinutes * 2;
-        
+
         // Round up to the nearest minute for cleaner UI
         alertFrequencyMinutes = (alertFrequencyMinutes.ceil()).toDouble();
       }
@@ -194,10 +205,11 @@ class _ResponderSettingsWidgetState extends State<ResponderSettingsWidget> {
   Widget build(BuildContext context) {
     // Calculate the current max timeout based on our constraints
     final currentMaxTimeout = _maxTimeout;
-    
+
     // Determine the number of divisions for the timeout slider based on max value
-    final timeoutDivisions = (currentMaxTimeout * 2).round(); // 0.5 minute increments
-    
+    final timeoutDivisions =
+        (currentMaxTimeout * 2).round(); // 0.5 minute increments
+
     return Padding(
       padding: const EdgeInsets.only(bottom: 32.0),
       child: Column(
@@ -247,7 +259,10 @@ class _ResponderSettingsWidgetState extends State<ResponderSettingsWidget> {
             padding: const EdgeInsets.only(top: 4.0, bottom: 8.0),
             child: Text(
               'Note: Response timeout cannot exceed half of alert frequency or 15 minutes.',
-              style: TextStyle(fontSize: 12, color: Colors.grey[600], fontStyle: FontStyle.italic),
+              style: TextStyle(
+                  fontSize: 12,
+                  color: Colors.grey[600],
+                  fontStyle: FontStyle.italic),
             ),
           ),
           const SizedBox(height: 16),
@@ -258,7 +273,7 @@ class _ResponderSettingsWidgetState extends State<ResponderSettingsWidget> {
             ),
           ),
           const Divider(height: 32),
-          
+
           // Add the question pack selector with better spacing
           Padding(
             padding: const EdgeInsets.only(bottom: 8.0),
@@ -266,7 +281,7 @@ class _ResponderSettingsWidgetState extends State<ResponderSettingsWidget> {
               onPacksChanged: _handlePackSelectionChanged,
             ),
           ),
-          
+
           const Divider(height: 32),
           ListTile(
             leading: const Icon(Icons.key),
@@ -288,14 +303,16 @@ class _ResponderSettingsWidgetState extends State<ResponderSettingsWidget> {
             trailing: const Icon(Icons.arrow_forward_ios, size: 16),
             onTap: () async {
               // Navigate to manage observers screen and await result
-              final relationshipsChanged = await Navigator.of(context).push<bool>(
+              final relationshipsChanged =
+                  await Navigator.of(context).push<bool>(
                 MaterialPageRoute(
                   builder: (_) => const ResponderManageObserversScreen(),
                 ),
               );
-              
+
               // If relationships changed and we have a callback, notify parent
-              if (relationshipsChanged == true && widget.onRelationshipsChanged != null) {
+              if (relationshipsChanged == true &&
+                  widget.onRelationshipsChanged != null) {
                 widget.onRelationshipsChanged!();
               }
             },

@@ -1,3 +1,11 @@
+// Copyright (c) 2025, Blue Vista Solutions.  All rights reserved.
+//
+// This source code is part of the Danoggin project and is intended for
+// internal or authorized use only. Unauthorized copying, modification, or
+// distribution of this file, via any medium, is strictly prohibited. For
+// licensing or permissions, contact: danoggin@blue-vistas.com
+//------------------------------------------------------------------------
+
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:danoggin/screens/observer_manage_responders_screen.dart';
@@ -10,9 +18,9 @@ const bool kDevModeEnabled = true;
 class ObserverSettingsWidget extends StatefulWidget {
   // Add a callback for relationship changes
   final VoidCallback? onRelationshipsChanged;
-  
+
   const ObserverSettingsWidget({
-    super.key, 
+    super.key,
     this.onRelationshipsChanged,
   });
 
@@ -28,7 +36,7 @@ class _ObserverSettingsWidgetState extends State<ObserverSettingsWidget> {
   final double _minInactivityHours = kDevModeEnabled ? 1 : 6;
   final double _maxInactivityHours = 72;
   final int _inactivityDivisions = kDevModeEnabled ? 71 : 11;
-  
+
   @override
   void initState() {
     super.initState();
@@ -42,11 +50,12 @@ class _ObserverSettingsWidgetState extends State<ObserverSettingsWidget> {
       pollingIntervalMinutes = prefs.getDouble('observerPollInterval') ?? 2;
     });
   }
-  
+
   Future<void> _loadInactivityThreshold() async {
     try {
       final uid = AuthService.currentUserId;
-      final threshold = await ResponderSettingsRepository.getInactivityThreshold(uid);
+      final threshold =
+          await ResponderSettingsRepository.getInactivityThreshold(uid);
       setState(() {
         inactivityThresholdHours = threshold.toDouble();
       });
@@ -58,7 +67,7 @@ class _ObserverSettingsWidgetState extends State<ObserverSettingsWidget> {
   Future<void> _savePrefs() async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setDouble('observerPollInterval', pollingIntervalMinutes);
-    
+
     // Save inactivity threshold to Firestore
     try {
       final uid = AuthService.currentUserId;
@@ -66,7 +75,7 @@ class _ObserverSettingsWidgetState extends State<ObserverSettingsWidget> {
         observerUid: uid,
         thresholdHours: inactivityThresholdHours.round(),
       );
-      
+
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('Settings saved successfully'),
@@ -75,7 +84,7 @@ class _ObserverSettingsWidgetState extends State<ObserverSettingsWidget> {
       );
     } catch (e) {
       print('Error saving inactivity threshold: $e');
-      
+
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('Error saving settings: $e'),
@@ -95,9 +104,10 @@ class _ObserverSettingsWidgetState extends State<ObserverSettingsWidget> {
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Text('Polling interval: ${pollingIntervalMinutes.round()} minutes', 
+            Text('Polling interval: ${pollingIntervalMinutes.round()} minutes',
                 style: TextStyle(fontSize: 16, color: Colors.deepPurple)),
-            Text('Range: 1-10', style: TextStyle(fontSize: 14, color: Colors.grey)),
+            Text('Range: 1-10',
+                style: TextStyle(fontSize: 14, color: Colors.grey)),
           ],
         ),
         Slider(
@@ -108,16 +118,18 @@ class _ObserverSettingsWidgetState extends State<ObserverSettingsWidget> {
           label: '${pollingIntervalMinutes.round()} min',
           onChanged: (val) => setState(() => pollingIntervalMinutes = val),
         ),
-        
+
         const SizedBox(height: 24),
-        
+
 // Inactivity threshold setting
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Text('Inactivity alert threshold: ${inactivityThresholdHours.round()} hours', 
+            Text(
+                'Inactivity alert threshold: ${inactivityThresholdHours.round()} hours',
                 style: TextStyle(fontSize: 16, color: Colors.deepPurple)),
-            Text('Range: ${_minInactivityHours.round()}-${_maxInactivityHours.round()}', 
+            Text(
+                'Range: ${_minInactivityHours.round()}-${_maxInactivityHours.round()}',
                 style: TextStyle(fontSize: 14, color: Colors.grey)),
           ],
         ),
@@ -132,20 +144,20 @@ class _ObserverSettingsWidgetState extends State<ObserverSettingsWidget> {
         Padding(
           padding: const EdgeInsets.only(bottom: 8.0),
           child: Text(
-            kDevModeEnabled 
+            kDevModeEnabled
                 ? 'DEV MODE: Using 1-hour minimum for testing (set kDevModeEnabled = false for production)'
                 : 'Get alerted if a responder has no activity for longer than this threshold during their active hours.',
             style: TextStyle(
-              fontSize: 12, 
-              color: kDevModeEnabled ? Colors.red[600] : Colors.grey[600], 
+              fontSize: 12,
+              color: kDevModeEnabled ? Colors.red[600] : Colors.grey[600],
               fontStyle: FontStyle.italic,
               fontWeight: kDevModeEnabled ? FontWeight.bold : FontWeight.normal,
             ),
           ),
         ),
-                
+
         const SizedBox(height: 16),
-        
+
         // Save button
         Center(
           child: ElevatedButton(
@@ -153,7 +165,7 @@ class _ObserverSettingsWidgetState extends State<ObserverSettingsWidget> {
             child: const Text('Save Settings'),
           ),
         ),
-        
+
         // Manage responders section
         ListTile(
           leading: const Icon(Icons.people),
@@ -167,9 +179,10 @@ class _ObserverSettingsWidgetState extends State<ObserverSettingsWidget> {
                 builder: (_) => const ObserverManageRespondersScreen(),
               ),
             );
-            
+
             // If relationships changed, notify our parent
-            if (relationshipsChanged == true && widget.onRelationshipsChanged != null) {
+            if (relationshipsChanged == true &&
+                widget.onRelationshipsChanged != null) {
               widget.onRelationshipsChanged!();
             }
           },

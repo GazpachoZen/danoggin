@@ -1,3 +1,10 @@
+// Copyright (c) 2025, Blue Vista Solutions.  All rights reserved.
+//
+// This source code is part of the Danoggin project and is intended for
+// internal or authorized use only. Unauthorized copying, modification, or
+// distribution of this file, via any medium, is strictly prohibited. For
+// licensing or permissions, contact: danoggin@blue-vistas.com
+//------------------------------------------------------------------------
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
@@ -50,9 +57,8 @@ class CheckInHistoryWidget extends StatelessWidget {
                 ? DateFormat.yMMMd().add_jm().format(timestamp)
                 : 'Unknown time';
 
-            final relativeTime = timestamp != null
-                ? timeago.format(timestamp)
-                : '';
+            final relativeTime =
+                timestamp != null ? timeago.format(timestamp) : '';
 
             final color = switch (result) {
               'correct' => Colors.green,
@@ -65,7 +71,8 @@ class CheckInHistoryWidget extends StatelessWidget {
               leading: Icon(Icons.check_circle, color: color),
               title: Text(prompt),
               subtitle: Text('$formattedTime  •  $relativeTime'),
-              trailing: Text(result.toUpperCase(), style: TextStyle(color: color)),
+              trailing:
+                  Text(result.toUpperCase(), style: TextStyle(color: color)),
             );
           },
         );
