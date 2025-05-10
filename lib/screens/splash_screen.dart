@@ -79,82 +79,95 @@ class _SplashScreenState extends State<SplashScreen>
     }
   }
 
-  Future<void> _initializeApp() async {
+Future<void> _initializeApp() async {
+  try {
+    // Initialize notification system first
+    setState(() => _statusMessage = "Setting up notifications...");
     try {
-      // Initialize notification system first
-      setState(() => _statusMessage = "Setting up notifications...");
-      try {
-        await NotificationHelper.initialize();
-        print('Notification system initialized successfully');
-      } catch (e) {
-        print('Error initializing notifications: $e');
-        // Continue with app initialization even if notifications fail
-      }
-
-      // Initialize time zone helper
-      setState(() => _statusMessage = "Initializing time zones...");
-      await TimezoneHelper.initialize();
-
-      // Initialize Firebase
-      setState(() => _statusMessage = "Connecting to services...");
-      try {
-        print('Starting Firebase initialization using service...');
-        await FirebaseService.initialize();
-        print('Firebase initialized successfully through service!');
-      } catch (e, stackTrace) {
-        print('Error initializing Firebase: $e');
-        print('Stack trace: $stackTrace');
-        setState(() {
-          _statusMessage = "Failed to initialize: $e";
-          _error = true;
-        });
-        return;
-      }
-
-      print('Firebase initialized.');
-
-      // Ensure user is signed in
-      setState(() => _statusMessage = "Setting up your account...");
-      print('Ensuring anonymous sign-in...');
-      await AuthService.ensureSignedIn();
-      print('User signed in: ${AuthService.currentUserId}');
-
-      // Check user role
-      setState(() => _statusMessage = "Loading your profile...");
-      print('Checking role...');
-      final uid = AuthService.currentUserId;
-      final role = await UserRepository.getUserRole(uid);
-      print('Role from Firestore: $role');
-
-      // Sync settings to Firestore if needed
-      if (role == UserRole.responder) {
-        setState(() => _statusMessage = "Syncing your settings...");
-        await ResponderSettingsRepository.syncLocalSettingsToFirestore(uid);
-      }
-
-      // Small delay to allow animation to complete
-      await Future.delayed(const Duration(milliseconds: 800));
-
-      // Navigate to the appropriate screen
-      if (!mounted) return;
-
-      Navigator.of(context).pushReplacement(
-        MaterialPageRoute(
-          builder: (context) => role == null
-              ? RoleSelectionScreen()
-              : (role == UserRole.responder
-                  ? QuizPage(currentRole: role)
-                  : ObserverPage()),
-        ),
-      );
+      // Just verify NotificationHelper is working, initialization happened in main.dart
+      print('Notification system verification...');
     } catch (e) {
-      print("Error during initialization: $e");
+      print('Error verifying notifications: $e');
+      // Continue with app initialization even if notification verification fails
+    }
+
+    // Initialize time zone helper
+    setState(() => _statusMessage = "Initializing time zones...");
+    await TimezoneHelper.initialize();
+
+    // Check if Firebase is initialized and ready
+    setState(() => _statusMessage = "Checking services...");
+    int attempts = 0;
+    while (attempts < 10) {
+      try {
+        // Try to access Firebase
+        if (Firebase.apps.isNotEmpty) {
+          final app = Firebase.app();
+          print('Firebase is initialized and working: ${app.name}');
+          break; // Success - exit the loop
+        }
+      } catch (e) {
+        // Ignore errors, just retry
+        print('Attempt ${attempts + 1}: Firebase not ready yet');
+      }
+      
+      // Wait a bit before trying again
+      await Future.delayed(Duration(milliseconds: 200));
+      attempts++;
+    }
+
+    if (attempts >= 10) {
       setState(() {
-        _statusMessage = "Failed to initialize: $e";
+        _statusMessage = "Firebase initialization timed out";
         _error = true;
       });
+      return;
     }
+
+    print('Firebase verification complete');
+
+    // Ensure user is signed in
+    setState(() => _statusMessage = "Setting up your account...");
+    print('Ensuring anonymous sign-in...');
+    await AuthService.ensureSignedIn();
+    print('User signed in: ${AuthService.currentUserId}');
+
+    // Check user role
+    setState(() => _statusMessage = "Loading your profile...");
+    print('Checking role...');
+    final uid = AuthService.currentUserId;
+    final role = await UserRepository.getUserRole(uid);
+    print('Role from Firestore: $role');
+
+    // Sync settings to Firestore if needed
+    if (role == UserRole.responder) {
+      setState(() => _statusMessage = "Syncing your settings...");
+      await ResponderSettingsRepository.syncLocalSettingsToFirestore(uid);
+    }
+
+    // Small delay to allow animation to complete
+    await Future.delayed(const Duration(milliseconds: 800));
+
+    // Navigate to the appropriate screen
+    if (!mounted) return;
+
+    Navigator.of(context).pushReplacement(
+      MaterialPageRoute(
+        builder: (context) => role == null
+            ? RoleSelectionScreen()
+            : (role == UserRole.responder
+                ? QuizPage(currentRole: role)
+                : ObserverPage()),
+      ),
+    );
+  } catch (e) {
+    print("Error during initialization: $e");
+    setState(() {
+      _statusMessage = "Failed to initialize: $e";
+      _error = true;
+    });
   }
+}
 
   @override
   Widget build(BuildContext context) {

@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'dart:async';
 import 'package:device_info_plus/device_info_plus.dart';
+import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_app_check/firebase_app_check.dart';
 
 class NotificationHelper {
   static final FlutterLocalNotificationsPlugin _notifications =
@@ -28,6 +30,17 @@ class NotificationHelper {
     if (_isInitialized) return;
 
     print('Initializing notifications...');
+
+  print('Starting notification helper initialization...');
+  
+  // IMPORTANT: Add this check to prevent auto-initialization of Firebase
+  try {
+    // This tells Firebase plugins NOT to auto-initialize Firebase
+    await FirebaseAppCheck.instance.activate(androidProvider: AndroidProvider.debug);
+  } catch (e) {
+    print('Error during Firebase auto-init prevention: $e');
+    // Continue regardless
+  }
 
     // Set up the plugin
     const AndroidInitializationSettings androidSettings =

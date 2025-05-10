@@ -78,10 +78,14 @@ Additional...
 - I do not have access to a Mac; I am not using xCode. My iOS builds are handled exclusively through codemagic, using its workflow (not yamls)
 - We are using Firestore's mechanism for test Android releases
 - We are using Diawi for releases on iOS
+
+Preferences...
+- Refrain from providing multi-step suggestions whenever possible. Invariably I have questions or problems with step 1, which invalidate steps 2-N. This is a waste of my time and of your compute limits. 
 ================================================================================
 
 ---------------------
 ---------------------
+Consider using flutter_native_splash to minimize the dead time we're presently experiencing when the app starts up.
 ---------------------
 We're having problems getting notifications to work on the iPhone. When using the test button on the AppBar, the following message comes up on the bottom of the iPhone screen... "Error sending test notification: Invalid argument(s): iOS settings must be set when targeting iOS platform."
 ---------------------

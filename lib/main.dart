@@ -10,31 +10,41 @@ import 'package:flutter/material.dart';
 import 'screens/splash_screen.dart';
 import 'services/notification_helper.dart';
 import 'theme/app_theme.dart';
+import 'package:danoggin/services/firebase_service.dart';
+import 'package:firebase_core/firebase_core.dart';
+import '../firebase_options.dart';
 
 void main() async {
   // Ensure Flutter binding is initialized
   WidgetsFlutterBinding.ensureInitialized();
 
-  // Initialize notifications early but don't show dialogs yet
-  try {
-    await NotificationHelper.initialize();
-    print('Notification system initialized in main()');
-  } catch (e) {
-    print('Error initializing notifications in main(): $e');
-    // Continue even if notification initialization fails
-  }
+  // Start Firebase initialization but don't await it yet
+  final firebaseInitialization = Firebase.initializeApp(
+    options: DefaultFirebaseOptions.currentPlatform,
+  );
 
-  // Catch any global errors during initialization
-  FlutterError.onError = (FlutterErrorDetails details) {
-    print('Flutter error caught: ${details.exception}');
-    print('Stack trace: ${details.stack}');
-    FlutterError.presentError(details);
-  };
+  // Start notification initialization but don't await it yet
+  final notificationInitialization = NotificationHelper.initialize();
 
-  // Run the app with splash screen
+  // Run the app immediately without waiting for initializations to complete
   runApp(AppLifecycleHandler(
     child: const MyApp(),
   ));
+
+  // Now await the initializations in the background
+  try {
+    await firebaseInitialization;
+    print('Firebase initialized successfully in main()!');
+  } catch (e) {
+    print('Error initializing Firebase in main(): $e');
+  }
+
+  try {
+    await notificationInitialization;
+    print('Notification system initialized in main()');
+  } catch (e) {
+    print('Error initializing notifications in main(): $e');
+  }
 }
 
 class MyApp extends StatelessWidget {
