@@ -96,13 +96,21 @@ class _SplashScreenState extends State<SplashScreen>
 
       // Initialize Firebase
       setState(() => _statusMessage = "Connecting to services...");
-      print('Starting Firebase init...');
       try {
         print('Starting Firebase initialization...');
-        await Firebase.initializeApp(
-          options: DefaultFirebaseOptions.currentPlatform,
-        );
-        print('Firebase initialized successfully!');
+
+        // Check if Firebase is already initialized
+        if (Firebase.apps.isEmpty) {
+          // No Firebase app has been initialized yet
+          await Firebase.initializeApp(
+            options: DefaultFirebaseOptions.currentPlatform,
+          );
+          print('Firebase initialized successfully!');
+        } else {
+          // Firebase already initialized, just get the instance
+          print('Firebase was already initialized, using existing instance');
+          Firebase.app();
+        }
       } catch (e, stackTrace) {
         print('Error initializing Firebase: $e');
         print('Stack trace: $stackTrace');
@@ -110,8 +118,9 @@ class _SplashScreenState extends State<SplashScreen>
           _statusMessage = "Failed to initialize: $e";
           _error = true;
         });
-        return; // Return early to prevent further execution on error
+        return;
       }
+
       print('Firebase initialized.');
 
       // Ensure user is signed in

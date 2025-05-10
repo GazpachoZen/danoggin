@@ -75,7 +75,7 @@ Admin Tools...
 - Firebase management utilities
 
 Additional...
-- I do not have access to a Mac; I am not using xCode. My iOS builds are handled exclusively through codemagic.
+- I do not have access to a Mac; I am not using xCode. My iOS builds are handled exclusively through codemagic, using its workflow (not yamls)
 - We are using Firestore's mechanism for test Android releases
 - We are using Diawi for releases on iOS
 ================================================================================
@@ -83,6 +83,7 @@ Additional...
 ---------------------
 ---------------------
 ---------------------
+We're having problems getting notifications to work on the iPhone. When using the test button on the AppBar, the following message comes up on the bottom of the iPhone screen... "Error sending test notification: Invalid argument(s): iOS settings must be set when targeting iOS platform."
 ---------------------
 I'd like to be more judicious about what exactly is getting archived away with Git, especially as it pertains to what makes its way up to GitHub. 
 ---------------------
