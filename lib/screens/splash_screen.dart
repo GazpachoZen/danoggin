@@ -11,6 +11,7 @@ import 'package:danoggin/screens/role_selection_screen.dart';
 import 'package:danoggin/services/notification_helper.dart';
 import 'package:danoggin/theme/app_colors.dart';
 import 'package:danoggin/utils/timezone_helper.dart';
+import 'package:danoggin/services/firebase_service.dart';
 import '../firebase_options.dart';
 
 class SplashScreen extends StatefulWidget {
@@ -97,20 +98,9 @@ class _SplashScreenState extends State<SplashScreen>
       // Initialize Firebase
       setState(() => _statusMessage = "Connecting to services...");
       try {
-        print('Starting Firebase initialization...');
-
-        // Check if Firebase is already initialized
-        if (Firebase.apps.isEmpty) {
-          // No Firebase app has been initialized yet
-          await Firebase.initializeApp(
-            options: DefaultFirebaseOptions.currentPlatform,
-          );
-          print('Firebase initialized successfully!');
-        } else {
-          // Firebase already initialized, just get the instance
-          print('Firebase was already initialized, using existing instance');
-          Firebase.app();
-        }
+        print('Starting Firebase initialization using service...');
+        await FirebaseService.initialize();
+        print('Firebase initialized successfully through service!');
       } catch (e, stackTrace) {
         print('Error initializing Firebase: $e');
         print('Stack trace: $stackTrace');
