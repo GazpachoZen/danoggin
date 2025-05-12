@@ -109,60 +109,66 @@ class NotificationHelper {
   }
 
   /// Show notification with high priority
-  static Future<bool> showAlert({
-    required int id,
-    required String title,
-    required String body,
-    bool triggerRefresh = true,
-  }) async {
-    print('Attempting to show notification: id=$id, title=$title');
-
-    if (!_isInitialized) {
-      await initialize();
-    }
-
-    try {
-      // Check if notifications are enabled
-      final enabled = await areNotificationsEnabled();
-      if (!enabled) {
-        print('Notifications are not enabled for this app');
-        return false;
-      }
-
-      const AndroidNotificationDetails androidDetails =
-          AndroidNotificationDetails(
-        _channelId,
-        _channelName,
-        channelDescription: _channelDescription,
-        importance: Importance.high,
-        priority: Priority.high,
-        showWhen: true,
-      );
-
-      const NotificationDetails platformDetails =
-          NotificationDetails(android: androidDetails);
-
-      await _notifications.show(
-        id,
-        title,
-        body,
-        platformDetails,
-      );
-
-      if (triggerRefresh) {
-        _notificationStreamController
-            .add({'id': id, 'title': title, 'body': body});
-        print('Emitted notification event for refresh');
-      }
-
-      print('Alert notification sent successfully');
-      return true;
-    } catch (e) {
-      print('Error showing notification: $e');
-      return false;
-    }
+static Future<bool> showAlert({
+  required int id,
+  required String title,
+  required String body,
+  bool triggerRefresh = true,
+}) async {
+  print('Attempting to show notification: id=$id, title=$title');
+  
+  if (!_isInitialized) {
+    await initialize();
   }
 
+  try {
+    // Check if notifications are enabled
+    final enabled = await areNotificationsEnabled();
+    if (!enabled) {
+      print('Notifications are not enabled for this app');
+      return false;
+    }
+
+    const AndroidNotificationDetails androidDetails = AndroidNotificationDetails(
+      _channelId,
+      _channelName,
+      channelDescription: _channelDescription,
+      importance: Importance.high,
+      priority: Priority.high,
+      showWhen: true,
+    );
+
+    // Add iOS specific notification details
+    const DarwinNotificationDetails iosDetails = DarwinNotificationDetails(
+      presentAlert: true,
+      presentBadge: true,
+      presentSound: true,
+    );
+
+    const NotificationDetails platformDetails = NotificationDetails(
+      android: androidDetails,
+      iOS: iosDetails,
+    );
+
+    await _notifications.show(
+      id,
+      title,
+      body,
+      platformDetails,
+    );
+    
+    if (triggerRefresh) {
+      _notificationStreamController.add({'id': id, 'title': title, 'body': body});
+      print('Emitted notification event for refresh');
+    }
+
+    print('Alert notification sent successfully');
+    return true;
+  } catch (e) {
+    print('Error showing notification: $e');
+    return false;
+  }
+}
   /// Test notifications to verify they work
   static Future<bool> testNotification() async {
     final id = DateTime.now().millisecond;
