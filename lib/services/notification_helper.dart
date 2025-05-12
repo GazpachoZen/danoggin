@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'dart:async';
 import 'package:device_info_plus/device_info_plus.dart';
-import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_app_check/firebase_app_check.dart';
 
 class NotificationHelper {
@@ -13,13 +12,13 @@ class NotificationHelper {
   static const String _channelId = 'danoggin_alerts';
   static const String _channelName = 'Danoggin Alerts';
   static const String _channelDescription = 'Alerts for check-in issues';
-  
+
   // Add a stream controller for notification events
-  static final StreamController<dynamic> _notificationStreamController = 
+  static final StreamController<dynamic> _notificationStreamController =
       StreamController<dynamic>.broadcast();
-  
+
   // Expose the stream
-  static Stream<dynamic> get notificationEventStream => 
+  static Stream<dynamic> get notificationEventStream =>
       _notificationStreamController.stream;
 
   // Track permission dialog state
@@ -31,23 +30,33 @@ class NotificationHelper {
 
     print('Initializing notifications...');
 
-  print('Starting notification helper initialization...');
-  
-  // IMPORTANT: Add this check to prevent auto-initialization of Firebase
-  try {
-    // This tells Firebase plugins NOT to auto-initialize Firebase
-    await FirebaseAppCheck.instance.activate(androidProvider: AndroidProvider.debug);
-  } catch (e) {
-    print('Error during Firebase auto-init prevention: $e');
-    // Continue regardless
-  }
+    print('Starting notification helper initialization...');
+
+    // IMPORTANT: Add this check to prevent auto-initialization of Firebase
+    try {
+      // This tells Firebase plugins NOT to auto-initialize Firebase
+      await FirebaseAppCheck.instance
+          .activate(androidProvider: AndroidProvider.debug);
+    } catch (e) {
+      print('Error during Firebase auto-init prevention: $e');
+      // Continue regardless
+    }
 
     // Set up the plugin
     const AndroidInitializationSettings androidSettings =
         AndroidInitializationSettings('@mipmap/ic_launcher');
 
-    const InitializationSettings initSettings =
-        InitializationSettings(android: androidSettings);
+    const DarwinInitializationSettings iosSettings =
+        DarwinInitializationSettings(
+      requestAlertPermission: true,
+      requestBadgePermission: true,
+      requestSoundPermission: true,
+    );
+
+    const InitializationSettings initSettings = InitializationSettings(
+      android: androidSettings,
+      iOS: iosSettings,
+    );
 
     await _notifications.initialize(
       initSettings,
@@ -65,15 +74,14 @@ class NotificationHelper {
       importance: Importance.high,
     );
 
-    final androidPlugin = _notifications
-        .resolvePlatformSpecificImplementation
-            <AndroidFlutterLocalNotificationsPlugin>();
-            
+    final androidPlugin = _notifications.resolvePlatformSpecificImplementation<
+        AndroidFlutterLocalNotificationsPlugin>();
+
     if (androidPlugin != null) {
       await androidPlugin.createNotificationChannel(channel);
       print('Notification channel created successfully');
     }
-        
+
     _isInitialized = true;
     print('Notifications initialized successfully');
   }
@@ -83,9 +91,9 @@ class NotificationHelper {
     if (!_isInitialized) {
       await initialize();
     }
-    
-    final androidPlugin = _notifications.resolvePlatformSpecificImplementation
-        <AndroidFlutterLocalNotificationsPlugin>();
+
+    final androidPlugin = _notifications.resolvePlatformSpecificImplementation<
+        AndroidFlutterLocalNotificationsPlugin>();
 
     if (androidPlugin == null) return false;
 
@@ -108,7 +116,7 @@ class NotificationHelper {
     bool triggerRefresh = true,
   }) async {
     print('Attempting to show notification: id=$id, title=$title');
-    
+
     if (!_isInitialized) {
       await initialize();
     }
@@ -140,9 +148,10 @@ class NotificationHelper {
         body,
         platformDetails,
       );
-      
+
       if (triggerRefresh) {
-        _notificationStreamController.add({'id': id, 'title': title, 'body': body});
+        _notificationStreamController
+            .add({'id': id, 'title': title, 'body': body});
         print('Emitted notification event for refresh');
       }
 
@@ -160,13 +169,14 @@ class NotificationHelper {
     final result = await showAlert(
       id: id,
       title: 'Danoggin Test',
-      body: 'This is a test notification. If you see this, notifications are working!',
+      body:
+          'This is a test notification. If you see this, notifications are working!',
     );
-    
+
     print('Test notification result: $result');
     return result;
   }
-  
+
   /// Cancel/remove a specific notification by ID
   static Future<void> cancelNotification(int id) async {
     try {
@@ -176,7 +186,7 @@ class NotificationHelper {
       print('Error canceling notification: $e');
     }
   }
-  
+
   /// Cancel all notifications
   static Future<void> cancelAllNotifications() async {
     try {
@@ -204,11 +214,11 @@ class NotificationHelper {
     // Don't show multiple times
     if (_permissionDialogShown) return;
     _permissionDialogShown = true;
-    
+
     // Check current Android version
     final sdkVersion = await _getAndroidSdkVersion();
     print('Android SDK version: $sdkVersion');
-    
+
     bool enabled = false;
     try {
       enabled = await areNotificationsEnabled();
@@ -221,7 +231,7 @@ class NotificationHelper {
       final String instructions = sdkVersion >= 33
           ? 'On Android 13 or higher, you will need to explicitly grant notification permission when prompted.'
           : 'You need to enable notifications in your device settings.';
-      
+
       showDialog(
         context: context,
         barrierDismissible: false,
@@ -303,7 +313,7 @@ class NotificationHelper {
       ),
     );
   }
-  
+
   // Add cleanup method to dispose of the stream controller
   static void dispose() {
     _notificationStreamController.close();
