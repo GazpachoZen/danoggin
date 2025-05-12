@@ -131,17 +131,48 @@ class _QuizPageState extends State<QuizPage> with WidgetsBindingObserver {
         return;
       }
 
-      // Platform-specific test
-      if (Platform.isIOS) {
-        await NotificationHelper.testIOSNotification();
-      } else {
-        await NotificationHelper.testNotification();
-      }
+      // Ask user which type of test they want to run
+      showDialog(
+        context: context,
+        builder: (context) => AlertDialog(
+          title: Text('Test Notifications'),
+          content: Text('Choose a notification test type:'),
+          actions: [
+            TextButton(
+              onPressed: () async {
+                Navigator.pop(context);
+                // Immediate notification test
+                if (Platform.isIOS) {
+                  await NotificationHelper.testIOSNotification();
+                } else {
+                  await NotificationHelper.testNotification();
+                }
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Test notification sent!'),
-          duration: Duration(seconds: 2),
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text('Immediate notification sent!'),
+                    duration: Duration(seconds: 2),
+                  ),
+                );
+              },
+              child: Text('Immediate'),
+            ),
+            ElevatedButton(
+              onPressed: () async {
+                Navigator.pop(context);
+                // Delayed notification test
+                await NotificationHelper.testDelayedNotification();
+
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text('Delayed notification scheduled (3 seconds)'),
+                    duration: Duration(seconds: 2),
+                  ),
+                );
+              },
+              child: Text('Delayed (3s)'),
+            ),
+          ],
         ),
       );
     } catch (e) {
