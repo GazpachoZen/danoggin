@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:danoggin/models/user_role.dart';
@@ -130,8 +131,12 @@ class _QuizPageState extends State<QuizPage> with WidgetsBindingObserver {
         return;
       }
 
-      // Test notification
-      await NotificationHelper.testNotification();
+      // Platform-specific test
+      if (Platform.isIOS) {
+        await NotificationHelper.testIOSNotification();
+      } else {
+        await NotificationHelper.testNotification();
+      }
 
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(

@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -254,41 +255,45 @@ class ObserverController {
   }
 
   // Test notifications functionality
-  Future<void> testNotifications(BuildContext context) async {
+Future<void> testNotifications(BuildContext context) async {
+  try {
+    // Try to check if notifications are enabled
+    bool enabled = true;
     try {
-      // Try to check if notifications are enabled
-      bool enabled = true;
-      try {
-        enabled = await NotificationHelper.areNotificationsEnabled();
-      } catch (e) {
-        print('Error checking notification permissions: $e');
-        // If we can't check, assume they're enabled
-      }
-
-      if (!enabled) {
-        // Show manual instructions if notifications are disabled
-        NotificationHelper.openNotificationSettings(context);
-        return;
-      }
-
-      // Test notification
-      await NotificationHelper.testNotification();
-
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Test notification sent!'),
-          duration: Duration(seconds: 2),
-        ),
-      );
+      enabled = await NotificationHelper.areNotificationsEnabled();
     } catch (e) {
-      print('Error testing notifications: $e');
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Error sending test notification: $e'),
-          backgroundColor: Colors.red,
-          duration: Duration(seconds: 3),
-        ),
-      );
+      print('Error checking notification permissions: $e');
+      // If we can't check, assume they're enabled
     }
+
+    if (!enabled) {
+      // Show manual instructions if notifications are disabled
+      NotificationHelper.openNotificationSettings(context);
+      return;
+    }
+
+    // Platform-specific test
+    if (Platform.isIOS) {
+      await NotificationHelper.testIOSNotification();
+    } else {
+      await NotificationHelper.testNotification();
+    }
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text('Test notification sent!'),
+        duration: Duration(seconds: 2),
+      ),
+    );
+  } catch (e) {
+    print('Error testing notifications: $e');
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text('Error sending test notification: $e'),
+        backgroundColor: Colors.red,
+        duration: Duration(seconds: 3),
+      ),
+    );
   }
+}
 }
