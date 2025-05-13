@@ -8,11 +8,8 @@ import 'package:danoggin/models/user_role.dart';
 import 'package:danoggin/screens/quiz_page.dart';
 import 'package:danoggin/screens/observer_page.dart';
 import 'package:danoggin/screens/role_selection_screen.dart';
-import 'package:danoggin/services/notification_helper.dart';
 import 'package:danoggin/theme/app_colors.dart';
 import 'package:danoggin/utils/timezone_helper.dart';
-import 'package:danoggin/services/firebase_service.dart';
-import '../firebase_options.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({Key? key}) : super(key: key);
