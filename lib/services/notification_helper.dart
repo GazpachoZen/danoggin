@@ -171,6 +171,7 @@ class NotificationHelper {
         presentAlert: true,
         presentBadge: true,
         presentSound: true,
+        interruptionLevel: InterruptionLevel.active, // Forces notifications to show in foreground
       );
 
       const NotificationDetails platformDetails = NotificationDetails(
