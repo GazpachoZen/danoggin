@@ -92,21 +92,23 @@ Preferences...
 - Refrain from providing multi-step suggestions whenever possible. Invariably I have questions or problems with step 1, which invalidate steps 2-N. This is a waste of my time and of your compute limits. 
 - For situations where we have a several steps, each relying on completion of the prior, supply them only one at a time and await confirmation of success before providing the next step.
 ================================================================================
-
+TESTING...
+	Notifications on T's phone
+	Can I get multiple instances running?
 ---------------------
 When testing the app on an iPhone, it appears that it's possible for there to be more than one instance of Danoggin running at a time. Is there a way we can prevent this from accidentally happening?
 ---------------------
+Is there any reason why notification behavior would be different between an iPhone and an iPad? (provide more details here)
+---------------------
 Consider using flutter_native_splash to minimize the dead time we're presently experiencing when the app starts up.
 ---------------------
-We're having problems getting notifications to work on the iPhone. When using the test button on the AppBar, the following message comes up on the bottom of the iPhone screen... "Error sending test notification: Invalid argument(s): iOS settings must be set when targeting iOS platform."
 ---------------------
 I'd like to be more judicious about what exactly is getting archived away with Git, especially as it pertains to what makes its way up to GitHub. 
 ---------------------
-Try all this with Tracy's phone.
+If notifications continue to give us grief, consider switching from flutter_local_notifications to awesome_notifications. This is likely to be an extensive change.
 ---------------------
 JEI - remember to turn kDevModeEnabled back to false wherever it exists.
 ---------------------
-For the responder buttons, I find the "coral" highlight be too close to red. Can we change that to one of the blues?
 ---------------------
 It would be nice to have a mechanism for an observer to somehow coerce a related responder's app to present a question.
 ---------------------

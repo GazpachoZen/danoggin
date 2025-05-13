@@ -10,9 +10,9 @@ import 'package:flutter/material.dart';
 import 'screens/splash_screen.dart';
 import 'services/notification_helper.dart';
 import 'theme/app_theme.dart';
-import 'package:danoggin/services/firebase_service.dart';
 import 'package:firebase_core/firebase_core.dart';
 import '../firebase_options.dart';
+import 'dart:io';
 
 void main() async {
   // Ensure Flutter binding is initialized
@@ -102,18 +102,53 @@ class AppLifecycleHandler extends StatefulWidget {
 
 class _AppLifecycleHandlerState extends State<AppLifecycleHandler>
     with WidgetsBindingObserver {
+  // Add this static boolean to track active instances
+  static bool _hasActiveInstance = false;
+  
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
+    // Add this method call to check for multiple instances
+    _checkForMultipleInstances();
+  }
+
+  // Add this new method to detect and handle multiple instances
+  void _checkForMultipleInstances() {
+    if (_hasActiveInstance) {
+      print('WARNING: Multiple instances of Danoggin detected!');
+      // Force exit this instance after a short delay to ensure message is logged
+      Future.delayed(Duration(milliseconds: 100), () {
+        exit(0); // This will terminate the current instance
+      });
+    } else {
+      _hasActiveInstance = true;
+      print('Danoggin instance initialized and active');
+    }
   }
 
   @override
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
+    _hasActiveInstance = false; // Mark this instance as disposed
     // Clean up resources
     NotificationHelper.dispose();
     super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    super.didChangeAppLifecycleState(state);
+    
+    if (state == AppLifecycleState.resumed) {
+      // App came to foreground
+      print('App resumed - checking for multiple instances');
+      _checkForMultipleInstances();
+    } else if (state == AppLifecycleState.detached) {
+      // App is being terminated
+      _hasActiveInstance = false;
+      print('Danoggin instance terminated');
+    }
   }
 
   @override
