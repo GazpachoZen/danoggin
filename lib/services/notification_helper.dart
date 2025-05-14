@@ -28,122 +28,60 @@ class NotificationHelper {
   static bool _permissionDialogShown = false;
 
   /// Initialize the notification plugin
-/// Initialize the notification plugin
-static Future<void> initialize() async {
-  if (_isInitialized) return;
+// Simplified initialize method - please replace the current implementation with this
+  static Future<void> initialize() async {
+    if (_isInitialized) return;
 
-  print('Starting notification helper initialization...');
+    print('Starting notification helper initialization...');
 
-  // Add this to the initialize() method
-  tz_data.initializeTimeZones();
-  print('Initializing notifications...');
+    // Initialize time zones
+    tz_data.initializeTimeZones();
 
-  // IMPORTANT: Add this check to prevent auto-initialization of Firebase
-  try {
-    // This tells Firebase plugins NOT to auto-initialize Firebase
-    await FirebaseAppCheck.instance
-        .activate(androidProvider: AndroidProvider.debug);
-  } catch (e) {
-    print('Error during Firebase auto-init prevention: $e');
-    // Continue regardless
-  }
+    // Basic Android settings
+    const AndroidInitializationSettings androidSettings =
+        AndroidInitializationSettings('@mipmap/ic_launcher');
 
-  // Set up the plugin
-  const AndroidInitializationSettings androidSettings =
-      AndroidInitializationSettings('@mipmap/ic_launcher');
+    // Basic iOS settings - no advanced features
+    const DarwinInitializationSettings iosSettings =
+        DarwinInitializationSettings(
+      requestAlertPermission: true,
+      requestBadgePermission: true,
+      requestSoundPermission: true,
+    );
 
-  // Create notification categories non-const
-  final List<DarwinNotificationCategory> darwinNotificationCategories = [
-    DarwinNotificationCategory(
-      'danoggin_category',
-      actions: [
-        DarwinNotificationAction.plain('view', 'View'),
-      ],
-      options: {
-        DarwinNotificationCategoryOption.hiddenPreviewShowTitle,
+    const InitializationSettings initSettings = InitializationSettings(
+      android: androidSettings,
+      iOS: iosSettings,
+    );
+
+    await _notifications.initialize(
+      initSettings,
+      onDidReceiveNotificationResponse: (NotificationResponse response) {
+        print('Notification clicked: ${response.id}');
+        _notificationStreamController.add(response);
       },
-    ),
-  ];
+    );
 
-  // Add iOS initialization settings with foreground presentation options
-  final DarwinInitializationSettings iosSettings = DarwinInitializationSettings(
-    requestAlertPermission: true,
-    requestBadgePermission: true,
-    requestSoundPermission: true,
-    notificationCategories: darwinNotificationCategories,
-    // If available in your version, this helps with foreground notifications
-    onDidReceiveLocalNotification: (id, title, body, payload) {
-      print('Received local notification: $id, $title, $body, $payload');
-      return;
-    },
-  );
+    // Android notification channel
+    const AndroidNotificationChannel channel = AndroidNotificationChannel(
+      _channelId,
+      _channelName,
+      description: _channelDescription,
+      importance: Importance.high,
+    );
 
-  final InitializationSettings initSettings = InitializationSettings(
-    android: androidSettings,
-    iOS: iosSettings,
-  );
+    final androidPlugin = _notifications.resolvePlatformSpecificImplementation<
+        AndroidFlutterLocalNotificationsPlugin>();
 
-  await _notifications.initialize(
-    initSettings,
-    onDidReceiveNotificationResponse: (NotificationResponse response) {
-      print('Notification clicked: ${response.id}');
-      _notificationStreamController.add(response);
-    },
-  );
-
-  // Create the notification channel (Android only)
-  const AndroidNotificationChannel channel = AndroidNotificationChannel(
-    _channelId,
-    _channelName,
-    description: _channelDescription,
-    importance: Importance.high,
-  );
-
-  final androidPlugin = _notifications.resolvePlatformSpecificImplementation
-      <AndroidFlutterLocalNotificationsPlugin>();
-
-  if (androidPlugin != null) {
-    await androidPlugin.createNotificationChannel(channel);
-    print('Notification channel created successfully');
-  }
-
-  // Request additional iOS permissions for foreground notifications
-  if (Platform.isIOS) {
-    try {
-      final iosPlugin = _notifications.resolvePlatformSpecificImplementation
-          <IOSFlutterLocalNotificationsPlugin>();
-      if (iosPlugin != null) {
-        await iosPlugin.requestPermissions(
-          alert: true,
-          badge: true,
-          sound: true,
-          critical: true, // Try with this first, remove if not supported
-        );
-        print('iOS foreground notification permissions requested');
-      }
-    } catch (e) {
-      print('Error requesting iOS notification permissions: $e');
-      // Try again without the 'critical' parameter if it failed
-      try {
-        final iosPlugin = _notifications.resolvePlatformSpecificImplementation
-            <IOSFlutterLocalNotificationsPlugin>();
-        if (iosPlugin != null) {
-          await iosPlugin.requestPermissions(
-            alert: true,
-            badge: true,
-            sound: true,
-          );
-          print('iOS basic notification permissions requested');
-        }
-      } catch (e) {
-        print('Error requesting basic iOS notification permissions: $e');
-      }
+    if (androidPlugin != null) {
+      await androidPlugin.createNotificationChannel(channel);
+      print('Notification channel created successfully');
     }
+
+    _isInitialized = true;
+    print('Notifications initialized successfully');
   }
 
-  _isInitialized = true;
-  print('Notifications initialized successfully');
-}  /// Check if notifications are enabled in system settings
   static Future<bool> areNotificationsEnabled() async {
     if (!_isInitialized) {
       await initialize();
