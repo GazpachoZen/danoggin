@@ -105,6 +105,9 @@ class _AppLifecycleHandlerState extends State<AppLifecycleHandler>
   // Add this static boolean to track active instances
   static bool _hasActiveInstance = false;
   
+  // Add a new variable to track if we're in a resumed state
+  bool _isResumed = false;
+  
   @override
   void initState() {
     super.initState();
@@ -113,9 +116,9 @@ class _AppLifecycleHandlerState extends State<AppLifecycleHandler>
     _checkForMultipleInstances();
   }
 
-  // Add this new method to detect and handle multiple instances
+  // Modified to prevent false detection when resuming
   void _checkForMultipleInstances() {
-    if (_hasActiveInstance) {
+    if (_hasActiveInstance && !_isResumed) {
       print('WARNING: Multiple instances of Danoggin detected!');
       // Force exit this instance after a short delay to ensure message is logged
       Future.delayed(Duration(milliseconds: 100), () {
@@ -142,12 +145,18 @@ class _AppLifecycleHandlerState extends State<AppLifecycleHandler>
     
     if (state == AppLifecycleState.resumed) {
       // App came to foreground
+      _isResumed = true;
       print('App resumed - checking for multiple instances');
       _checkForMultipleInstances();
     } else if (state == AppLifecycleState.detached) {
       // App is being terminated
       _hasActiveInstance = false;
+      _isResumed = false;
       print('Danoggin instance terminated');
+    } else if (state == AppLifecycleState.inactive || 
+              state == AppLifecycleState.paused) {
+      // App is in background or inactive
+      _isResumed = false;
     }
   }
 
