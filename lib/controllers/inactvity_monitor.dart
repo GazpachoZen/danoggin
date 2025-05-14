@@ -12,7 +12,7 @@ const bool kUltraFastTesting = false;
 class InactivityMonitor {
   // Default inactivity threshold in hours
   static const int defaultInactivityThresholdHours = 24;
-  
+
   // Check for responder inactivity
   static Future<void> checkResponderInactivity({
     required String responderUid,
@@ -28,47 +28,49 @@ class InactivityMonitor {
         print('No active hours available for responder: $responderName');
         return;
       }
-      
+
       // Extract start and end hours
       final startHourStr = activeHours['startHour'] as String?;
       final endHourStr = activeHours['endHour'] as String?;
       final responderTimeZone = activeHours['timeZone'] as String?;
-      
+
       if (startHourStr == null || endHourStr == null) {
         print('Invalid active hours for responder: $responderName');
         return;
       }
-      
+
       // Get observer's current time zone
       final observerTimeZone = TimezoneHelper.getCurrentTimeZone();
-      
+
       // Parse active hours
       final startHourParts = startHourStr.split(':').map(int.parse).toList();
       final endHourParts = endHourStr.split(':').map(int.parse).toList();
-      final startTime = TimeOfDay(hour: startHourParts[0], minute: startHourParts[1]);
+      final startTime =
+          TimeOfDay(hour: startHourParts[0], minute: startHourParts[1]);
       final endTime = TimeOfDay(hour: endHourParts[0], minute: endHourParts[1]);
-      
+
       // Get current time in observer's time zone
       final now = DateTime.now();
       final currentTime = TimeOfDay.fromDateTime(now);
-      
+
       // Convert responder's active hours to observer's time zone for comparison
       TimeOfDay convertedStartTime = startTime;
       TimeOfDay convertedEndTime = endTime;
-      
+
       if (responderTimeZone != null && responderTimeZone != observerTimeZone) {
-        print('Converting from responder time zone ($responderTimeZone) to observer time zone ($observerTimeZone)');
-        
+        print(
+            'Converting from responder time zone ($responderTimeZone) to observer time zone ($observerTimeZone)');
+
         try {
           // Initialize timezone helper
           await TimezoneHelper.initialize();
-          
+
           convertedStartTime = TimezoneHelper.convertTimeOfDay(
-            startTime, responderTimeZone, observerTimeZone);
-            
+              startTime, responderTimeZone, observerTimeZone);
+
           convertedEndTime = TimezoneHelper.convertTimeOfDay(
-            endTime, responderTimeZone, observerTimeZone);
-            
+              endTime, responderTimeZone, observerTimeZone);
+
           print('Converted active hours: $startTime -> $convertedStartTime');
           print('Converted active hours: $endTime -> $convertedEndTime');
         } catch (e) {
@@ -76,16 +78,18 @@ class InactivityMonitor {
           // Continue with original times if conversion fails
         }
       }
-      
+
       // Check if current time is within active hours
-      if (!TimezoneHelper.isWithinActiveHours(currentTime, convertedStartTime, convertedEndTime)) {
-        print('Current time is outside active hours for responder: $responderName');
+      if (!TimezoneHelper.isWithinActiveHours(
+          currentTime, convertedStartTime, convertedEndTime)) {
+        print(
+            'Current time is outside active hours for responder: $responderName');
         print('Current: ${currentTime.hour}:${currentTime.minute}, ' +
-              'Active hours: ${convertedStartTime.hour}:${convertedStartTime.minute} - ' +
-              '${convertedEndTime.hour}:${convertedEndTime.minute}');
+            'Active hours: ${convertedStartTime.hour}:${convertedStartTime.minute} - ' +
+            '${convertedEndTime.hour}:${convertedEndTime.minute}');
         return;
       }
-      
+
       // Get the most recent check-in
       final snapshot = await FirebaseFirestore.instance
           .collection('responder_status')
@@ -94,104 +98,152 @@ class InactivityMonitor {
           .orderBy('timestamp', descending: true)
           .limit(1)
           .get();
-      
+
       // If no check-ins found, this might be a new user
       if (snapshot.docs.isEmpty) {
         print('No check-ins found for responder: $responderName');
         return;
       }
-      
+
       // Get the most recent check-in details
       final latestDoc = snapshot.docs.first;
       final latestData = latestDoc.data();
       final timestampStr = latestData['timestamp'] as String?;
-      
+
       if (timestampStr == null) {
-        print('Invalid timestamp for latest check-in of responder: $responderName');
+        print(
+            'Invalid timestamp for latest check-in of responder: $responderName');
         return;
       }
-      
+
       final timestamp = DateTime.tryParse(timestampStr);
       if (timestamp == null) {
-        print('Failed to parse timestamp for latest check-in of responder: $responderName');
+        print(
+            'Failed to parse timestamp for latest check-in of responder: $responderName');
         return;
       }
-      
+
       // Calculate time since last activity
       final timeSinceLastActivity = now.difference(timestamp);
-      
+
       // In dev mode, print detailed inactivity time info
       if (kDevModeEnabled) {
-        print('DEV MODE: $responderName\'s last activity was ${timeSinceLastActivity.inHours} hours and ' +
-              '${timeSinceLastActivity.inMinutes % 60} minutes ago');
+        print(
+            'DEV MODE: $responderName\'s last activity was ${timeSinceLastActivity.inHours} hours and ' +
+                '${timeSinceLastActivity.inMinutes % 60} minutes ago');
         print('DEV MODE: Threshold set to $inactivityThresholdHours hours');
       }
-      
+
       // Check if inactive for longer than threshold
       bool isInactive = false;
       if (kDevModeEnabled && kUltraFastTesting) {
         // In ultra-fast mode, compare minutes instead of hours
-        isInactive = timeSinceLastActivity.inMinutes >= inactivityThresholdHours;
+        isInactive =
+            timeSinceLastActivity.inMinutes >= inactivityThresholdHours;
         if (isInactive) {
-          print('DEV MODE ULTRA-FAST: Using minutes (${timeSinceLastActivity.inMinutes}) instead of hours for testing!');
+          print(
+              'DEV MODE ULTRA-FAST: Using minutes (${timeSinceLastActivity.inMinutes}) instead of hours for testing!');
         }
       } else {
         // Normal mode - compare hours
         isInactive = timeSinceLastActivity.inHours >= inactivityThresholdHours;
       }
-      
+
       if (isInactive) {
         // Generate a unique alert key
-        final alertKey = '$responderUid:inactivity:${now.millisecondsSinceEpoch}';
-        
+        final alertKey =
+            '$responderUid:inactivity:${now.millisecondsSinceEpoch}';
+
         // Check if we've already sent an alert for this inactivity period
         if (alertKey == lastInactivityAlertKey) {
           print('Already sent inactivity alert for responder: $responderName');
           return;
         }
-        
+
         // Format the time of last activity in the observer's local time
-        final lastActivityTime = DateFormat('M/d h:mma').format(timestamp).toLowerCase();
-        
+        final lastActivityTime =
+            DateFormat('M/d h:mma').format(timestamp).toLowerCase();
+
         // Calculate how many hours of inactivity
-        final inactiveHours = kDevModeEnabled && kUltraFastTesting 
-            ? timeSinceLastActivity.inMinutes 
+        final inactiveHours = kDevModeEnabled && kUltraFastTesting
+            ? timeSinceLastActivity.inMinutes
             : timeSinceLastActivity.inHours;
-        
+
         // Include time zone information in the notification
         String timeZoneInfo = '';
-        if (responderTimeZone != null && responderTimeZone != observerTimeZone) {
+        if (responderTimeZone != null &&
+            responderTimeZone != observerTimeZone) {
           timeZoneInfo = ' ($responderTimeZone)';
         }
-        
+
         // Add dev mode indicator in notification if enabled
         String devModePrefix = '';
         if (kDevModeEnabled) {
           devModePrefix = kUltraFastTesting ? '[DEV-ULTRA] ' : '[DEV] ';
         }
-        
+
         // Format the notification message
-        final inactivityPeriod = kDevModeEnabled && kUltraFastTesting 
-            ? '$inactiveHours minutes' 
+        final inactivityPeriod = kDevModeEnabled && kUltraFastTesting
+            ? '$inactiveHours minutes'
             : '$inactiveHours hours';
-        
+
         // Send notification
         await NotificationHelper.showAlert(
           id: 'inactivity-${responderUid.hashCode}'.hashCode,
           title: '${devModePrefix}Danoggin Inactivity Alert',
           body: '$responderName has been inactive for $inactivityPeriod. ' +
-                'Last active at $lastActivityTime$timeZoneInfo.',
+              'Last active at $lastActivityTime$timeZoneInfo.',
         );
-        
+
         print('Inactivity alert sent for responder: $responderName');
-        
+
         // Update tracking
         onAlertSent(alertKey);
       } else {
-        print('Responder $responderName is active within threshold (${timeSinceLastActivity.inHours} hours)');
+        print(
+            'Responder $responderName is active within threshold (${timeSinceLastActivity.inHours} hours)');
       }
     } catch (e) {
       print('Error checking inactivity for responder $responderName: $e');
+    }
+  }
+
+  // Add this method to ensure inactivity alert is properly formatted
+  static Future<void> sendInactivityAlert({
+    required String responderUid,
+    required String responderName,
+    required int inactiveHours,
+    required String lastActivityTime,
+    required String? timeZoneInfo,
+    required Function(String) onAlertSent,
+    required String alertKey,
+  }) async {
+    try {
+      // Add dev mode indicator in notification if enabled
+      String devModePrefix = '';
+      if (kDevModeEnabled) {
+        devModePrefix = kUltraFastTesting ? '[DEV-ULTRA] ' : '[DEV] ';
+      }
+
+      // Format the notification message
+      final inactivityPeriod = kDevModeEnabled && kUltraFastTesting
+          ? '$inactiveHours minutes'
+          : '$inactiveHours hours';
+
+      // Send notification with high priority
+      await NotificationHelper.showAlert(
+        id: 'inactivity-${responderUid.hashCode}'.hashCode,
+        title: '${devModePrefix}Danoggin Inactivity Alert',
+        body: '$responderName has been inactive for $inactivityPeriod. ' +
+            'Last active at $lastActivityTime$timeZoneInfo.',
+      );
+
+      print('Inactivity alert sent for responder: $responderName');
+
+      // Update tracking
+      onAlertSent(alertKey);
+    } catch (e) {
+      print('Error sending inactivity alert: $e');
     }
   }
 }

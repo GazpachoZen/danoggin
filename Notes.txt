@@ -93,6 +93,7 @@ Preferences...
 - For situations where we have a several steps, each relying on completion of the prior, supply them only one at a time and await confirmation of success before providing the next step.
 ================================================================================
 TESTING...
+	Proper splash screen behavior?
 	Notifications on T's phone
 	Can I get multiple instances running?
 ================================================================================
@@ -107,6 +108,13 @@ I'd like to be more judicious about what exactly is getting archived away with G
 ---------------------
 If notifications continue to give us grief, consider switching from flutter_local_notifications to awesome_notifications. This is likely to be an extensive change.
 ---------------------
+I'd like to understand the utility of the "Acknowledge Issue" button relative to the responder/observer relationship.
+
+Here's what I notice from testing the existing code...
+- When a responder exhibits a problem (either missing a question or not responding in the allotted time) all linked observers get a single notification. This is fine.
+- If an observer starts their app and the last responder activity indicates a problem, they may or may not get a notification depending on whether or not they had hit the "Acknowledge" button earlier.
+
+How else does the acknowledge button come into play?
 ---------------------
 ---------------------
 It would be nice to have a mechanism for an observer to somehow coerce a related responder's app to present a question.

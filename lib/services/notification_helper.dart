@@ -28,7 +28,6 @@ class NotificationHelper {
   static bool _permissionDialogShown = false;
 
   /// Initialize the notification plugin
-// Simplified initialize method - please replace the current implementation with this
   static Future<void> initialize() async {
     if (_isInitialized) return;
 
@@ -41,7 +40,7 @@ class NotificationHelper {
     const AndroidInitializationSettings androidSettings =
         AndroidInitializationSettings('@mipmap/ic_launcher');
 
-    // Basic iOS settings - no advanced features
+    // Basic iOS settings
     const DarwinInitializationSettings iosSettings =
         DarwinInitializationSettings(
       requestAlertPermission: true,
@@ -62,26 +61,35 @@ class NotificationHelper {
       },
     );
 
-    // Android notification channel
-    const AndroidNotificationChannel channel = AndroidNotificationChannel(
-      _channelId,
-      _channelName,
-      description: _channelDescription,
-      importance: Importance.high,
-    );
-
-    final androidPlugin = _notifications.resolvePlatformSpecificImplementation<
-        AndroidFlutterLocalNotificationsPlugin>();
-
-    if (androidPlugin != null) {
-      await androidPlugin.createNotificationChannel(channel);
-      print('Notification channel created successfully');
+    // For Android, set up notification channel with high importance
+    if (Platform.isAndroid) {
+      try {
+        final androidPlugin = _notifications.resolvePlatformSpecificImplementation
+            <AndroidFlutterLocalNotificationsPlugin>();
+        
+        if (androidPlugin != null) {
+          // Create a notification channel with high importance
+          const AndroidNotificationChannel channel = AndroidNotificationChannel(
+            _channelId,
+            _channelName,
+            description: _channelDescription,
+            importance: Importance.high,
+          );
+          
+          await androidPlugin.createNotificationChannel(channel);
+          print('Notification channel created successfully');
+        }
+      } catch (e) {
+        print('Error creating Android notification channel: $e');
+        // Continue anyway - older versions may still work without explicit channel creation
+      }
     }
 
     _isInitialized = true;
     print('Notifications initialized successfully');
   }
 
+  /// Check if notifications are enabled
   static Future<bool> areNotificationsEnabled() async {
     if (!_isInitialized) {
       await initialize();
@@ -92,19 +100,25 @@ class NotificationHelper {
     try {
       if (Platform.isAndroid) {
         final androidPlugin =
-            _notifications.resolvePlatformSpecificImplementation<
-                AndroidFlutterLocalNotificationsPlugin>();
+            _notifications.resolvePlatformSpecificImplementation
+                <AndroidFlutterLocalNotificationsPlugin>();
 
         if (androidPlugin == null) return false;
 
         // Check if notifications are enabled on Android
-        final enabled = await androidPlugin.areNotificationsEnabled() ?? false;
-        print('Android notification permission status: $enabled');
-        return enabled;
+        try {
+          final enabled = await androidPlugin.areNotificationsEnabled() ?? false;
+          print('Android notification permission status: $enabled');
+          return enabled;
+        } catch (e) {
+          print('Error calling areNotificationsEnabled: $e');
+          // Fall back to assuming they're enabled
+          return true;
+        }
       } else if (Platform.isIOS) {
         // For iOS, we need to explicitly request permissions
-        final iosPlugin = _notifications.resolvePlatformSpecificImplementation<
-            IOSFlutterLocalNotificationsPlugin>();
+        final iosPlugin = _notifications.resolvePlatformSpecificImplementation
+            <IOSFlutterLocalNotificationsPlugin>();
 
         final result = await iosPlugin?.requestPermissions(
           alert: true,
@@ -124,8 +138,6 @@ class NotificationHelper {
   }
 
   /// Show notification with high priority
-// In notification_helper.dart, update the showAlert method
-
   static Future<bool> showAlert({
     required int id,
     required String title,
@@ -146,23 +158,24 @@ class NotificationHelper {
         return false;
       }
 
-      const AndroidNotificationDetails androidDetails =
-          AndroidNotificationDetails(
+      // Enhanced Android notification details for better visibility
+      const AndroidNotificationDetails androidDetails = AndroidNotificationDetails(
         _channelId,
         _channelName,
         channelDescription: _channelDescription,
         importance: Importance.high,
         priority: Priority.high,
         showWhen: true,
+        // Add more settings for better visibility
+        playSound: true,
+        enableVibration: true,
       );
 
-      // Updated iOS notification details without unsupported parameters
+      // Enhanced iOS notification details
       const DarwinNotificationDetails iosDetails = DarwinNotificationDetails(
         presentAlert: true,
         presentBadge: true,
         presentSound: true,
-        // Only use the supported parameters
-        interruptionLevel: InterruptionLevel.active,
         // Use a sound to increase visibility
         sound: 'default',
       );
@@ -217,8 +230,8 @@ class NotificationHelper {
       print('Testing iOS notification specifically...');
 
       // Request permissions explicitly before showing notification
-      final iosPlugin = _notifications.resolvePlatformSpecificImplementation<
-          IOSFlutterLocalNotificationsPlugin>();
+      final iosPlugin = _notifications.resolvePlatformSpecificImplementation
+          <IOSFlutterLocalNotificationsPlugin>();
 
       final permGranted = await iosPlugin?.requestPermissions(
         alert: true,
@@ -411,6 +424,49 @@ class NotificationHelper {
         ],
       ),
     );
+  }
+
+  // Request notification permissions explicitly
+  static Future<void> requestNotificationPermissions() async {
+    if (!_isInitialized) {
+      await initialize();
+    }
+
+    try {
+      // For Android, permissions are handled through notification channels
+      if (Platform.isAndroid) {
+        print('Android notification permissions handled through channel creation');
+      }
+
+      // For iOS, explicitly request permissions
+      if (Platform.isIOS) {
+        final iosPlugin = _notifications.resolvePlatformSpecificImplementation
+            <IOSFlutterLocalNotificationsPlugin>();
+        if (iosPlugin != null) {
+          final result = await iosPlugin.requestPermissions(
+            alert: true,
+            badge: true,
+            sound: true,
+          );
+          print('iOS notification permission request result: $result');
+        }
+      }
+    } catch (e) {
+      print('Error requesting notification permissions: $e');
+    }
+  }
+  
+  // Ensure background notifications are properly configured
+  static Future<void> ensureBackgroundNotificationsEnabled() async {
+    if (!_isInitialized) {
+      await initialize();
+    }
+    
+    // The notification channel created in initialize() should be sufficient
+    // Just make sure permissions are properly requested
+    await requestNotificationPermissions();
+    
+    print('Background notifications have been configured');
   }
 
   // Add cleanup method to dispose of the stream controller

@@ -29,7 +29,6 @@ class ObserverSettingsWidget extends StatefulWidget {
 }
 
 class _ObserverSettingsWidgetState extends State<ObserverSettingsWidget> {
-  double pollingIntervalMinutes = 2;
   double inactivityThresholdHours = 24; // Default: 24 hours
 
   // Min/max settings for inactivity threshold based on dev mode
@@ -40,15 +39,7 @@ class _ObserverSettingsWidgetState extends State<ObserverSettingsWidget> {
   @override
   void initState() {
     super.initState();
-    _loadPrefs();
     _loadInactivityThreshold();
-  }
-
-  Future<void> _loadPrefs() async {
-    final prefs = await SharedPreferences.getInstance();
-    setState(() {
-      pollingIntervalMinutes = prefs.getDouble('observerPollInterval') ?? 2;
-    });
   }
 
   Future<void> _loadInactivityThreshold() async {
@@ -65,11 +56,8 @@ class _ObserverSettingsWidgetState extends State<ObserverSettingsWidget> {
   }
 
   Future<void> _savePrefs() async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setDouble('observerPollInterval', pollingIntervalMinutes);
-
-    // Save inactivity threshold to Firestore
     try {
+      // Save inactivity threshold to Firestore
       final uid = AuthService.currentUserId;
       await ResponderSettingsRepository.saveInactivityThreshold(
         observerUid: uid,
@@ -100,28 +88,7 @@ class _ObserverSettingsWidgetState extends State<ObserverSettingsWidget> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // Polling interval setting
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Text('Polling interval: ${pollingIntervalMinutes.round()} minutes',
-                style: TextStyle(fontSize: 16, color: Colors.deepPurple)),
-            Text('Range: 1-10',
-                style: TextStyle(fontSize: 14, color: Colors.grey)),
-          ],
-        ),
-        Slider(
-          value: pollingIntervalMinutes,
-          min: 1,
-          max: 10,
-          divisions: 9,
-          label: '${pollingIntervalMinutes.round()} min',
-          onChanged: (val) => setState(() => pollingIntervalMinutes = val),
-        ),
-
-        const SizedBox(height: 24),
-
-// Inactivity threshold setting
+        // Inactivity threshold setting
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [

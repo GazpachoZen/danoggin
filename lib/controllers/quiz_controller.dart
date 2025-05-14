@@ -318,7 +318,6 @@ Future<void> logCheckIn({
         'createdAt': now.toIso8601String(),
         'userId': uid,
         'lastActivity': now.toIso8601String(),
-        // Add any other metadata you want to track at responder level
       });
       print("SAVE: Created parent responder_status document");
     } else {
@@ -329,7 +328,8 @@ Future<void> logCheckIn({
       print("SAVE: Updated lastActivity in parent document");
     }
 
-    // Now create the check-in document in the subcollection
+    // Now create the check-in document in the subcollection with a unique ID
+    // Use timestamp as document ID for easy ordering
     final checkInRef = responderStatusRef
         .collection('check_ins')
         .doc(now.toIso8601String());
@@ -346,8 +346,7 @@ Future<void> logCheckIn({
     print("ERROR: Failed to log check-in: $e");
     print("Stack trace: $stackTrace");
   }
-}
-  
+}  
   Map<String, Map<String, dynamic>> getPacksProgress() {
     return questionManager.getPacksProgress();
   }

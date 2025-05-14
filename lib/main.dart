@@ -25,7 +25,7 @@ void main() async {
 
   // Start notification initialization but don't await it yet
   final notificationInitialization = NotificationHelper.initialize();
-
+  
   // Run the app immediately without waiting for initializations to complete
   runApp(AppLifecycleHandler(
     child: const MyApp(),
@@ -42,6 +42,10 @@ void main() async {
   try {
     await notificationInitialization;
     print('Notification system initialized in main()');
+    
+    // Add these new calls for improved notification handling
+    await NotificationHelper.ensureBackgroundNotificationsEnabled();
+    await NotificationHelper.requestNotificationPermissions();
   } catch (e) {
     print('Error initializing notifications in main(): $e');
   }
