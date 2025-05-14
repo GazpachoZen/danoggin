@@ -95,25 +95,26 @@ Preferences...
 TESTING...
 	Notifications on T's phone
 	Can I get multiple instances running?
+================================================================================
 ---------------------
-When testing the app on an iPhone, it appears that it's possible for there to be more than one instance of Danoggin running at a time. Is there a way we can prevent this from accidentally happening?
----------------------
-Is there any reason why notification behavior would be different between an iPhone and an iPad? (provide more details here)
+The app works great if the phone is in a portrait orientation, but it does not render at all well if in landscape. In fact, we shouldn't even try - we should notify the user of this whenever they try to rotate their phone.
 ---------------------
 Consider using flutter_native_splash to minimize the dead time we're presently experiencing when the app starts up.
 ---------------------
+Please examine the pubspec.yaml file I provided you. As a rule, I prefer stability over having the latest version of things. With that in mind, am I using the best versions of the various packages to get equal functionality for Android and iOS?
 ---------------------
 I'd like to be more judicious about what exactly is getting archived away with Git, especially as it pertains to what makes its way up to GitHub. 
 ---------------------
 If notifications continue to give us grief, consider switching from flutter_local_notifications to awesome_notifications. This is likely to be an extensive change.
 ---------------------
-JEI - remember to turn kDevModeEnabled back to false wherever it exists.
 ---------------------
 ---------------------
 It would be nice to have a mechanism for an observer to somehow coerce a related responder's app to present a question.
 ---------------------
 The app presently uses anonymous authentication for Firebase. We should probably button that up before making this app generally available. I'm not very familiar with Firebase. What would be the necessary steps?
 >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> LATER...
+JEI - remember to turn kDevModeEnabled back to false wherever it exists.
+---------------------
 Make a states and cities question pack. All the state capitals, etc.
 ---------------------
 As a future capability, we'll eventually want the apps to notice that updates are available.

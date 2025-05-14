@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_native_splash/flutter_native_splash.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:danoggin/services/auth_service.dart';
@@ -31,6 +32,9 @@ class _SplashScreenState extends State<SplashScreen>
 
   @override
   void initState() {
+    // Remove the native splash screen when your app is ready
+    FlutterNativeSplash.remove();
+    
     super.initState();
 
     // Setup animation
