@@ -10,6 +10,7 @@ import 'package:flutter/material.dart';
 import 'screens/splash_screen.dart';
 import 'services/notification_helper.dart';
 import 'theme/app_theme.dart';
+import 'package:flutter/services.dart';
 import 'package:firebase_core/firebase_core.dart';
 import '../firebase_options.dart';
 import 'dart:io';
@@ -18,6 +19,11 @@ void main() async {
   // Ensure Flutter binding is initialized
   WidgetsFlutterBinding.ensureInitialized();
 
+// Set preferred orientations to portrait only
+  await SystemChrome.setPreferredOrientations([
+    DeviceOrientation.portraitUp,
+    DeviceOrientation.portraitDown,
+  ]);
   // Start Firebase initialization but don't await it yet
   final firebaseInitialization = Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
@@ -25,7 +31,7 @@ void main() async {
 
   // Start notification initialization but don't await it yet
   final notificationInitialization = NotificationHelper.initialize();
-  
+
   // Run the app immediately without waiting for initializations to complete
   runApp(AppLifecycleHandler(
     child: const MyApp(),
@@ -42,7 +48,7 @@ void main() async {
   try {
     await notificationInitialization;
     print('Notification system initialized in main()');
-    
+
     // Add these new calls for improved notification handling
     await NotificationHelper.ensureBackgroundNotificationsEnabled();
     await NotificationHelper.requestNotificationPermissions();
@@ -108,10 +114,10 @@ class _AppLifecycleHandlerState extends State<AppLifecycleHandler>
     with WidgetsBindingObserver {
   // Add this static boolean to track active instances
   static bool _hasActiveInstance = false;
-  
+
   // Add a new variable to track if we're in a resumed state
   bool _isResumed = false;
-  
+
   @override
   void initState() {
     super.initState();
@@ -146,7 +152,7 @@ class _AppLifecycleHandlerState extends State<AppLifecycleHandler>
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
     super.didChangeAppLifecycleState(state);
-    
+
     if (state == AppLifecycleState.resumed) {
       // App came to foreground
       _isResumed = true;
@@ -157,8 +163,8 @@ class _AppLifecycleHandlerState extends State<AppLifecycleHandler>
       _hasActiveInstance = false;
       _isResumed = false;
       print('Danoggin instance terminated');
-    } else if (state == AppLifecycleState.inactive || 
-              state == AppLifecycleState.paused) {
+    } else if (state == AppLifecycleState.inactive ||
+        state == AppLifecycleState.paused) {
       // App is in background or inactive
       _isResumed = false;
     }
