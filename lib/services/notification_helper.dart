@@ -566,4 +566,68 @@ class NotificationHelper {
       return false;
     }
   }
+
+  static Future<bool> testForegroundNotificationiOS() async {
+    if (!_isInitialized) {
+      await initialize();
+    }
+
+    try {
+      print('Testing basic foreground notification for iOS');
+
+      // Force request permissions again
+      if (Platform.isIOS) {
+        final iosPlugin = _notifications.resolvePlatformSpecificImplementation<
+            IOSFlutterLocalNotificationsPlugin>();
+        await iosPlugin?.requestPermissions(
+          alert: true,
+          badge: true,
+          sound: true,
+        );
+      }
+
+      // Try with absolute minimum configuration
+      final id = DateTime.now().millisecond;
+
+      // Create a very basic notification
+      if (Platform.isIOS) {
+        // For iOS, create a plain notification
+        print('Using minimal iOS notification configuration');
+
+        // Using only essential iOS settings
+        final details = NotificationDetails(
+          iOS: DarwinNotificationDetails(
+            presentAlert: true,
+            presentBadge: true,
+            presentSound: true,
+            interruptionLevel: InterruptionLevel.active,
+          ),
+        );
+
+        // Send the notification
+        print('Sending iOS foreground test notification with ID: $id');
+        await _notifications.show(
+          id,
+          'iOS Foreground Test',
+          'Basic foreground notification test - ${DateTime.now().toString()}',
+          details,
+        );
+      } else {
+        // For Android, use existing configuration
+        print('Test called on Android - using standard configuration');
+        await showAlert(
+          id: id,
+          title: 'Android Test',
+          body: 'Basic test notification',
+          triggerRefresh: false,
+        );
+      }
+
+      print('Test notification sent with ID: $id');
+      return true;
+    } catch (e) {
+      print('Error in foreground notification test: $e');
+      return false;
+    }
+  }
 }

@@ -303,6 +303,19 @@ class _QuizPageState extends State<QuizPage> with WidgetsBindingObserver {
           icon: const Icon(Icons.settings),
           onPressed: () => _navigateToSettings(),
         ),
+        IconButton(
+          icon: const Icon(Icons.mobile_screen_share),
+          tooltip: 'Test iOS Foreground',
+          onPressed: () async {
+            await NotificationHelper.testForegroundNotificationiOS();
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text('iOS foreground test triggered'),
+                duration: Duration(seconds: 1),
+              ),
+            );
+          },
+        ),
       ],
     );
   }
