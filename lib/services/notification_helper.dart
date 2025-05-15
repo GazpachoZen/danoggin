@@ -23,6 +23,8 @@ class NotificationHelper {
 
   static bool _appInBackground = false;
 
+  static BuildContext? _currentContext;
+
   // Add a stream controller for notification events
   static final StreamController<dynamic> _notificationStreamController =
       StreamController<dynamic>.broadcast();
@@ -866,6 +868,7 @@ class NotificationHelper {
   }) async {
     // If app is known to be in background, or if we don't have a context,
     // use system notification
+    log("======== In showSmartNotification");
     if (_appInBackground || context == null) {
       log("App in background or no context - using system notification");
       await showAlert(
@@ -879,5 +882,9 @@ class NotificationHelper {
     // App is in foreground with context - use enhanced in-app notification
     log("App in foreground - using enhanced in-app notification");
     showEnhancedInAppNotification(context, title, body);
+  }
+
+  static void setCurrentContext(BuildContext context) {
+    _currentContext = context;
   }
 }

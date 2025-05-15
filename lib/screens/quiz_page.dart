@@ -337,6 +337,30 @@ class _QuizPageState extends State<QuizPage> with WidgetsBindingObserver {
             );
           },
         ),
+        IconButton(
+          icon: const Icon(Icons.smart_toy),
+          tooltip: 'Test Smart Notification',
+          onPressed: () async {
+            // Set the context for the notification
+            NotificationHelper.setCurrentContext(context);
+
+            // Test the smart notification
+            await NotificationHelper.showSmartNotification(
+              context: context,
+              id: DateTime.now().millisecond,
+              title: 'Smart Notification Test',
+              body:
+                  'This is a test of the in-app notification system for foreground display on iOS',
+            );
+
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text('Smart notification test triggered'),
+                duration: Duration(seconds: 1),
+              ),
+            );
+          },
+        ),
       ],
     );
   }
