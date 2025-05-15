@@ -6,6 +6,8 @@ import 'package:device_info_plus/device_info_plus.dart';
 import 'dart:collection';
 import 'package:timezone/timezone.dart' as tz;
 import 'package:timezone/data/latest.dart' as tz_data;
+import 'package:audioplayers/audioplayers.dart' as audio;
+import 'package:vibration/vibration.dart';
 
 class NotificationHelper {
   static final FlutterLocalNotificationsPlugin _notifications =
@@ -18,6 +20,8 @@ class NotificationHelper {
 
   static final Queue<String> _logMessages = Queue<String>();
   static const int _maxLogMessages = 100;
+
+  static bool _appInBackground = false;
 
   // Add a stream controller for notification events
   static final StreamController<dynamic> _notificationStreamController =
@@ -676,65 +680,204 @@ class NotificationHelper {
   }
 
   static Future<bool> testProvisionalNotification() async {
-  log("Starting iOS provisional notification test");
-  
-  if (!_isInitialized) {
-    log("Initializing notification system first");
-    await initialize();
-  }
-  
-  try {
-    if (Platform.isIOS) {
-      // Request provisional authorization
-      log("Requesting provisional authorization for iOS");
-      
-      final iosPlugin = _notifications.resolvePlatformSpecificImplementation
-          <IOSFlutterLocalNotificationsPlugin>();
-      
-      if (iosPlugin == null) {
-        log("ERROR: Failed to get iOS plugin implementation");
-        return false;
-      }
-      
-      // Key difference: request provisional authorization
-      final provisionalResult = await iosPlugin.requestPermissions(
-        alert: true,
-        badge: true,
-        sound: true,
-        provisional: true,  // This is the key difference
-      );
-      
-      log("Provisional authorization result: $provisionalResult");
-      
-      // Try immediate notification with provisional authorization
-      final id = DateTime.now().millisecond;
-      
-      const DarwinNotificationDetails iosDetails = DarwinNotificationDetails(
-        presentAlert: true,
-        presentBadge: true,
-        presentSound: true,
-        interruptionLevel: InterruptionLevel.active,
-      );
-      
-      const NotificationDetails details = NotificationDetails(iOS: iosDetails);
-      
-      log("Sending iOS notification with provisional authorization");
-      await _notifications.show(
-        id,
-        'iOS Provisional Test',
-        'Testing notification with provisional authorization',
-        details,
-      );
-      
-      log("iOS provisional notification sent");
-    } else {
-      log("Not running on iOS - test not applicable");
+    log("Starting iOS provisional notification test");
+
+    if (!_isInitialized) {
+      log("Initializing notification system first");
+      await initialize();
     }
-    
-    return true;
-  } catch (e) {
-    log("ERROR in provisional notification test: $e");
-    return false;
+
+    try {
+      if (Platform.isIOS) {
+        // Request provisional authorization
+        log("Requesting provisional authorization for iOS");
+
+        final iosPlugin = _notifications.resolvePlatformSpecificImplementation<
+            IOSFlutterLocalNotificationsPlugin>();
+
+        if (iosPlugin == null) {
+          log("ERROR: Failed to get iOS plugin implementation");
+          return false;
+        }
+
+        // Key difference: request provisional authorization
+        final provisionalResult = await iosPlugin.requestPermissions(
+          alert: true,
+          badge: true,
+          sound: true,
+          provisional: true, // This is the key difference
+        );
+
+        log("Provisional authorization result: $provisionalResult");
+
+        // Try immediate notification with provisional authorization
+        final id = DateTime.now().millisecond;
+
+        const DarwinNotificationDetails iosDetails = DarwinNotificationDetails(
+          presentAlert: true,
+          presentBadge: true,
+          presentSound: true,
+          interruptionLevel: InterruptionLevel.active,
+        );
+
+        const NotificationDetails details =
+            NotificationDetails(iOS: iosDetails);
+
+        log("Sending iOS notification with provisional authorization");
+        await _notifications.show(
+          id,
+          'iOS Provisional Test',
+          'Testing notification with provisional authorization',
+          details,
+        );
+
+        log("iOS provisional notification sent");
+      } else {
+        log("Not running on iOS - test not applicable");
+      }
+
+      return true;
+    } catch (e) {
+      log("ERROR in provisional notification test: $e");
+      return false;
+    }
   }
-}
+
+  static Future<void> showEnhancedInAppNotification(
+      BuildContext context, String title, String body,
+      {bool playSound = true, bool vibrate = true}) async {
+    // Play notification sound
+    if (playSound) {
+      try {
+        final player = audio.AudioPlayer();
+        await player.play(audio.AssetSource('sounds/notification_sound.mp3'));
+      } catch (e) {
+        log("Error playing notification sound: $e");
+      }
+    }
+
+    // Vibrate device
+    if (vibrate) {
+      try {
+        if (await Vibration.hasVibrator() ?? false) {
+          // Create a pattern similar to notification vibration
+          Vibration.vibrate(pattern: [0, 250, 100, 250]);
+        }
+      } catch (e) {
+        log("Error vibrating device: $e");
+      }
+    }
+
+    // First declare the variable without initializing it
+    late OverlayEntry entry;
+
+    // Then define the entry
+    entry = OverlayEntry(
+      builder: (context) => Positioned(
+        top: MediaQuery.of(context).padding.top + 10,
+        left: 10,
+        right: 10,
+        child: Material(
+          elevation: 8,
+          borderRadius: BorderRadius.circular(10),
+          child: Container(
+            padding: EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: Colors.blue[100],
+              borderRadius: BorderRadius.circular(10),
+              border: Border.all(color: Colors.blue[700]!, width: 2),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Row(
+                  children: [
+                    Icon(Icons.notification_important, color: Colors.blue[700]),
+                    SizedBox(width: 8),
+                    Expanded(
+                      child: Text(
+                        title,
+                        style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 16,
+                          color: Colors.blue[900],
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                SizedBox(height: 8),
+                Text(
+                  body,
+                  style: TextStyle(fontSize: 14),
+                ),
+                SizedBox(height: 8),
+                Align(
+                  alignment: Alignment.centerRight,
+                  child: TextButton(
+                    child: Text('DISMISS'),
+                    onPressed: () {
+                      entry.remove();
+                    },
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+
+    // Insert the overlay
+    Overlay.of(context).insert(entry);
+
+    // Remove after a delay (longer for more attention)
+    Future.delayed(Duration(seconds: 8), () {
+      // Fix for checking if the entry is still valid before removing
+      try {
+        // A simpler check to see if the context is still valid
+        if (context.mounted) {
+          entry.remove();
+        }
+      } catch (e) {
+        log("Error removing notification overlay: $e");
+        // Entry might have been removed already
+      }
+    });
+  }
+
+  static void trackAppState(AppLifecycleState state) {
+    if (state == AppLifecycleState.paused ||
+        state == AppLifecycleState.detached) {
+      _appInBackground = true;
+    } else {
+      _appInBackground = false;
+    }
+    log("App state changed to: $state, isBackground: $_appInBackground");
+  }
+
+// Advanced notification method that decides best approach based on app state
+  static Future<void> showSmartNotification({
+    required BuildContext? context,
+    required int id,
+    required String title,
+    required String body,
+  }) async {
+    // If app is known to be in background, or if we don't have a context,
+    // use system notification
+    if (_appInBackground || context == null) {
+      log("App in background or no context - using system notification");
+      await showAlert(
+        id: id,
+        title: title,
+        body: body,
+      );
+      return;
+    }
+
+    // App is in foreground with context - use enhanced in-app notification
+    log("App in foreground - using enhanced in-app notification");
+    showEnhancedInAppNotification(context, title, body);
+  }
 }

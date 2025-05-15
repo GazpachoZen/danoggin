@@ -93,10 +93,8 @@ Preferences...
 - For situations where we have a several steps, each relying on completion of the prior, supply them only one at a time and await confirmation of success before providing the next step.
 ================================================================================
 TESTING...
-	Proper splash screen behavior?
 	Notifications on T's phone
 	Can I get multiple instances running?
-	Forced portrait mode
 ================================================================================
 ---------------------
 ---------------------
@@ -132,7 +130,7 @@ As a future capability, we'll eventually want the apps to notice that updates ar
 ---------------------
 Danoggin should auto-start when phone powers up. Please discuss how this is accomplished before suggesting any code changes.
 ---------------------
-Add license agreement for the animal images I use.
+Add license agreement for the animal images I use. Also reference/thank ZapSplat.com for the notification sound.
 ---------------------
 The app is presently force to be in portrait mode only right now. I would like it to be more polite about this. Can we modify the code such that if the user turns to phone to landscape we provide an explanation that we only operate in portrait mode? This seems more polite.
 ---------------------
