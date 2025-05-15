@@ -158,22 +158,3 @@ class _ObserverPageState extends State<ObserverPage> {
     }
   }
 }
-
-// Initialize notification system
-void initNotifications() {
-  // Initialize notification plugin
-  const AndroidInitializationSettings initializationSettingsAndroid =
-      AndroidInitializationSettings('@mipmap/ic_launcher');
-
-  const InitializationSettings initializationSettings =
-      InitializationSettings(android: initializationSettingsAndroid);
-
-  FlutterLocalNotificationsPlugin().initialize(
-    initializationSettings,
-    onDidReceiveNotificationResponse: (NotificationResponse details) {
-      print("Notification clicked: ${details.id}");
-    },
-  );
-
-  print("Notifications initialized");
-}

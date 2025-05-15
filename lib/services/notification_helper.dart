@@ -634,31 +634,6 @@ class NotificationHelper {
     log("Current notification context ${context != null ? 'set' : 'cleared'}");
   }
 
-// Smart notification system
-  static Future<bool> showSmartNotification({
-    required BuildContext? context,
-    required int id,
-    required String title,
-    required String body,
-  }) async {
-    log("Smart notification requested: id=$id, title=$title");
-
-    // Only use in-app notifications for iOS in foreground
-    if (Platform.isIOS && context != null && !_appInBackground) {
-      log("Using in-app notification for iOS in foreground");
-      showEnhancedInAppNotification(context, title, body);
-      return true;
-    } else {
-      // For Android or iOS background, use system notification
-      log("Using system notification (Android or iOS background)");
-      return await showAlert(
-        id: id,
-        title: title,
-        body: body,
-      );
-    }
-  }
-
   // Logging system
   static void log(String message) {
     final timestamp = DateTime.now().toString().substring(0, 19);
@@ -676,5 +651,82 @@ class NotificationHelper {
 
   static void clearLogs() {
     _logMessages.clear();
+  }
+
+  /// Central notification method that chooses the best way to present a notification
+  /// based on platform and app state
+  static Future<bool> useBestNotification({
+    required String title,
+    required String body,
+    dynamic id = 0, // Change type to dynamic to handle different input types
+    bool playSound = true,
+    bool triggerRefresh = false,
+    Map<String, dynamic>? payload,
+  }) async {
+    log("useBestNotification called: title=$title, id=$id");
+
+    try {
+      // Ensure id is a valid 32-bit integer
+      int notificationId;
+      if (id is int) {
+        // If it's potentially a large int, constrain it to 32-bit range
+        notificationId = id % 2147483647; // 2^31 - 1
+      } else if (id is String) {
+        // If it's a string, hash it to get an integer
+        notificationId = id.hashCode.abs() % 2147483647;
+      } else {
+        // For any other type, use a default
+        notificationId = 1;
+      }
+
+      log("Using notification ID: $notificationId (original: $id)");
+
+      // Check if notifications are enabled
+      bool enabled = true;
+      try {
+        enabled = await areNotificationsEnabled();
+      } catch (e) {
+        log('Error checking notification permissions: $e');
+        // Continue with best effort
+      }
+
+      if (!enabled) {
+        log('Notifications are not enabled for this app');
+        return false;
+      }
+
+      // iOS in foreground: Use in-app overlay notification
+      if (Platform.isIOS && !_appInBackground && _currentContext != null) {
+        log("Using in-app notification for iOS in foreground");
+        await showEnhancedInAppNotification(_currentContext!, title, body,
+            playSound: playSound);
+
+        // If a refresh is required, trigger event
+        if (triggerRefresh) {
+          _notificationStreamController.add({
+            'id': notificationId,
+            'title': title,
+            'body': body,
+            'payload': payload
+          });
+          log('Emitted notification event for refresh');
+        }
+
+        return true;
+      }
+      // All other cases: Use system notification
+      else {
+        log("Using system notification (Android or iOS background)");
+        return await showAlert(
+          id: notificationId, // Use the converted ID
+          title: title,
+          body: body,
+          triggerRefresh: triggerRefresh,
+        );
+      }
+    } catch (e) {
+      log('Error in useBestNotification: $e');
+      return false;
+    }
   }
 }

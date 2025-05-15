@@ -23,7 +23,7 @@ class QuizController {
   AnswerOption? selectedAnswer;
   String? feedback;
   List<QuestionPack> subscribedPacks = [];
-  
+
   // Operational settings
   TimeOfDay? startHour;
   TimeOfDay? endHour;
@@ -33,54 +33,52 @@ class QuizController {
   // Timers
   Timer? alertTimer;
   Timer? responseTimer;
-  
+
   // Notification subscription
   late StreamSubscription<dynamic> _notificationSubscription;
-  
+
   // Manager for question handling
   late QuestionManager questionManager;
-  
+
   // Flags
   bool _timeoutActive = false;
   bool _isInitialLoad = true;
-  
+
   // Callback to notify parent of state changes
   final VoidCallback onStateChanged;
-  
+
   QuizController({
     required this.currentRole,
     required this.onStateChanged,
   });
-  
+
   // Initialize the controller
   Future<void> initialize() async {
     // Set up notification listener
     _setupNotificationListener();
-    
+
     // Load question packs and initialize
     await loadPackFromFirestore();
   }
-  
+
   void dispose() {
     _notificationSubscription.cancel();
     alertTimer?.cancel();
     responseTimer?.cancel();
   }
-  
+
   void updateRole(UserRole role) {
     currentRole = role;
     onStateChanged();
   }
-  
+
   // Methods to handle loading data
   Future<String> loadUserName() async {
     try {
       final uid = AuthService.currentUserId;
-      final userDoc = await FirebaseFirestore.instance
-          .collection('users')
-          .doc(uid)
-          .get();
-      
+      final userDoc =
+          await FirebaseFirestore.instance.collection('users').doc(uid).get();
+
       if (userDoc.exists) {
         final userData = userDoc.data();
         if (userData != null && userData.containsKey('name')) {
@@ -92,15 +90,15 @@ class QuizController {
     }
     return "Responder";
   }
-  
+
   Future<void> loadPackFromFirestore() async {
     try {
       // Load all subscribed packs
       subscribedPacks = await QuestionPackService.loadSubscribedPacks();
-      
+
       // Create question manager with all packs
       questionManager = QuestionManager(subscribedPacks);
-      
+
       final prefs = await SharedPreferences.getInstance();
 
       final startStr = prefs.getString('startHour') ?? '08:00';
@@ -120,13 +118,13 @@ class QuizController {
       print('Error loading packs: $e');
     }
   }
-  
+
   Future<void> reloadPacks() async {
     isLoading = true;
     onStateChanged();
     await loadPackFromFirestore();
   }
-  
+
   void _parseOperationHours(String startStr, String endStr) {
     try {
       final startParts = startStr.split(':').map(int.parse).toList();
@@ -138,7 +136,7 @@ class QuizController {
       endHour = const TimeOfDay(hour: 20, minute: 0);
     }
   }
-  
+
   bool _isWithinActiveHours() {
     if (startHour == null || endHour == null) return true;
 
@@ -149,7 +147,7 @@ class QuizController {
 
     return nowMinutes >= startMinutes && nowMinutes <= endMinutes;
   }
-  
+
   // Methods for quiz operation
   void startAlertLoop() {
     alertTimer?.cancel();
@@ -165,7 +163,7 @@ class QuizController {
       }
     });
   }
-  
+
   void loadRandomQuestion({bool isScheduled = false}) {
     // Use the question manager to get a random question from any pack
     currentQuestion = questionManager.getNextQuestion();
@@ -185,20 +183,21 @@ class QuizController {
     // Only show alert with refresh event if it's a scheduled update (not initial load)
     if (isScheduled || !_isInitialLoad) {
       // Use the NotificationHelper to show the check-in notification
-      NotificationHelper.showAlert(
+      NotificationHelper.useBestNotification(
         id: 1, // Use 1 as the ID for check-in notifications
         title: 'Danoggin Check-In',
         body: 'Time to answer a quick question!',
-        triggerRefresh: isScheduled, // Only trigger refresh for scheduled alerts
+        triggerRefresh:
+            isScheduled, // Only trigger refresh for scheduled alerts
       );
     } else {
       // First load, just mark that we've completed initial load
       _isInitialLoad = false;
     }
-    
+
     onStateChanged();
   }
-  
+
   void _handleTimeout() async {
     // Only handle timeout if it's not already being handled
     if (_timeoutActive) return;
@@ -226,13 +225,13 @@ class QuizController {
       });
     }
   }
-  
+
   void selectAnswer(AnswerOption answer) {
     selectedAnswer = answer;
     feedback = null;
     onStateChanged();
   }
-  
+
   Future<void> submitAnswer() async {
     if (selectedAnswer == null) return;
 
@@ -288,69 +287,69 @@ class QuizController {
       }
     }
   }
-  
-Future<void> logCheckIn({
-  required String result,
-  required String questionPrompt,
-}) async {
-  try {
-    final now = DateTime.now();
 
-    // Get the current user's UID from AuthService
-    final uid = AuthService.currentUserId;
+  Future<void> logCheckIn({
+    required String result,
+    required String questionPrompt,
+  }) async {
+    try {
+      final now = DateTime.now();
 
-    print(
-        "SAVE: Writing check-in data to responder_status/$uid/check_ins/${now.toIso8601String()}");
-    print(
-        "SAVE: Data: result=$result, prompt=$questionPrompt, timestamp=${now.toIso8601String()}");
+      // Get the current user's UID from AuthService
+      final uid = AuthService.currentUserId;
 
-    // First, ensure the parent document exists by creating it if needed
-    final responderStatusRef = FirebaseFirestore.instance
-        .collection('responder_status')
-        .doc(uid);
-    
-    // Get the document to check if it exists
-    final docSnapshot = await responderStatusRef.get();
-    
-    // If parent document doesn't exist, create it with basic metadata
-    if (!docSnapshot.exists) {
-      await responderStatusRef.set({
-        'createdAt': now.toIso8601String(),
-        'userId': uid,
-        'lastActivity': now.toIso8601String(),
+      print(
+          "SAVE: Writing check-in data to responder_status/$uid/check_ins/${now.toIso8601String()}");
+      print(
+          "SAVE: Data: result=$result, prompt=$questionPrompt, timestamp=${now.toIso8601String()}");
+
+      // First, ensure the parent document exists by creating it if needed
+      final responderStatusRef =
+          FirebaseFirestore.instance.collection('responder_status').doc(uid);
+
+      // Get the document to check if it exists
+      final docSnapshot = await responderStatusRef.get();
+
+      // If parent document doesn't exist, create it with basic metadata
+      if (!docSnapshot.exists) {
+        await responderStatusRef.set({
+          'createdAt': now.toIso8601String(),
+          'userId': uid,
+          'lastActivity': now.toIso8601String(),
+        });
+        print("SAVE: Created parent responder_status document");
+      } else {
+        // Update the lastActivity timestamp in the parent document
+        await responderStatusRef.update({
+          'lastActivity': now.toIso8601String(),
+        });
+        print("SAVE: Updated lastActivity in parent document");
+      }
+
+      // Now create the check-in document in the subcollection with a unique ID
+      // Use timestamp as document ID for easy ordering
+      final checkInRef =
+          responderStatusRef.collection('check_ins').doc(now.toIso8601String());
+
+      await checkInRef.set({
+        'timestamp': now.toIso8601String(),
+        'result': result,
+        'prompt': questionPrompt,
+        'responderId':
+            currentRole.name, // Keep this for backward compatibility/filtering
       });
-      print("SAVE: Created parent responder_status document");
-    } else {
-      // Update the lastActivity timestamp in the parent document
-      await responderStatusRef.update({
-        'lastActivity': now.toIso8601String(),
-      });
-      print("SAVE: Updated lastActivity in parent document");
+
+      print("SAVE: Successfully wrote check-in data!");
+    } catch (e, stackTrace) {
+      print("ERROR: Failed to log check-in: $e");
+      print("Stack trace: $stackTrace");
     }
-
-    // Now create the check-in document in the subcollection with a unique ID
-    // Use timestamp as document ID for easy ordering
-    final checkInRef = responderStatusRef
-        .collection('check_ins')
-        .doc(now.toIso8601String());
-
-    await checkInRef.set({
-      'timestamp': now.toIso8601String(),
-      'result': result,
-      'prompt': questionPrompt,
-      'responderId': currentRole.name, // Keep this for backward compatibility/filtering
-    });
-
-    print("SAVE: Successfully wrote check-in data!");
-  } catch (e, stackTrace) {
-    print("ERROR: Failed to log check-in: $e");
-    print("Stack trace: $stackTrace");
   }
-}  
+
   Map<String, Map<String, dynamic>> getPacksProgress() {
     return questionManager.getPacksProgress();
   }
-  
+
   // Add method to set up notification listener
   void _setupNotificationListener() {
     // Listen for notification events using a stream

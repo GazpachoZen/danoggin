@@ -10,89 +10,94 @@ import 'package:flutter/material.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:timezone/data/latest_all.dart' as tz;
 import 'package:timezone/timezone.dart' as tz;
+import 'package:danoggin/services/notification_helper.dart';
 
 class NotificationService {
   static final _notifications = FlutterLocalNotificationsPlugin();
 
-static Future<void> initialize() async {
-  print("Initializing notification service...");
-  
-  // Android initialization settings
-  final androidInit = AndroidInitializationSettings('@mipmap/ic_launcher');
-  
-  // iOS initialization settings
-  const iosInit = DarwinInitializationSettings(
-    requestAlertPermission: true,
-    requestBadgePermission: true,
-    requestSoundPermission: true,
-  );
-  
-  // Initialize settings for all platforms
-  final initSettings = InitializationSettings(
-    android: androidInit,
-    iOS: iosInit,
-  );
+  static Future<void> initialize() async {
+    print("Initializing notification service...");
 
-  // Initialize the plugin
-  final success = await _notifications.initialize(
-    initSettings,
-    onDidReceiveNotificationResponse: (NotificationResponse response) {
-      print("Notification clicked: ${response.id}");
-      // Handle notification tap
-    },
-  );
-  
-  print("Notification initialization result: $success");
+    // Android initialization settings
+    final androidInit = AndroidInitializationSettings('@mipmap/ic_launcher');
 
-  // Initialize timezone data
-  tz.initializeTimeZones();
-  final locationName = await tz.TZDateTime.now(tz.local).timeZoneName;
-  print("Using timezone: $locationName");
-  
-  // In earlier versions of flutter_local_notifications,
-  // permissions are handled through channel creation
-  print("Setting up notification channels (which handles permissions)");
-  
-  // Create the notification channels
-  await _createNotificationChannels();
-  
-  print("Notification service initialization complete");
-}
+    // iOS initialization settings
+    const iosInit = DarwinInitializationSettings(
+      requestAlertPermission: true,
+      requestBadgePermission: true,
+      requestSoundPermission: true,
+    );
 
-static Future<void> _createNotificationChannels() async {
-  // Android only
-  final androidPlugin = _notifications.resolvePlatformSpecificImplementation<
-      AndroidFlutterLocalNotificationsPlugin>();
-      
-  if (androidPlugin != null) {
-    // Main notification channel
-    await androidPlugin.createNotificationChannel(const AndroidNotificationChannel(
-      'danoggin_channel',
-      'Danoggin Notifications',
-      description: 'Regular check-in reminders',
-      importance: Importance.high,
-    ));
-    
-    // Alerts notification channel (higher priority)
-    await androidPlugin.createNotificationChannel(const AndroidNotificationChannel(
-      'danoggin_alerts',
-      'Danoggin Urgent Alerts',
-      description: 'Critical alerts for missed or incorrect check-ins',
-      importance: Importance.max,
-      // For a custom sound, you'd need to add the file to your Android project
-      // sound: RawResourceAndroidNotificationSound('notification_sound'),
-      enableVibration: true,
-      enableLights: true,
-    ));
-    
-    print("Notification channels created");
+    // Initialize settings for all platforms
+    final initSettings = InitializationSettings(
+      android: androidInit,
+      iOS: iosInit,
+    );
+
+    // Initialize the plugin
+    final success = await _notifications.initialize(
+      initSettings,
+      onDidReceiveNotificationResponse: (NotificationResponse response) {
+        print("Notification clicked: ${response.id}");
+        // Handle notification tap
+      },
+    );
+
+    print("Notification initialization result: $success");
+
+    // Initialize timezone data
+    tz.initializeTimeZones();
+    final locationName = await tz.TZDateTime.now(tz.local).timeZoneName;
+    print("Using timezone: $locationName");
+
+    // In earlier versions of flutter_local_notifications,
+    // permissions are handled through channel creation
+    print("Setting up notification channels (which handles permissions)");
+
+    // Create the notification channels
+    await _createNotificationChannels();
+
+    print("Notification service initialization complete");
   }
-}
+
+  static Future<void> _createNotificationChannels() async {
+    // Android only
+    final androidPlugin = _notifications.resolvePlatformSpecificImplementation<
+        AndroidFlutterLocalNotificationsPlugin>();
+
+    if (androidPlugin != null) {
+      // Main notification channel
+      await androidPlugin
+          .createNotificationChannel(const AndroidNotificationChannel(
+        'danoggin_channel',
+        'Danoggin Notifications',
+        description: 'Regular check-in reminders',
+        importance: Importance.high,
+      ));
+
+      // Alerts notification channel (higher priority)
+      await androidPlugin
+          .createNotificationChannel(const AndroidNotificationChannel(
+        'danoggin_alerts',
+        'Danoggin Urgent Alerts',
+        description: 'Critical alerts for missed or incorrect check-ins',
+        importance: Importance.max,
+        // For a custom sound, you'd need to add the file to your Android project
+        // sound: RawResourceAndroidNotificationSound('notification_sound'),
+        enableVibration: true,
+        enableLights: true,
+      ));
+
+      print("Notification channels created");
+    }
+  }
+
   static Future<void> scheduleTestNotification({int delaySeconds = 5}) async {
     final scheduledTime =
         tz.TZDateTime.now(tz.local).add(Duration(seconds: delaySeconds));
 
     try {
+      // If we can directly schedule it with timezone
       await _notifications.zonedSchedule(
         0,
         'Danoggin Alert',
@@ -113,30 +118,19 @@ static Future<void> _createNotificationChannels() async {
             UILocalNotificationDateInterpretation.absoluteTime,
       );
     } catch (e) {
-      // Fallback for older devices or silent errors
-      debugPrint('zonedSchedule failed, falling back to delayed show(): $e');
-      Future.delayed(Duration(seconds: delaySeconds), () {
-        _notifications.show(
-          0,
-          'Danoggin Alert',
-          'This is a fallback notification.',
-          const NotificationDetails(
-            android: AndroidNotificationDetails(
-              'danoggin_channel',
-              'Danoggin Notifications',
-              channelDescription: 'Fallback notifications',
-              importance: Importance.max,
-              priority: Priority.high,
-            ),
-          ),
+      // Fallback using delayed useBestNotification
+      debugPrint(
+          'zonedSchedule failed, falling back to delayed notification: $e');
+      Future.delayed(Duration(seconds: delaySeconds), () async {
+        await NotificationHelper.useBestNotification(
+          id: 0,
+          title: 'Danoggin Alert',
+          body: 'This is a scheduled notification.',
+          triggerRefresh: true,
         );
       });
     }
   }
-
-// In notification_service.dart, enhance the showBasicNotification method
-
-// In notification_service.dart, enhance the showBasicNotification method
 
   static Future<void> showBasicNotification({
     required int id,
@@ -175,11 +169,11 @@ static Future<void> _createNotificationChannels() async {
       print("❌ Error showing notification: $e");
       // Try a fallback method
       try {
-        await _notifications.show(
-          id,
-          title,
-          body,
-          const NotificationDetails(),
+        await NotificationHelper.useBestNotification(
+          id: id,
+          title: title,
+          body: body,
+          triggerRefresh: true,
         );
       } catch (e2) {
         print("❌❌ Fallback notification also failed: $e2");

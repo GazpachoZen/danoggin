@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'package:danoggin/services/notification_helper.dart';
 
 /// Utility functions for direct notification testing and handling
 class NotificationUtils {
@@ -24,11 +25,11 @@ class NotificationUtils {
       // Generate a unique ID
       final int notificationId = DateTime.now().millisecond;
 
-      await FlutterLocalNotificationsPlugin().show(
-        notificationId,
-        'Plain Test Notification',
-        'This is a simple notification from Danoggin',
-        platformChannelSpecifics,
+      await NotificationHelper.useBestNotification(
+        id: notificationId,
+        title: 'Plain Test Notification',
+        body: 'This is a simple notification from Danoggin',
+        triggerRefresh: false,
       );
 
       print("Direct test notification sent!");
@@ -90,11 +91,11 @@ class NotificationUtils {
       final FlutterLocalNotificationsPlugin notifications =
           FlutterLocalNotificationsPlugin();
 
-      await notifications.show(
-        notificationId,
-        'Danoggin Alert: $result',
-        '$responderName had a $result check-in at $timeStr',
-        platformDetails,
+      await NotificationHelper.useBestNotification(
+        id: notificationId,
+        title: 'Danoggin Alert: $result',
+        body: '$responderName had a $result check-in at $timeStr',
+        triggerRefresh: true,
       );
 
       print("🔔 Notification sent successfully!");

@@ -184,13 +184,12 @@ class ObserverController {
             });
 
             // Show notification
-            NotificationHelper.showSmartNotification(
-              context:
-                  null, // We don't have the context here, will fall back to system notification
+            NotificationHelper.useBestNotification(
               id: responderUid.hashCode.abs(),
               title: 'Danoggin Alert',
               body:
                   '$responderName had a $result check-in at $mostRecentTimeStr',
+              triggerRefresh: true,
             );
 
             print("Notification sent for $responderName's $result check-in");
@@ -243,44 +242,50 @@ class ObserverController {
   }
 
 // Test notifications functionality
-Future<void> testNotifications(BuildContext context) async {
-  try {
-    // Set the current context for smart notifications
-    NotificationHelper.setCurrentContext(context);
-    
-    // Try to check if notifications are enabled
-    bool enabled = true;
+  Future<void> testNotifications(BuildContext context) async {
     try {
-      enabled = await NotificationHelper.areNotificationsEnabled();
+      // Set the current context for smart notifications
+      NotificationHelper.setCurrentContext(context);
+
+      // Try to check if notifications are enabled
+      bool enabled = true;
+      try {
+        enabled = await NotificationHelper.areNotificationsEnabled();
+      } catch (e) {
+        print('Error checking notification permissions: $e');
+        // If we can't check, assume they're enabled
+      }
+
+      if (!enabled) {
+        // Show manual instructions if notifications are disabled
+        NotificationHelper.openNotificationSettings(context);
+        return;
+      }
+
+      // Use platform-aware notification test method
+      await NotificationHelper.useBestNotification(
+        id: DateTime.now().millisecondsSinceEpoch,
+        title: 'Danoggin Test Notification',
+        body:
+            'This is a test notification. If you see this, notifications are working!',
+        triggerRefresh: false,
+      );
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Test notification sent!'),
+          duration: Duration(seconds: 2),
+        ),
+      );
     } catch (e) {
-      print('Error checking notification permissions: $e');
-      // If we can't check, assume they're enabled
+      print('Error testing notifications: $e');
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Error sending test notification: $e'),
+          backgroundColor: Colors.red,
+          duration: Duration(seconds: 3),
+        ),
+      );
     }
-
-    if (!enabled) {
-      // Show manual instructions if notifications are disabled
-      NotificationHelper.openNotificationSettings(context);
-      return;
-    }
-
-    // Use platform-aware notification test method
-    await NotificationHelper.testNotification();
-
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text('Test notification sent!'),
-        duration: Duration(seconds: 2),
-      ),
-    );
-  } catch (e) {
-    print('Error testing notifications: $e');
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text('Error sending test notification: $e'),
-        backgroundColor: Colors.red,
-        duration: Duration(seconds: 3),
-      ),
-    );
   }
-}
 }
