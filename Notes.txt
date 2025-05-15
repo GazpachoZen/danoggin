@@ -96,13 +96,16 @@ TESTING...
 	Proper splash screen behavior?
 	Notifications on T's phone
 	Can I get multiple instances running?
+	Forced portrait mode
 ================================================================================
 ---------------------
-The app works great if the phone is in a portrait orientation, but it does not render at all well if in landscape. In fact, we shouldn't even try - we should notify the user of this whenever they try to rotate their phone.
 ---------------------
-Consider using flutter_native_splash to minimize the dead time we're presently experiencing when the app starts up.
+I'd like to address some font sizing issues for the iOS implementation vs how things appear on Android. As one example, I've attached a screenshot of a typical observer panel from an Android phone. Notice how nicely things lay out. I've also attached a screenshot of what an observer panel looks like on an iPhone. Notice how horribly it renders. I have a similar example for font appearance for the responder side and how things fit (or don't fit) within the buttons.
+Please discuss our options before making code suggestions. (ref my "Assorted" conversation with Claude earlier)
 ---------------------
-Please examine the pubspec.yaml file I provided you. As a rule, I prefer stability over having the latest version of things. With that in mind, am I using the best versions of the various packages to get equal functionality for Android and iOS?
+Please examine the pubspec.yaml file I provided you. As a rule, I prefer stability over having the latest version of things. With that in mind, am I using the best versions of the various packages to get equal functionality for Android and iOS? I sometimes feel like I'm not getting the best development options. Is there any other information you might need from my development environment to answer this question?
+
+NOTE: I already had a short conversation with Claude about this titled "Pubspec and rev discussion".
 ---------------------
 I'd like to be more judicious about what exactly is getting archived away with Git, especially as it pertains to what makes its way up to GitHub. 
 ---------------------
@@ -130,6 +133,11 @@ As a future capability, we'll eventually want the apps to notice that updates ar
 Danoggin should auto-start when phone powers up. Please discuss how this is accomplished before suggesting any code changes.
 ---------------------
 Add license agreement for the animal images I use.
+---------------------
+The app is presently force to be in portrait mode only right now. I would like it to be more polite about this. Can we modify the code such that if the user turns to phone to landscape we provide an explanation that we only operate in portrait mode? This seems more polite.
+---------------------
+---------------------
+---------------------
 ---------------------
 ================================================================================
 What's left to do (according to Claude)...

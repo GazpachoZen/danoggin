@@ -138,73 +138,78 @@ class NotificationHelper {
   }
 
   /// Show notification with high priority
-  static Future<bool> showAlert({
-    required int id,
-    required String title,
-    required String body,
-    bool triggerRefresh = true,
-  }) async {
-    print('Attempting to show notification: id=$id, title=$title');
+// In lib/services/notification_helper.dart
 
-    if (!_isInitialized) {
-      await initialize();
-    }
+// Modify the showAlert method to handle iOS foreground notifications properly
+static Future<bool> showAlert({
+  required int id,
+  required String title,
+  required String body,
+  bool triggerRefresh = true,
+}) async {
+  print('Attempting to show notification: id=$id, title=$title');
 
-    try {
-      // Check if notifications are enabled
-      final enabled = await areNotificationsEnabled();
-      if (!enabled) {
-        print('Notifications are not enabled for this app');
-        return false;
-      }
+  if (!_isInitialized) {
+    await initialize();
+  }
 
-      // Enhanced Android notification details for better visibility
-      const AndroidNotificationDetails androidDetails = AndroidNotificationDetails(
-        _channelId,
-        _channelName,
-        channelDescription: _channelDescription,
-        importance: Importance.high,
-        priority: Priority.high,
-        showWhen: true,
-        // Add more settings for better visibility
-        playSound: true,
-        enableVibration: true,
-      );
-
-      // Enhanced iOS notification details
-      const DarwinNotificationDetails iosDetails = DarwinNotificationDetails(
-        presentAlert: true,
-        presentBadge: true,
-        presentSound: true,
-        // Use a sound to increase visibility
-        sound: 'default',
-      );
-
-      const NotificationDetails platformDetails = NotificationDetails(
-        android: androidDetails,
-        iOS: iosDetails,
-      );
-
-      await _notifications.show(
-        id,
-        title,
-        body,
-        platformDetails,
-      );
-
-      if (triggerRefresh) {
-        _notificationStreamController
-            .add({'id': id, 'title': title, 'body': body});
-        print('Emitted notification event for refresh');
-      }
-
-      print('Alert notification sent successfully');
-      return true;
-    } catch (e) {
-      print('Error showing notification: $e');
+  try {
+    // Check if notifications are enabled
+    final enabled = await areNotificationsEnabled();
+    if (!enabled) {
+      print('Notifications are not enabled for this app');
       return false;
     }
+
+    // Enhanced Android notification details for better visibility
+    const AndroidNotificationDetails androidDetails = AndroidNotificationDetails(
+      _channelId,
+      _channelName,
+      channelDescription: _channelDescription,
+      importance: Importance.high,
+      priority: Priority.high,
+      showWhen: true,
+      playSound: true,
+      enableVibration: true,
+    );
+
+    // Enhanced iOS notification details with improved foreground presentation
+    const DarwinNotificationDetails iosDetails = DarwinNotificationDetails(
+      presentAlert: true,
+      presentBadge: true,
+      presentSound: true,
+      sound: 'default',
+      // Add this critical line for iOS foreground notifications
+      interruptionLevel: InterruptionLevel.active,
+      // This is needed for iOS 10+ to show in foreground
+      // The notificationCenterVisibility option may not be available in your version
+    );
+
+    const NotificationDetails platformDetails = NotificationDetails(
+      android: androidDetails,
+      iOS: iosDetails,
+    );
+
+    await _notifications.show(
+      id,
+      title,
+      body,
+      platformDetails,
+    );
+
+    if (triggerRefresh) {
+      _notificationStreamController
+          .add({'id': id, 'title': title, 'body': body});
+      print('Emitted notification event for refresh');
+    }
+
+    print('Alert notification sent successfully');
+    return true;
+  } catch (e) {
+    print('Error showing notification: $e');
+    return false;
   }
+}
 
   /// Test notifications to verify they work
   static Future<bool> testNotification() async {
