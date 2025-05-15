@@ -11,6 +11,7 @@ import 'package:danoggin/widgets/quiz/answer_grid.dart';
 import 'package:danoggin/widgets/quiz/feedback_display.dart';
 import 'package:danoggin/utils/back_button_handler.dart';
 import 'package:danoggin/theme/app_colors.dart';
+import 'package:danoggin/screens/logs_viewer_screen.dart';
 
 // Add this near the top of the file, after imports
 const bool kDevModeEnabled = true; // Set to false for production
@@ -141,16 +142,12 @@ class _QuizPageState extends State<QuizPage> with WidgetsBindingObserver {
             TextButton(
               onPressed: () async {
                 Navigator.pop(context);
-                // Immediate notification test
-                if (Platform.isIOS) {
-                  await NotificationHelper.testIOSNotification();
-                } else {
-                  await NotificationHelper.testNotification();
-                }
+                // Use our new logging method instead
+                await NotificationHelper.testForegroundNotificationiOS();
 
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(
-                    content: Text('Immediate notification sent!'),
+                    content: Text('Notification sent - check logs for details'),
                     duration: Duration(seconds: 2),
                   ),
                 );
@@ -166,7 +163,7 @@ class _QuizPageState extends State<QuizPage> with WidgetsBindingObserver {
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(
                     content: Text('Delayed notification scheduled (3 seconds)'),
-                    duration: Duration(seconds: 2),
+                    duration: Duration(seconds: 3),
                   ),
                 );
               },
@@ -312,6 +309,17 @@ class _QuizPageState extends State<QuizPage> with WidgetsBindingObserver {
               SnackBar(
                 content: Text('iOS foreground test triggered'),
                 duration: Duration(seconds: 1),
+              ),
+            );
+          },
+        ),
+        IconButton(
+          icon: const Icon(Icons.list),
+          tooltip: 'View Logs',
+          onPressed: () {
+            Navigator.of(context).push(
+              MaterialPageRoute(
+                builder: (_) => LogsViewerScreen(),
               ),
             );
           },

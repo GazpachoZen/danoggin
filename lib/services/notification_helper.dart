@@ -3,7 +3,7 @@ import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'dart:async';
 import 'dart:io';
 import 'package:device_info_plus/device_info_plus.dart';
-import 'package:firebase_app_check/firebase_app_check.dart';
+import 'dart:collection';
 import 'package:timezone/timezone.dart' as tz;
 import 'package:timezone/data/latest.dart' as tz_data;
 
@@ -15,6 +15,9 @@ class NotificationHelper {
   static const String _channelId = 'danoggin_alerts';
   static const String _channelName = 'Danoggin Alerts';
   static const String _channelDescription = 'Alerts for check-in issues';
+
+  static final Queue<String> _logMessages = Queue<String>();
+  static const int _maxLogMessages = 100;
 
   // Add a stream controller for notification events
   static final StreamController<dynamic> _notificationStreamController =
@@ -568,31 +571,50 @@ class NotificationHelper {
   }
 
   static Future<bool> testForegroundNotificationiOS() async {
+    clearLogs();
+    log("Starting iOS foreground notification test");
+
     if (!_isInitialized) {
+      log("Initializing notification system first");
       await initialize();
     }
 
     try {
-      print('Testing basic foreground notification for iOS');
+      log("Testing basic foreground notification for iOS");
 
       // Force request permissions again
       if (Platform.isIOS) {
+        log("Running on iOS platform - requesting permissions");
         final iosPlugin = _notifications.resolvePlatformSpecificImplementation<
             IOSFlutterLocalNotificationsPlugin>();
-        await iosPlugin?.requestPermissions(
+
+        if (iosPlugin == null) {
+          log("ERROR: Failed to get iOS plugin implementation");
+          return false;
+        }
+
+        final permissionResult = await iosPlugin.requestPermissions(
           alert: true,
           badge: true,
           sound: true,
         );
+
+        log("Permission request result: $permissionResult");
+      } else {
+        log("Not running on iOS - skipping iOS-specific permission request");
       }
 
       // Try with absolute minimum configuration
       final id = DateTime.now().millisecond;
+      log("Using notification ID: $id");
 
-      // Create a very basic notification
       if (Platform.isIOS) {
-        // For iOS, create a plain notification
-        print('Using minimal iOS notification configuration');
+        log("Configuring iOS-specific notification parameters");
+
+        // Show what version of iOS we're running on
+        final deviceInfo = DeviceInfoPlugin();
+        final iosInfo = await deviceInfo.iosInfo;
+        log("iOS version: ${iosInfo.systemVersion}");
 
         // Using only essential iOS settings
         final details = NotificationDetails(
@@ -604,30 +626,52 @@ class NotificationHelper {
           ),
         );
 
-        // Send the notification
-        print('Sending iOS foreground test notification with ID: $id');
+        log("Sending iOS notification with InterruptionLevel.active");
         await _notifications.show(
           id,
           'iOS Foreground Test',
           'Basic foreground notification test - ${DateTime.now().toString()}',
           details,
         );
+        log("iOS notification show() method completed - notification sent");
       } else {
-        // For Android, use existing configuration
-        print('Test called on Android - using standard configuration');
+        log("Not running on iOS - using standard notification");
         await showAlert(
           id: id,
-          title: 'Android Test',
+          title: 'Test Notification',
           body: 'Basic test notification',
           triggerRefresh: false,
         );
+        log("Standard notification sent");
       }
 
-      print('Test notification sent with ID: $id');
+      log("Test notification process completed successfully");
       return true;
-    } catch (e) {
-      print('Error in foreground notification test: $e');
+    } catch (e, stackTrace) {
+      log("ERROR in foreground notification test: $e");
+      log("Stack trace: $stackTrace");
       return false;
     }
+  }
+
+// Add this method to NotificationHelper class
+  static void log(String message) {
+    final timestamp = DateTime.now().toString().substring(0, 19);
+    final logMessage = "$timestamp: $message";
+    print(logMessage);
+
+    // Add to our queue with a maximum size
+    _logMessages.add(logMessage);
+    while (_logMessages.length > _maxLogMessages) {
+      _logMessages.removeFirst();
+    }
+  }
+
+// Add this getter to access logs
+  static List<String> get logs => List.from(_logMessages);
+
+// Add a method to clear logs
+  static void clearLogs() {
+    _logMessages.clear();
   }
 }
