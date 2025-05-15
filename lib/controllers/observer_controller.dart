@@ -23,24 +23,24 @@ class ObserverController {
 
   // Timer for checking inactivity (kept separate)
   Timer? dataRefreshTimer;
-  
+
   // Callback to notify parent of state changes
   final VoidCallback onStateChanged;
-  
+
   // Constructor
   ObserverController({required this.onStateChanged});
-  
+
   // Cleanup
   void dispose() {
     dataRefreshTimer?.cancel();
-    
+
     // Cancel all existing subscriptions
     _checkInSubscriptions.forEach((key, subscription) {
       subscription.cancel();
     });
     _checkInSubscriptions.clear();
   }
-  
+
 // Initialize and load data
   Future<void> initialize() async {
     await loadLastAcknowledged();
@@ -48,12 +48,13 @@ class ObserverController {
     await loadInactivityThreshold();
     startDataRefreshTimer();
   }
-  
+
   // Load inactivity threshold from Firestore
   Future<void> loadInactivityThreshold() async {
     try {
       final uid = AuthService.currentUserId;
-      final threshold = await ResponderSettingsRepository.getInactivityThreshold(uid);
+      final threshold =
+          await ResponderSettingsRepository.getInactivityThreshold(uid);
       inactivityThresholdHours = threshold;
       onStateChanged();
     } catch (e) {
@@ -82,7 +83,7 @@ class ObserverController {
           userData?['observing'] as Map<String, dynamic>? ?? {};
 
       responderMap = Map<String, String>.from(observingMap);
-      
+
       // Auto-select a responder if needed
       if (selectedResponderUid == null && responderMap.isNotEmpty) {
         selectedResponderUid = responderMap.keys.first;
@@ -92,10 +93,10 @@ class ObserverController {
           !responderMap.containsKey(selectedResponderUid)) {
         selectedResponderUid = responderMap.keys.first;
       }
-      
+
       // Setup listeners for all responders
       _setupCheckInListeners();
-      
+
       onStateChanged();
     } catch (e) {
       print('Error loading responders: $e');
@@ -126,11 +127,11 @@ class ObserverController {
       subscription.cancel();
     });
     _checkInSubscriptions.clear();
-    
+
     // Setup a listener for each responder
     for (final responderUid in responderMap.keys) {
       final responderName = responderMap[responderUid] ?? 'Unknown';
-      
+
       final subscription = FirebaseFirestore.instance
           .collection('responder_status')
           .doc(responderUid)
@@ -139,64 +140,66 @@ class ObserverController {
           .limit(1)
           .snapshots()
           .listen((snapshot) {
-            if (snapshot.docs.isEmpty) return;
-            
-            final doc = snapshot.docs.first;
-            final data = doc.data();
-            final result = data['result'] as String;
-            final timestamp = DateTime.tryParse(data['timestamp'] as String);
-            final docId = doc.id;
-            
-            // Skip if we can't parse the timestamp
-            if (timestamp == null) return;
-            
-            final now = DateTime.now();
-            final checkInAge = now.difference(timestamp);
-            final mostRecentTimeStr =
-                DateFormat('M/d h:mma').format(timestamp).toLowerCase();
-                
-            print('Real-time update: responder=$responderName, result=$result, age=${checkInAge.inMinutes}m');
-            
-            // Create a unique identifier for this check-in
-            final checkInKey = "$responderUid:$docId";
-            
-            // Only notify for recent check-ins that are missed or incorrect
-            if ((result == 'missed' || result == 'incorrect') && 
-                checkInAge.inHours < 24) {
-                  
-              // Check if we've already acknowledged this issue
-              final isAcknowledged = checkInKey == lastAcknowledgedId;
-              
-              // Check if we've already notified about this issue
-              final alreadyNotified = checkInKey == lastNotifiedId;
-              
-              if (!isAcknowledged && !alreadyNotified) {
-                print("Issue detected: $responderName had a $result check-in");
-                
-                // Update tracking of last notification
-                lastNotifiedId = checkInKey;
-                onStateChanged();
-                
-                // Save to persistent storage
-                SharedPreferences.getInstance().then((prefs) {
-                  prefs.setString('lastNotifiedId', checkInKey);
-                });
-                
-                // Show notification
-                NotificationHelper.showAlert(
-                  id: responderUid.hashCode.abs(),
-                  title: 'Danoggin Alert',
-                  body: '$responderName had a $result check-in at $mostRecentTimeStr',
-                );
-                
-                print("Notification sent for $responderName's $result check-in");
-              }
-            }
-          },
-          onError: (error) {
-            print('Error in check-in listener for $responderName: $error');
-          });
-          
+        if (snapshot.docs.isEmpty) return;
+
+        final doc = snapshot.docs.first;
+        final data = doc.data();
+        final result = data['result'] as String;
+        final timestamp = DateTime.tryParse(data['timestamp'] as String);
+        final docId = doc.id;
+
+        // Skip if we can't parse the timestamp
+        if (timestamp == null) return;
+
+        final now = DateTime.now();
+        final checkInAge = now.difference(timestamp);
+        final mostRecentTimeStr =
+            DateFormat('M/d h:mma').format(timestamp).toLowerCase();
+
+        print(
+            'Real-time update: responder=$responderName, result=$result, age=${checkInAge.inMinutes}m');
+
+        // Create a unique identifier for this check-in
+        final checkInKey = "$responderUid:$docId";
+
+        // Only notify for recent check-ins that are missed or incorrect
+        if ((result == 'missed' || result == 'incorrect') &&
+            checkInAge.inHours < 24) {
+          // Check if we've already acknowledged this issue
+          final isAcknowledged = checkInKey == lastAcknowledgedId;
+
+          // Check if we've already notified about this issue
+          final alreadyNotified = checkInKey == lastNotifiedId;
+
+          if (!isAcknowledged && !alreadyNotified) {
+            print("Issue detected: $responderName had a $result check-in");
+
+            // Update tracking of last notification
+            lastNotifiedId = checkInKey;
+            onStateChanged();
+
+            // Save to persistent storage
+            SharedPreferences.getInstance().then((prefs) {
+              prefs.setString('lastNotifiedId', checkInKey);
+            });
+
+            // Show notification
+            NotificationHelper.showSmartNotification(
+              context:
+                  null, // We don't have the context here, will fall back to system notification
+              id: responderUid.hashCode.abs(),
+              title: 'Danoggin Alert',
+              body:
+                  '$responderName had a $result check-in at $mostRecentTimeStr',
+            );
+
+            print("Notification sent for $responderName's $result check-in");
+          }
+        }
+      }, onError: (error) {
+        print('Error in check-in listener for $responderName: $error');
+      });
+
       // Store the subscription for later cleanup
       _checkInSubscriptions[responderUid] = subscription;
     }
@@ -216,10 +219,11 @@ class ObserverController {
       // Check each linked responder for inactivity
       for (final responderUid in responderMap.keys) {
         final responderName = responderMap[responderUid] ?? 'Unknown';
-        
+
         // Get the responder's active hours from Firestore
-        final activeHours = await ResponderSettingsRepository.getActiveHours(responderUid);
-        
+        final activeHours =
+            await ResponderSettingsRepository.getActiveHours(responderUid);
+
         // Perform inactivity check
         await InactivityMonitor.checkResponderInactivity(
           responderUid: responderUid,
@@ -238,46 +242,45 @@ class ObserverController {
     }
   }
 
-  // Test notifications functionality
-  Future<void> testNotifications(BuildContext context) async {
+// Test notifications functionality
+Future<void> testNotifications(BuildContext context) async {
+  try {
+    // Set the current context for smart notifications
+    NotificationHelper.setCurrentContext(context);
+    
+    // Try to check if notifications are enabled
+    bool enabled = true;
     try {
-      // Try to check if notifications are enabled
-      bool enabled = true;
-      try {
-        enabled = await NotificationHelper.areNotificationsEnabled();
-      } catch (e) {
-        print('Error checking notification permissions: $e');
-        // If we can't check, assume they're enabled
-      }
-
-      if (!enabled) {
-        // Show manual instructions if notifications are disabled
-        NotificationHelper.openNotificationSettings(context);
-        return;
-      }
-
-      // Platform-specific test
-      if (Platform.isIOS) {
-        await NotificationHelper.testIOSNotification();
-      } else {
-        await NotificationHelper.testNotification();
-      }
-
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Test notification sent!'),
-          duration: Duration(seconds: 2),
-        ),
-      );
+      enabled = await NotificationHelper.areNotificationsEnabled();
     } catch (e) {
-      print('Error testing notifications: $e');
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Error sending test notification: $e'),
-          backgroundColor: Colors.red,
-          duration: Duration(seconds: 3),
-        ),
-      );
+      print('Error checking notification permissions: $e');
+      // If we can't check, assume they're enabled
     }
+
+    if (!enabled) {
+      // Show manual instructions if notifications are disabled
+      NotificationHelper.openNotificationSettings(context);
+      return;
+    }
+
+    // Use platform-aware notification test method
+    await NotificationHelper.testNotification();
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text('Test notification sent!'),
+        duration: Duration(seconds: 2),
+      ),
+    );
+  } catch (e) {
+    print('Error testing notifications: $e');
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text('Error sending test notification: $e'),
+        backgroundColor: Colors.red,
+        duration: Duration(seconds: 3),
+      ),
+    );
   }
+}
 }

@@ -7,7 +7,6 @@ import 'dart:collection';
 import 'package:timezone/timezone.dart' as tz;
 import 'package:timezone/data/latest.dart' as tz_data;
 import 'package:audioplayers/audioplayers.dart' as audio;
-import 'package:vibration/vibration.dart';
 
 class NotificationHelper {
   static final FlutterLocalNotificationsPlugin _notifications =
@@ -18,11 +17,12 @@ class NotificationHelper {
   static const String _channelName = 'Danoggin Alerts';
   static const String _channelDescription = 'Alerts for check-in issues';
 
+  // Logging system
   static final Queue<String> _logMessages = Queue<String>();
   static const int _maxLogMessages = 100;
 
+  // App state tracking
   static bool _appInBackground = false;
-
   static BuildContext? _currentContext;
 
   // Add a stream controller for notification events
@@ -40,7 +40,7 @@ class NotificationHelper {
   static Future<void> initialize() async {
     if (_isInitialized) return;
 
-    print('Starting notification helper initialization...');
+    log('Starting notification helper initialization...');
 
     // Initialize time zones
     tz_data.initializeTimeZones();
@@ -49,37 +49,15 @@ class NotificationHelper {
     const AndroidInitializationSettings androidSettings =
         AndroidInitializationSettings('@mipmap/ic_launcher');
 
-    // Enhanced iOS settings with explicit foreground delegation
-    // Remove 'const' since we're using callbacks which are not const
-    final DarwinInitializationSettings iosSettings =
+    // Basic iOS settings
+    const DarwinInitializationSettings iosSettings =
         DarwinInitializationSettings(
       requestAlertPermission: true,
       requestBadgePermission: true,
       requestSoundPermission: true,
-      // Add this critical callback for iOS foreground notifications
-      notificationCategories: [
-        DarwinNotificationCategory(
-          'danoggin_category',
-          actions: [
-            DarwinNotificationAction.plain(
-              'view',
-              'View',
-              options: {DarwinNotificationActionOption.foreground},
-            ),
-          ],
-        ),
-      ],
-      // Add onDidReceiveLocalNotification for older iOS versions
-      onDidReceiveLocalNotification:
-          (int id, String? title, String? body, String? payload) async {
-        print('Received foreground notification: id=$id, title=$title');
-        // Re-emit the notification to our stream to handle it in-app
-        _notificationStreamController
-            .add({'id': id, 'title': title, 'body': body, 'payload': payload});
-      },
     );
 
-    final InitializationSettings initSettings = InitializationSettings(
+    const InitializationSettings initSettings = InitializationSettings(
       android: androidSettings,
       iOS: iosSettings,
     );
@@ -87,7 +65,7 @@ class NotificationHelper {
     await _notifications.initialize(
       initSettings,
       onDidReceiveNotificationResponse: (NotificationResponse response) {
-        print('Notification clicked: ${response.id}');
+        log('Notification clicked: ${response.id}');
         _notificationStreamController.add(response);
       },
     );
@@ -109,16 +87,16 @@ class NotificationHelper {
           );
 
           await androidPlugin.createNotificationChannel(channel);
-          print('Notification channel created successfully');
+          log('Notification channel created successfully');
         }
       } catch (e) {
-        print('Error creating Android notification channel: $e');
+        log('Error creating Android notification channel: $e');
         // Continue anyway - older versions may still work without explicit channel creation
       }
     }
 
     _isInitialized = true;
-    print('Notifications initialized successfully');
+    log('Notifications initialized successfully');
   }
 
   /// Check if notifications are enabled
@@ -127,7 +105,7 @@ class NotificationHelper {
       await initialize();
     }
 
-    print('Checking notification permissions...');
+    log('Checking notification permissions...');
 
     try {
       if (Platform.isAndroid) {
@@ -141,10 +119,10 @@ class NotificationHelper {
         try {
           final enabled =
               await androidPlugin.areNotificationsEnabled() ?? false;
-          print('Android notification permission status: $enabled');
+          log('Android notification permission status: $enabled');
           return enabled;
         } catch (e) {
-          print('Error calling areNotificationsEnabled: $e');
+          log('Error calling areNotificationsEnabled: $e');
           // Fall back to assuming they're enabled
           return true;
         }
@@ -159,24 +137,25 @@ class NotificationHelper {
           sound: true,
         );
 
-        print('iOS notification permission request result: $result');
+        log('iOS notification permission request result: $result');
         return result ?? false;
       }
 
       return false;
     } catch (e) {
-      print('Error checking notification permissions: $e');
+      log('Error checking notification permissions: $e');
       return false;
     }
   }
 
+  /// Show notification with high priority
   static Future<bool> showAlert({
     required int id,
     required String title,
     required String body,
     bool triggerRefresh = true,
   }) async {
-    print('Attempting to show notification: id=$id, title=$title');
+    log('Attempting to show notification: id=$id, title=$title');
 
     if (!_isInitialized) {
       await initialize();
@@ -186,7 +165,7 @@ class NotificationHelper {
       // Check if notifications are enabled
       final enabled = await areNotificationsEnabled();
       if (!enabled) {
-        print('Notifications are not enabled for this app');
+        log('Notifications are not enabled for this app');
         return false;
       }
 
@@ -203,14 +182,13 @@ class NotificationHelper {
         enableVibration: true,
       );
 
-      // iOS notification details with available parameters only
+      // iOS notification details with available parameters
       const DarwinNotificationDetails iosDetails = DarwinNotificationDetails(
         presentAlert: true,
         presentBadge: true,
         presentSound: true,
         sound: 'default',
         interruptionLevel: InterruptionLevel.active,
-        // Only use parameters that are definitely available
         categoryIdentifier: 'danoggin_category',
       );
 
@@ -218,17 +196,6 @@ class NotificationHelper {
         android: androidDetails,
         iOS: iosDetails,
       );
-
-      // Log more information about the notification
-      print('Showing notification with following details:');
-      print('  ID: $id');
-      print('  Title: $title');
-      print('  Body: $body');
-      if (Platform.isAndroid) {
-        print('  Platform: Android');
-      } else if (Platform.isIOS) {
-        print('  Platform: iOS');
-      }
 
       await _notifications.show(
         id,
@@ -240,79 +207,40 @@ class NotificationHelper {
       if (triggerRefresh) {
         _notificationStreamController
             .add({'id': id, 'title': title, 'body': body});
-        print('Emitted notification event for refresh');
+        log('Emitted notification event for refresh');
       }
 
-      print('Alert notification sent successfully');
+      log('Alert notification sent successfully');
       return true;
     } catch (e) {
-      print('Error showing notification: $e');
+      log('Error showing notification: $e');
       return false;
     }
   }
 
   /// Test notifications to verify they work
+  /// Test notifications to verify they work
   static Future<bool> testNotification() async {
     final id = DateTime.now().millisecond;
-    final result = await showAlert(
-      id: id,
-      title: 'Danoggin Test',
-      body:
-          'This is a test notification. If you see this, notifications are working!',
-    );
 
-    print('Test notification result: $result');
-    return result;
-  }
-
-  /// iOS-specific test notification method
-  static Future<bool> testIOSNotification() async {
-    try {
-      if (!_isInitialized) {
-        await initialize();
-      }
-
-      print('Testing iOS notification specifically...');
-
-      // Request permissions explicitly before showing notification
-      final iosPlugin = _notifications.resolvePlatformSpecificImplementation<
-          IOSFlutterLocalNotificationsPlugin>();
-
-      final permGranted = await iosPlugin?.requestPermissions(
-        alert: true,
-        badge: true,
-        sound: true,
+    // For iOS, if we have a context and the app is in foreground, use in-app notification
+    if (Platform.isIOS && _currentContext != null && !_appInBackground) {
+      log('Using in-app notification for iOS test');
+      showEnhancedInAppNotification(
+        _currentContext!,
+        'Danoggin Test',
+        'This is a test notification. If you see this, notifications are working!',
       );
-
-      print('iOS permissions request result: $permGranted');
-
-      // Use only available parameters for iOS notification
-      const DarwinNotificationDetails iosDetails = DarwinNotificationDetails(
-        presentAlert: true,
-        presentBadge: true,
-        presentSound: true,
-        interruptionLevel: InterruptionLevel.active,
-        categoryIdentifier: 'danoggin_category',
-      );
-
-      const NotificationDetails details = NotificationDetails(iOS: iosDetails);
-
-      // Generate a unique ID
-      final id = DateTime.now().millisecond;
-
-      print('Sending iOS test notification with ID: $id');
-      await _notifications.show(
-        id,
-        'iOS Test Notification',
-        'This is a test notification specifically for iOS. It should appear even when the app is in the foreground.',
-        details,
-      );
-
-      print('iOS test notification sent!');
       return true;
-    } catch (e) {
-      print('Error showing iOS notification: $e');
-      return false;
+    } else {
+      // For Android or iOS background, use standard system notification
+      log('Using system notification for test (Android or iOS background)');
+      return await showAlert(
+        id: id,
+        title: 'Danoggin Test',
+        body:
+            'This is a test notification. If you see this, notifications are working!',
+      );
     }
   }
 
@@ -320,9 +248,9 @@ class NotificationHelper {
   static Future<void> cancelNotification(int id) async {
     try {
       await _notifications.cancel(id);
-      print('Notification with ID $id canceled');
+      log('Notification with ID $id canceled');
     } catch (e) {
-      print('Error canceling notification: $e');
+      log('Error canceling notification: $e');
     }
   }
 
@@ -330,9 +258,9 @@ class NotificationHelper {
   static Future<void> cancelAllNotifications() async {
     try {
       await _notifications.cancelAll();
-      print('All notifications canceled');
+      log('All notifications canceled');
     } catch (e) {
-      print('Error canceling all notifications: $e');
+      log('Error canceling all notifications: $e');
     }
   }
 
@@ -343,7 +271,7 @@ class NotificationHelper {
       final androidInfo = await deviceInfo.androidInfo;
       return androidInfo.version.sdkInt;
     } catch (e) {
-      print('Error getting Android SDK version: $e');
+      log('Error getting Android SDK version: $e');
       return 0; // Default to 0 if can't determine
     }
   }
@@ -358,14 +286,14 @@ class NotificationHelper {
     int sdkVersion = 0;
     if (Platform.isAndroid) {
       sdkVersion = await _getAndroidSdkVersion();
-      print('Android SDK version: $sdkVersion');
+      log('Android SDK version: $sdkVersion');
     }
 
     bool enabled = false;
     try {
       enabled = await areNotificationsEnabled();
     } catch (e) {
-      print('Error checking notification permissions: $e');
+      log('Error checking notification permissions: $e');
     }
 
     if (!enabled && context.mounted) {
@@ -481,8 +409,7 @@ class NotificationHelper {
     try {
       // For Android, permissions are handled through notification channels
       if (Platform.isAndroid) {
-        print(
-            'Android notification permissions handled through channel creation');
+        log('Android notification permissions handled through channel creation');
       }
 
       // For iOS, explicitly request permissions
@@ -495,11 +422,11 @@ class NotificationHelper {
             badge: true,
             sound: true,
           );
-          print('iOS notification permission request result: $result');
+          log('iOS notification permission request result: $result');
         }
       }
     } catch (e) {
-      print('Error requesting notification permissions: $e');
+      log('Error requesting notification permissions: $e');
     }
   }
 
@@ -509,11 +436,9 @@ class NotificationHelper {
       await initialize();
     }
 
-    // The notification channel created in initialize() should be sufficient
     // Just make sure permissions are properly requested
     await requestNotificationPermissions();
-
-    print('Background notifications have been configured');
+    log('Background notifications have been configured');
   }
 
   // Add cleanup method to dispose of the stream controller
@@ -521,200 +446,41 @@ class NotificationHelper {
     _notificationStreamController.close();
   }
 
+  // Delayed notification test method
   static Future<bool> testDelayedNotification() async {
     try {
       if (!_isInitialized) {
         await initialize();
       }
 
-      print('Testing delayed notification (3 seconds)...');
-
-      // For iOS, set specific details
-      const DarwinNotificationDetails iosDetails = DarwinNotificationDetails(
-        presentAlert: true,
-        presentBadge: true,
-        presentSound: true,
-        interruptionLevel: InterruptionLevel.active,
-      );
-
-      // For Android
-      const AndroidNotificationDetails androidDetails =
-          AndroidNotificationDetails(
-        _channelId,
-        _channelName,
-        channelDescription: _channelDescription,
-        importance: Importance.high,
-        priority: Priority.high,
-        ticker: 'ticker',
-      );
-
-      const NotificationDetails details = NotificationDetails(
-        iOS: iosDetails,
-        android: androidDetails,
-      );
+      log('Testing delayed notification (3 seconds)...');
 
       // Generate a unique ID
       final id = DateTime.now().millisecond;
 
-      // Schedule notification for 3 seconds later
-      await _notifications.zonedSchedule(
-        id,
-        'Delayed Test Notification',
-        'This notification was delayed by 3 seconds to simulate background behavior',
-        tz.TZDateTime.now(tz.local).add(const Duration(seconds: 3)),
-        details,
-        androidAllowWhileIdle: true,
-        uiLocalNotificationDateInterpretation:
-            UILocalNotificationDateInterpretation.absoluteTime,
-      );
+      // Create a time 3 seconds in the future
+      final scheduledTime =
+          tz.TZDateTime.now(tz.local).add(const Duration(seconds: 3));
 
-      print('Delayed notification scheduled!');
-      return true;
-    } catch (e) {
-      print('Error scheduling delayed notification: $e');
-      return false;
-    }
-  }
-
-  static Future<bool> testForegroundNotificationiOS() async {
-    clearLogs();
-    log("Starting iOS foreground notification test");
-
-    if (!_isInitialized) {
-      log("Initializing notification system first");
-      await initialize();
-    }
-
-    try {
-      log("Testing basic foreground notification for iOS");
-
-      // Force request permissions again
-      if (Platform.isIOS) {
-        log("Running on iOS platform - requesting permissions");
-        final iosPlugin = _notifications.resolvePlatformSpecificImplementation<
-            IOSFlutterLocalNotificationsPlugin>();
-
-        if (iosPlugin == null) {
-          log("ERROR: Failed to get iOS plugin implementation");
-          return false;
-        }
-
-        final permissionResult = await iosPlugin.requestPermissions(
-          alert: true,
-          badge: true,
-          sound: true,
-        );
-
-        log("Permission request result: $permissionResult");
+      // If we have a context, schedule a delayed in-app notification
+      if (_currentContext != null && !_appInBackground) {
+        log('Scheduling delayed in-app notification');
+        // Use a timer to show the in-app notification after delay
+        Future.delayed(Duration(seconds: 3), () {
+          if (_currentContext != null && _currentContext!.mounted) {
+            showEnhancedInAppNotification(
+              _currentContext!,
+              'Delayed Test Notification',
+              'This is a delayed in-app notification that appears even when the app is in the foreground',
+            );
+          }
+        });
+        return true;
       } else {
-        log("Not running on iOS - skipping iOS-specific permission request");
-      }
+        // For background or when no context is available, use system notification
+        log('Scheduling delayed system notification');
 
-      // Try with absolute minimum configuration
-      final id = DateTime.now().millisecond;
-      log("Using notification ID: $id");
-
-      if (Platform.isIOS) {
-        log("Configuring iOS-specific notification parameters");
-
-        // Show what version of iOS we're running on
-        final deviceInfo = DeviceInfoPlugin();
-        final iosInfo = await deviceInfo.iosInfo;
-        log("iOS version: ${iosInfo.systemVersion}");
-
-        // Using only essential iOS settings
-        final details = NotificationDetails(
-          iOS: DarwinNotificationDetails(
-            presentAlert: true,
-            presentBadge: true,
-            presentSound: true,
-            interruptionLevel: InterruptionLevel.active,
-          ),
-        );
-
-        log("Sending iOS notification with InterruptionLevel.active");
-        await _notifications.show(
-          id,
-          'iOS Foreground Test',
-          'Basic foreground notification test - ${DateTime.now().toString()}',
-          details,
-        );
-        log("iOS notification show() method completed - notification sent");
-      } else {
-        log("Not running on iOS - using standard notification");
-        await showAlert(
-          id: id,
-          title: 'Test Notification',
-          body: 'Basic test notification',
-          triggerRefresh: false,
-        );
-        log("Standard notification sent");
-      }
-
-      log("Test notification process completed successfully");
-      return true;
-    } catch (e, stackTrace) {
-      log("ERROR in foreground notification test: $e");
-      log("Stack trace: $stackTrace");
-      return false;
-    }
-  }
-
-// Add this method to NotificationHelper class
-  static void log(String message) {
-    final timestamp = DateTime.now().toString().substring(0, 19);
-    final logMessage = "$timestamp: $message";
-    print(logMessage);
-
-    // Add to our queue with a maximum size
-    _logMessages.add(logMessage);
-    while (_logMessages.length > _maxLogMessages) {
-      _logMessages.removeFirst();
-    }
-  }
-
-// Add this getter to access logs
-  static List<String> get logs => List.from(_logMessages);
-
-// Add a method to clear logs
-  static void clearLogs() {
-    _logMessages.clear();
-  }
-
-  static Future<bool> testProvisionalNotification() async {
-    log("Starting iOS provisional notification test");
-
-    if (!_isInitialized) {
-      log("Initializing notification system first");
-      await initialize();
-    }
-
-    try {
-      if (Platform.isIOS) {
-        // Request provisional authorization
-        log("Requesting provisional authorization for iOS");
-
-        final iosPlugin = _notifications.resolvePlatformSpecificImplementation<
-            IOSFlutterLocalNotificationsPlugin>();
-
-        if (iosPlugin == null) {
-          log("ERROR: Failed to get iOS plugin implementation");
-          return false;
-        }
-
-        // Key difference: request provisional authorization
-        final provisionalResult = await iosPlugin.requestPermissions(
-          alert: true,
-          badge: true,
-          sound: true,
-          provisional: true, // This is the key difference
-        );
-
-        log("Provisional authorization result: $provisionalResult");
-
-        // Try immediate notification with provisional authorization
-        final id = DateTime.now().millisecond;
-
+        // For iOS, set specific details
         const DarwinNotificationDetails iosDetails = DarwinNotificationDetails(
           presentAlert: true,
           presentBadge: true,
@@ -722,32 +488,49 @@ class NotificationHelper {
           interruptionLevel: InterruptionLevel.active,
         );
 
-        const NotificationDetails details =
-            NotificationDetails(iOS: iosDetails);
-
-        log("Sending iOS notification with provisional authorization");
-        await _notifications.show(
-          id,
-          'iOS Provisional Test',
-          'Testing notification with provisional authorization',
-          details,
+        // For Android
+        const AndroidNotificationDetails androidDetails =
+            AndroidNotificationDetails(
+          _channelId,
+          _channelName,
+          channelDescription: _channelDescription,
+          importance: Importance.high,
+          priority: Priority.high,
+          ticker: 'ticker',
         );
 
-        log("iOS provisional notification sent");
-      } else {
-        log("Not running on iOS - test not applicable");
+        const NotificationDetails details = NotificationDetails(
+          iOS: iosDetails,
+          android: androidDetails,
+        );
+
+        // Schedule notification
+        await _notifications.zonedSchedule(
+          id,
+          'Delayed Test Notification',
+          'This notification was delayed by 3 seconds to simulate background behavior',
+          scheduledTime,
+          details,
+          androidAllowWhileIdle: true,
+          uiLocalNotificationDateInterpretation:
+              UILocalNotificationDateInterpretation.absoluteTime,
+        );
       }
 
+      log('Delayed notification scheduled!');
       return true;
     } catch (e) {
-      log("ERROR in provisional notification test: $e");
+      log('Error scheduling delayed notification: $e');
       return false;
     }
   }
 
+  // Enhanced in-app notification
   static Future<void> showEnhancedInAppNotification(
       BuildContext context, String title, String body,
-      {bool playSound = true, bool vibrate = true}) async {
+      {bool playSound = true}) async {
+    log("Showing in-app notification: $title");
+
     // Play notification sound
     if (playSound) {
       try {
@@ -755,18 +538,6 @@ class NotificationHelper {
         await player.play(audio.AssetSource('sounds/notification_sound.mp3'));
       } catch (e) {
         log("Error playing notification sound: $e");
-      }
-    }
-
-    // Vibrate device
-    if (vibrate) {
-      try {
-        if (await Vibration.hasVibrator() ?? false) {
-          // Create a pattern similar to notification vibration
-          Vibration.vibrate(pattern: [0, 250, 100, 250]);
-        }
-      } catch (e) {
-        log("Error vibrating device: $e");
       }
     }
 
@@ -836,19 +607,17 @@ class NotificationHelper {
 
     // Remove after a delay (longer for more attention)
     Future.delayed(Duration(seconds: 8), () {
-      // Fix for checking if the entry is still valid before removing
       try {
-        // A simpler check to see if the context is still valid
         if (context.mounted) {
           entry.remove();
         }
       } catch (e) {
         log("Error removing notification overlay: $e");
-        // Entry might have been removed already
       }
     });
   }
 
+  // App state tracking
   static void trackAppState(AppLifecycleState state) {
     if (state == AppLifecycleState.paused ||
         state == AppLifecycleState.detached) {
@@ -859,32 +628,53 @@ class NotificationHelper {
     log("App state changed to: $state, isBackground: $_appInBackground");
   }
 
-// Advanced notification method that decides best approach based on app state
-  static Future<void> showSmartNotification({
+  // Set current context for notifications
+  static void setCurrentContext(BuildContext? context) {
+    _currentContext = context;
+    log("Current notification context ${context != null ? 'set' : 'cleared'}");
+  }
+
+// Smart notification system
+  static Future<bool> showSmartNotification({
     required BuildContext? context,
     required int id,
     required String title,
     required String body,
   }) async {
-    // If app is known to be in background, or if we don't have a context,
-    // use system notification
-    log("======== In showSmartNotification");
-    if (_appInBackground || context == null) {
-      log("App in background or no context - using system notification");
-      await showAlert(
+    log("Smart notification requested: id=$id, title=$title");
+
+    // Only use in-app notifications for iOS in foreground
+    if (Platform.isIOS && context != null && !_appInBackground) {
+      log("Using in-app notification for iOS in foreground");
+      showEnhancedInAppNotification(context, title, body);
+      return true;
+    } else {
+      // For Android or iOS background, use system notification
+      log("Using system notification (Android or iOS background)");
+      return await showAlert(
         id: id,
         title: title,
         body: body,
       );
-      return;
     }
-
-    // App is in foreground with context - use enhanced in-app notification
-    log("App in foreground - using enhanced in-app notification");
-    showEnhancedInAppNotification(context, title, body);
   }
 
-  static void setCurrentContext(BuildContext context) {
-    _currentContext = context;
+  // Logging system
+  static void log(String message) {
+    final timestamp = DateTime.now().toString().substring(0, 19);
+    final logMessage = "$timestamp: $message";
+    print(logMessage);
+
+    // Add to our queue with a maximum size
+    _logMessages.add(logMessage);
+    while (_logMessages.length > _maxLogMessages) {
+      _logMessages.removeFirst();
+    }
+  }
+
+  static List<String> get logs => List.from(_logMessages);
+
+  static void clearLogs() {
+    _logMessages.clear();
   }
 }

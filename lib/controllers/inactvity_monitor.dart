@@ -188,7 +188,8 @@ class InactivityMonitor {
             : '$inactiveHours hours';
 
         // Send notification
-        await NotificationHelper.showAlert(
+        await NotificationHelper.showSmartNotification(
+          context: null, // We don't have the context here
           id: 'inactivity-${responderUid.hashCode}'.hashCode,
           title: '${devModePrefix}Danoggin Inactivity Alert',
           body: '$responderName has been inactive for $inactivityPeriod. ' +
@@ -231,7 +232,8 @@ class InactivityMonitor {
           : '$inactiveHours hours';
 
       // Send notification with high priority
-      await NotificationHelper.showAlert(
+      await NotificationHelper.showSmartNotification(
+        context: null, // We don't have the context here
         id: 'inactivity-${responderUid.hashCode}'.hashCode,
         title: '${devModePrefix}Danoggin Inactivity Alert',
         body: '$responderName has been inactive for $inactivityPeriod. ' +

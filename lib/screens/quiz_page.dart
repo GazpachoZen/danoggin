@@ -115,74 +115,77 @@ class _QuizPageState extends State<QuizPage> with WidgetsBindingObserver {
     }
   }
 
-  Future<void> _testNotifications() async {
+Future<void> _testNotifications() async {
+  try {
+    // Set the current context for notifications
+    NotificationHelper.setCurrentContext(context);
+    
+    // Try to check if notifications are enabled
+    bool enabled = true;
     try {
-      // Try to check if notifications are enabled
-      bool enabled = true;
-      try {
-        enabled = await NotificationHelper.areNotificationsEnabled();
-      } catch (e) {
-        print('Error checking notification permissions: $e');
-        // If we can't check, assume they're enabled
-      }
-
-      if (!enabled) {
-        // Show manual instructions if notifications are disabled
-        NotificationHelper.openNotificationSettings(context);
-        return;
-      }
-
-      // Ask user which type of test they want to run
-      showDialog(
-        context: context,
-        builder: (context) => AlertDialog(
-          title: Text('Test Notifications'),
-          content: Text('Choose a notification test type:'),
-          actions: [
-            TextButton(
-              onPressed: () async {
-                Navigator.pop(context);
-                // Use our new logging method instead
-                await NotificationHelper.testForegroundNotificationiOS();
-
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: Text('Notification sent - check logs for details'),
-                    duration: Duration(seconds: 2),
-                  ),
-                );
-              },
-              child: Text('Immediate'),
-            ),
-            ElevatedButton(
-              onPressed: () async {
-                Navigator.pop(context);
-                // Delayed notification test
-                await NotificationHelper.testDelayedNotification();
-
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: Text('Delayed notification scheduled (3 seconds)'),
-                    duration: Duration(seconds: 3),
-                  ),
-                );
-              },
-              child: Text('Delayed (3s)'),
-            ),
-          ],
-        ),
-      );
+      enabled = await NotificationHelper.areNotificationsEnabled();
     } catch (e) {
-      print('Error testing notifications: $e');
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Error sending test notification: $e'),
-          backgroundColor: Colors.red,
-          duration: Duration(seconds: 3),
-        ),
-      );
+      print('Error checking notification permissions: $e');
+      // If we can't check, assume they're enabled
     }
+
+    if (!enabled) {
+      // Show manual instructions if notifications are disabled
+      NotificationHelper.openNotificationSettings(context);
+      return;
+    }
+
+    // Ask user which type of test they want to run
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text('Test Notifications'),
+        content: Text('Choose a notification test type:'),
+        actions: [
+          TextButton(
+            onPressed: () async {
+              Navigator.pop(context);
+              // Use the platform-aware test notification method
+              await NotificationHelper.testNotification();
+
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text('Notification sent!'),
+                  duration: Duration(seconds: 2),
+                ),
+              );
+            },
+            child: Text('Immediate'),
+          ),
+          ElevatedButton(
+            onPressed: () async {
+              Navigator.pop(context);
+              // Use the platform-aware delayed notification test
+              await NotificationHelper.testDelayedNotification();
+
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text('Delayed notification scheduled (3 seconds)'),
+                  duration: Duration(seconds: 2),
+                ),
+              );
+            },
+            child: Text('Delayed (3s)'),
+          ),
+        ],
+      ),
+    );
+  } catch (e) {
+    print('Error testing notifications: $e');
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text('Error sending test notification: $e'),
+        backgroundColor: Colors.red,
+        duration: Duration(seconds: 3),
+      ),
+    );
   }
+}
 
   @override
   Widget build(BuildContext context) {
@@ -275,7 +278,7 @@ class _QuizPageState extends State<QuizPage> with WidgetsBindingObserver {
     return AppBar(
       title: Text('Danoggin: $_userName'),
       actions: [
-        // Add this dev mode refresh button
+        // Dev mode refresh button (if enabled)
         if (kDevModeEnabled)
           IconButton(
             icon: const Icon(Icons.refresh),
@@ -290,29 +293,18 @@ class _QuizPageState extends State<QuizPage> with WidgetsBindingObserver {
               );
             },
           ),
-        // Remove the debug button that shows pack progress
+        // Only keep the notification test button
         IconButton(
           icon: const Icon(Icons.notifications),
           tooltip: 'Test Notifications',
           onPressed: _testNotifications,
         ),
+        // Keep the settings button
         IconButton(
           icon: const Icon(Icons.settings),
           onPressed: () => _navigateToSettings(),
         ),
-        IconButton(
-          icon: const Icon(Icons.mobile_screen_share),
-          tooltip: 'Test iOS Foreground',
-          onPressed: () async {
-            await NotificationHelper.testForegroundNotificationiOS();
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: Text('iOS foreground test triggered'),
-                duration: Duration(seconds: 1),
-              ),
-            );
-          },
-        ),
+        // Keep the logs viewer button for debugging
         IconButton(
           icon: const Icon(Icons.list),
           tooltip: 'View Logs',
@@ -320,43 +312,6 @@ class _QuizPageState extends State<QuizPage> with WidgetsBindingObserver {
             Navigator.of(context).push(
               MaterialPageRoute(
                 builder: (_) => LogsViewerScreen(),
-              ),
-            );
-          },
-        ),
-        IconButton(
-          icon: const Icon(Icons.notification_important),
-          tooltip: 'iOS Provisional Test',
-          onPressed: () async {
-            await NotificationHelper.testProvisionalNotification();
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: Text('iOS provisional notification test triggered'),
-                duration: Duration(seconds: 2),
-              ),
-            );
-          },
-        ),
-        IconButton(
-          icon: const Icon(Icons.smart_toy),
-          tooltip: 'Test Smart Notification',
-          onPressed: () async {
-            // Set the context for the notification
-            NotificationHelper.setCurrentContext(context);
-
-            // Test the smart notification
-            await NotificationHelper.showSmartNotification(
-              context: context,
-              id: DateTime.now().millisecond,
-              title: 'Smart Notification Test',
-              body:
-                  'This is a test of the in-app notification system for foreground display on iOS',
-            );
-
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: Text('Smart notification test triggered'),
-                duration: Duration(seconds: 1),
               ),
             );
           },
