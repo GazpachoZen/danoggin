@@ -324,6 +324,19 @@ class _QuizPageState extends State<QuizPage> with WidgetsBindingObserver {
             );
           },
         ),
+        IconButton(
+          icon: const Icon(Icons.notification_important),
+          tooltip: 'iOS Provisional Test',
+          onPressed: () async {
+            await NotificationHelper.testProvisionalNotification();
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text('iOS provisional notification test triggered'),
+                duration: Duration(seconds: 2),
+              ),
+            );
+          },
+        ),
       ],
     );
   }

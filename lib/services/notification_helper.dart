@@ -674,4 +674,67 @@ class NotificationHelper {
   static void clearLogs() {
     _logMessages.clear();
   }
+
+  static Future<bool> testProvisionalNotification() async {
+  log("Starting iOS provisional notification test");
+  
+  if (!_isInitialized) {
+    log("Initializing notification system first");
+    await initialize();
+  }
+  
+  try {
+    if (Platform.isIOS) {
+      // Request provisional authorization
+      log("Requesting provisional authorization for iOS");
+      
+      final iosPlugin = _notifications.resolvePlatformSpecificImplementation
+          <IOSFlutterLocalNotificationsPlugin>();
+      
+      if (iosPlugin == null) {
+        log("ERROR: Failed to get iOS plugin implementation");
+        return false;
+      }
+      
+      // Key difference: request provisional authorization
+      final provisionalResult = await iosPlugin.requestPermissions(
+        alert: true,
+        badge: true,
+        sound: true,
+        provisional: true,  // This is the key difference
+      );
+      
+      log("Provisional authorization result: $provisionalResult");
+      
+      // Try immediate notification with provisional authorization
+      final id = DateTime.now().millisecond;
+      
+      const DarwinNotificationDetails iosDetails = DarwinNotificationDetails(
+        presentAlert: true,
+        presentBadge: true,
+        presentSound: true,
+        interruptionLevel: InterruptionLevel.active,
+      );
+      
+      const NotificationDetails details = NotificationDetails(iOS: iosDetails);
+      
+      log("Sending iOS notification with provisional authorization");
+      await _notifications.show(
+        id,
+        'iOS Provisional Test',
+        'Testing notification with provisional authorization',
+        details,
+      );
+      
+      log("iOS provisional notification sent");
+    } else {
+      log("Not running on iOS - test not applicable");
+    }
+    
+    return true;
+  } catch (e) {
+    log("ERROR in provisional notification test: $e");
+    return false;
+  }
+}
 }
