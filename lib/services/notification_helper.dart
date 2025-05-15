@@ -40,15 +40,37 @@ class NotificationHelper {
     const AndroidInitializationSettings androidSettings =
         AndroidInitializationSettings('@mipmap/ic_launcher');
 
-    // Basic iOS settings
-    const DarwinInitializationSettings iosSettings =
+    // Enhanced iOS settings with explicit foreground delegation
+    // Remove 'const' since we're using callbacks which are not const
+    final DarwinInitializationSettings iosSettings =
         DarwinInitializationSettings(
       requestAlertPermission: true,
       requestBadgePermission: true,
       requestSoundPermission: true,
+      // Add this critical callback for iOS foreground notifications
+      notificationCategories: [
+        DarwinNotificationCategory(
+          'danoggin_category',
+          actions: [
+            DarwinNotificationAction.plain(
+              'view',
+              'View',
+              options: {DarwinNotificationActionOption.foreground},
+            ),
+          ],
+        ),
+      ],
+      // Add onDidReceiveLocalNotification for older iOS versions
+      onDidReceiveLocalNotification:
+          (int id, String? title, String? body, String? payload) async {
+        print('Received foreground notification: id=$id, title=$title');
+        // Re-emit the notification to our stream to handle it in-app
+        _notificationStreamController
+            .add({'id': id, 'title': title, 'body': body, 'payload': payload});
+      },
     );
 
-    const InitializationSettings initSettings = InitializationSettings(
+    final InitializationSettings initSettings = InitializationSettings(
       android: androidSettings,
       iOS: iosSettings,
     );
@@ -64,9 +86,10 @@ class NotificationHelper {
     // For Android, set up notification channel with high importance
     if (Platform.isAndroid) {
       try {
-        final androidPlugin = _notifications.resolvePlatformSpecificImplementation
-            <AndroidFlutterLocalNotificationsPlugin>();
-        
+        final androidPlugin =
+            _notifications.resolvePlatformSpecificImplementation<
+                AndroidFlutterLocalNotificationsPlugin>();
+
         if (androidPlugin != null) {
           // Create a notification channel with high importance
           const AndroidNotificationChannel channel = AndroidNotificationChannel(
@@ -75,7 +98,7 @@ class NotificationHelper {
             description: _channelDescription,
             importance: Importance.high,
           );
-          
+
           await androidPlugin.createNotificationChannel(channel);
           print('Notification channel created successfully');
         }
@@ -100,14 +123,15 @@ class NotificationHelper {
     try {
       if (Platform.isAndroid) {
         final androidPlugin =
-            _notifications.resolvePlatformSpecificImplementation
-                <AndroidFlutterLocalNotificationsPlugin>();
+            _notifications.resolvePlatformSpecificImplementation<
+                AndroidFlutterLocalNotificationsPlugin>();
 
         if (androidPlugin == null) return false;
 
         // Check if notifications are enabled on Android
         try {
-          final enabled = await androidPlugin.areNotificationsEnabled() ?? false;
+          final enabled =
+              await androidPlugin.areNotificationsEnabled() ?? false;
           print('Android notification permission status: $enabled');
           return enabled;
         } catch (e) {
@@ -117,8 +141,8 @@ class NotificationHelper {
         }
       } else if (Platform.isIOS) {
         // For iOS, we need to explicitly request permissions
-        final iosPlugin = _notifications.resolvePlatformSpecificImplementation
-            <IOSFlutterLocalNotificationsPlugin>();
+        final iosPlugin = _notifications.resolvePlatformSpecificImplementation<
+            IOSFlutterLocalNotificationsPlugin>();
 
         final result = await iosPlugin?.requestPermissions(
           alert: true,
@@ -137,79 +161,86 @@ class NotificationHelper {
     }
   }
 
-  /// Show notification with high priority
-// In lib/services/notification_helper.dart
+  static Future<bool> showAlert({
+    required int id,
+    required String title,
+    required String body,
+    bool triggerRefresh = true,
+  }) async {
+    print('Attempting to show notification: id=$id, title=$title');
 
-// Modify the showAlert method to handle iOS foreground notifications properly
-static Future<bool> showAlert({
-  required int id,
-  required String title,
-  required String body,
-  bool triggerRefresh = true,
-}) async {
-  print('Attempting to show notification: id=$id, title=$title');
+    if (!_isInitialized) {
+      await initialize();
+    }
 
-  if (!_isInitialized) {
-    await initialize();
-  }
+    try {
+      // Check if notifications are enabled
+      final enabled = await areNotificationsEnabled();
+      if (!enabled) {
+        print('Notifications are not enabled for this app');
+        return false;
+      }
 
-  try {
-    // Check if notifications are enabled
-    final enabled = await areNotificationsEnabled();
-    if (!enabled) {
-      print('Notifications are not enabled for this app');
+      // Enhanced Android notification details for better visibility
+      const AndroidNotificationDetails androidDetails =
+          AndroidNotificationDetails(
+        _channelId,
+        _channelName,
+        channelDescription: _channelDescription,
+        importance: Importance.high,
+        priority: Priority.high,
+        showWhen: true,
+        playSound: true,
+        enableVibration: true,
+      );
+
+      // iOS notification details with available parameters only
+      const DarwinNotificationDetails iosDetails = DarwinNotificationDetails(
+        presentAlert: true,
+        presentBadge: true,
+        presentSound: true,
+        sound: 'default',
+        interruptionLevel: InterruptionLevel.active,
+        // Only use parameters that are definitely available
+        categoryIdentifier: 'danoggin_category',
+      );
+
+      const NotificationDetails platformDetails = NotificationDetails(
+        android: androidDetails,
+        iOS: iosDetails,
+      );
+
+      // Log more information about the notification
+      print('Showing notification with following details:');
+      print('  ID: $id');
+      print('  Title: $title');
+      print('  Body: $body');
+      if (Platform.isAndroid) {
+        print('  Platform: Android');
+      } else if (Platform.isIOS) {
+        print('  Platform: iOS');
+      }
+
+      await _notifications.show(
+        id,
+        title,
+        body,
+        platformDetails,
+      );
+
+      if (triggerRefresh) {
+        _notificationStreamController
+            .add({'id': id, 'title': title, 'body': body});
+        print('Emitted notification event for refresh');
+      }
+
+      print('Alert notification sent successfully');
+      return true;
+    } catch (e) {
+      print('Error showing notification: $e');
       return false;
     }
-
-    // Enhanced Android notification details for better visibility
-    const AndroidNotificationDetails androidDetails = AndroidNotificationDetails(
-      _channelId,
-      _channelName,
-      channelDescription: _channelDescription,
-      importance: Importance.high,
-      priority: Priority.high,
-      showWhen: true,
-      playSound: true,
-      enableVibration: true,
-    );
-
-    // Enhanced iOS notification details with improved foreground presentation
-    const DarwinNotificationDetails iosDetails = DarwinNotificationDetails(
-      presentAlert: true,
-      presentBadge: true,
-      presentSound: true,
-      sound: 'default',
-      // Add this critical line for iOS foreground notifications
-      interruptionLevel: InterruptionLevel.active,
-      // This is needed for iOS 10+ to show in foreground
-      // The notificationCenterVisibility option may not be available in your version
-    );
-
-    const NotificationDetails platformDetails = NotificationDetails(
-      android: androidDetails,
-      iOS: iosDetails,
-    );
-
-    await _notifications.show(
-      id,
-      title,
-      body,
-      platformDetails,
-    );
-
-    if (triggerRefresh) {
-      _notificationStreamController
-          .add({'id': id, 'title': title, 'body': body});
-      print('Emitted notification event for refresh');
-    }
-
-    print('Alert notification sent successfully');
-    return true;
-  } catch (e) {
-    print('Error showing notification: $e');
-    return false;
   }
-}
 
   /// Test notifications to verify they work
   static Future<bool> testNotification() async {
@@ -235,8 +266,8 @@ static Future<bool> showAlert({
       print('Testing iOS notification specifically...');
 
       // Request permissions explicitly before showing notification
-      final iosPlugin = _notifications.resolvePlatformSpecificImplementation
-          <IOSFlutterLocalNotificationsPlugin>();
+      final iosPlugin = _notifications.resolvePlatformSpecificImplementation<
+          IOSFlutterLocalNotificationsPlugin>();
 
       final permGranted = await iosPlugin?.requestPermissions(
         alert: true,
@@ -246,13 +277,13 @@ static Future<bool> showAlert({
 
       print('iOS permissions request result: $permGranted');
 
-      // Set iOS-specific details for FOREGROUND presentation
+      // Use only available parameters for iOS notification
       const DarwinNotificationDetails iosDetails = DarwinNotificationDetails(
         presentAlert: true,
         presentBadge: true,
         presentSound: true,
-        // Force the notification to show even when app is in foreground
         interruptionLevel: InterruptionLevel.active,
+        categoryIdentifier: 'danoggin_category',
       );
 
       const NotificationDetails details = NotificationDetails(iOS: iosDetails);
@@ -260,10 +291,11 @@ static Future<bool> showAlert({
       // Generate a unique ID
       final id = DateTime.now().millisecond;
 
+      print('Sending iOS test notification with ID: $id');
       await _notifications.show(
         id,
         'iOS Test Notification',
-        'This is a test notification specifically for iOS',
+        'This is a test notification specifically for iOS. It should appear even when the app is in the foreground.',
         details,
       );
 
@@ -440,13 +472,14 @@ static Future<bool> showAlert({
     try {
       // For Android, permissions are handled through notification channels
       if (Platform.isAndroid) {
-        print('Android notification permissions handled through channel creation');
+        print(
+            'Android notification permissions handled through channel creation');
       }
 
       // For iOS, explicitly request permissions
       if (Platform.isIOS) {
-        final iosPlugin = _notifications.resolvePlatformSpecificImplementation
-            <IOSFlutterLocalNotificationsPlugin>();
+        final iosPlugin = _notifications.resolvePlatformSpecificImplementation<
+            IOSFlutterLocalNotificationsPlugin>();
         if (iosPlugin != null) {
           final result = await iosPlugin.requestPermissions(
             alert: true,
@@ -460,17 +493,17 @@ static Future<bool> showAlert({
       print('Error requesting notification permissions: $e');
     }
   }
-  
+
   // Ensure background notifications are properly configured
   static Future<void> ensureBackgroundNotificationsEnabled() async {
     if (!_isInitialized) {
       await initialize();
     }
-    
+
     // The notification channel created in initialize() should be sufficient
     // Just make sure permissions are properly requested
     await requestNotificationPermissions();
-    
+
     print('Background notifications have been configured');
   }
 
