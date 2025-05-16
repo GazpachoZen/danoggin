@@ -149,8 +149,6 @@ class NotificationHelper {
   }
 
   /// Show notification with high priority
-// Update the showAlert method in notification_helper.dart:
-
   static Future<bool> showAlert({
     required int id,
     required String title,
@@ -171,66 +169,79 @@ class NotificationHelper {
         return false;
       }
 
-      // Special handling for iOS in background
+      // Special handling for iOS in background - use simpler approach
       if (Platform.isIOS && _appInBackground) {
-        log('Using specialized iOS background notification approach');
+        log('iOS in background: Using special handling');
 
-        final iosPlugin = _notifications.resolvePlatformSpecificImplementation<
-            IOSFlutterLocalNotificationsPlugin>();
-
-        if (iosPlugin != null) {
-          // Request permissions again to ensure they're active
-          final permissionResult = await iosPlugin.requestPermissions(
-            alert: true,
-            badge: true,
-            sound: true,
-            critical: true, // Request critical alert permission if we have it
-          );
-
-          log('iOS permission refresh result: $permissionResult');
-        }
-
-        // Set up specialized iOS notification details
+        // Standard iOS notification details
         const iosDetails = DarwinNotificationDetails(
           presentAlert: true,
           presentBadge: true,
           presentSound: true,
           sound: 'default',
-          interruptionLevel: InterruptionLevel.timeSensitive,
-          threadIdentifier: 'danoggin_notifications',
+          // Using standard interruption level - no special permissions needed
+          interruptionLevel: InterruptionLevel.active,
         );
 
-        // Try immediate notification first
-        await _notifications.show(
-          id,
-          title,
-          body,
-          const NotificationDetails(iOS: iosDetails),
-        );
+        // Try three approaches for iOS background notifications:
 
-        // If that doesn't work, also try scheduled notification with short delay
+        // 1. Normal show method
+        try {
+          await _notifications.show(
+            id,
+            title,
+            body,
+            const NotificationDetails(iOS: iosDetails),
+          );
+          log('iOS background: Sent via show method');
+        } catch (e) {
+          log('Error with show method: $e');
+          // Continue with next approach
+        }
+
+        // 2. Scheduled notification with 1-second delay
         try {
           final scheduledTime =
               tz.TZDateTime.now(tz.local).add(const Duration(seconds: 1));
 
           await _notifications.zonedSchedule(
-            id + 1, // Use a different ID to avoid conflicts
+            id + 1, // Different ID
             title,
             body,
             scheduledTime,
             const NotificationDetails(iOS: iosDetails),
-            androidAllowWhileIdle: true,
             uiLocalNotificationDateInterpretation:
                 UILocalNotificationDateInterpretation.absoluteTime,
           );
-
-          log('iOS background: Also scheduled failsafe notification for 1 second later');
+          log('iOS background: Scheduled notification for 1 second later');
         } catch (e) {
-          log('Error scheduling failsafe notification: $e');
-          // Continue anyway since we already tried immediate notification
+          log('Error with scheduled notification: $e');
+          // Continue with next approach
         }
 
-        log('iOS background notification sent via specialized approach');
+        // 3. Try with badge update as fallback
+        try {
+          // Add a badge number - iOS is more likely to show this
+          const badgeDetails = DarwinNotificationDetails(
+            presentAlert: true,
+            presentBadge: true,
+            presentSound: true,
+            sound: 'default',
+            badgeNumber: 1,
+          );
+
+          await _notifications.show(
+            id + 2, // Different ID
+            title,
+            body,
+            const NotificationDetails(iOS: badgeDetails),
+          );
+          log('iOS background: Sent with badge update');
+        } catch (e) {
+          log('Error with badge notification: $e');
+        }
+
+        log('iOS background: Attempted multiple notification methods');
         return true;
       }
 
