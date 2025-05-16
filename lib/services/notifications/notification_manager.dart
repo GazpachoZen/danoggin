@@ -189,4 +189,15 @@ class NotificationManager {
           .openNotificationSettings(context);
     }
   }
+
+  Future<void> ensureBackgroundNotificationsEnabled() async {
+    // This is just an alias for requestPermissions()
+    await requestPermissions();
+    _logger.log('Background notifications have been configured');
+  }
+
+  /// Request notification permissions explicitly
+  Future<void> requestNotificationPermissions() async {
+    await _localService.requestPermissions();
+  }
 }

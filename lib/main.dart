@@ -8,7 +8,7 @@
 
 import 'package:flutter/material.dart';
 import 'screens/splash_screen.dart';
-import 'services/notification_helper.dart';
+import 'package:danoggin/services/notifications/notification_manager.dart';
 import 'theme/app_theme.dart';
 import 'package:firebase_core/firebase_core.dart';
 import '../firebase_options.dart';
@@ -24,7 +24,7 @@ void main() async {
   );
 
   // Start notification initialization but don't await it yet
-  final notificationInitialization = NotificationHelper.initialize();
+  final notificationInitialization = NotificationManager().initialize();
   
   // Run the app immediately without waiting for initializations to complete
   runApp(AppLifecycleHandler(
@@ -44,8 +44,8 @@ void main() async {
     print('Notification system initialized in main()');
     
     // Add these new calls for improved notification handling
-    await NotificationHelper.ensureBackgroundNotificationsEnabled();
-    await NotificationHelper.requestNotificationPermissions();
+    await NotificationManager().ensureBackgroundNotificationsEnabled();
+    await NotificationManager().requestNotificationPermissions();
   } catch (e) {
     print('Error initializing notifications in main(): $e');
   }
@@ -87,7 +87,7 @@ class _NotificationPermissionObserver extends NavigatorObserver {
       Future.delayed(Duration(seconds: 2), () async {
         if (navigator?.context != null) {
           print('Checking notification permissions after app loaded');
-          await NotificationHelper.showPermissionDialog(navigator!.context);
+          await NotificationManager().showPermissionDialog(navigator!.context);
         }
       });
     }
@@ -139,7 +139,7 @@ class _AppLifecycleHandlerState extends State<AppLifecycleHandler>
     WidgetsBinding.instance.removeObserver(this);
     _hasActiveInstance = false; // Mark this instance as disposed
     // Clean up resources
-    NotificationHelper.dispose();
+    NotificationManager().dispose();
     super.dispose();
   }
 
@@ -148,7 +148,7 @@ class _AppLifecycleHandlerState extends State<AppLifecycleHandler>
     super.didChangeAppLifecycleState(state);
     
     // Add this line to track app state for notifications
-    NotificationHelper.trackAppState(state);
+    NotificationManager().trackAppState(state);
     
     if (state == AppLifecycleState.resumed) {
       // App came to foreground

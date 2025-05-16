@@ -5,7 +5,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:intl/intl.dart';
 import 'package:danoggin/services/auth_service.dart';
-import 'package:danoggin/services/notification_helper.dart';
+import 'package:danoggin/services/notifications/notification_manager.dart';
 import 'package:danoggin/repositories/responder_settings_repository.dart';
 import 'package:danoggin/controllers/inactvity_monitor.dart';
 
@@ -184,7 +184,7 @@ class ObserverController {
             });
 
             // Show notification
-            NotificationHelper.useBestNotification(
+            NotificationManager().useBestNotification(
               id: responderUid.hashCode.abs(),
               title: 'Danoggin Alert',
               body:
@@ -245,12 +245,12 @@ class ObserverController {
   Future<void> testNotifications(BuildContext context) async {
     try {
       // Set the current context for smart notifications
-      NotificationHelper.setCurrentContext(context);
+      NotificationManager().setCurrentContext(context);
 
       // Try to check if notifications are enabled
       bool enabled = true;
       try {
-        enabled = await NotificationHelper.areNotificationsEnabled();
+        enabled = await NotificationManager().areNotificationsEnabled();
       } catch (e) {
         print('Error checking notification permissions: $e');
         // If we can't check, assume they're enabled
@@ -258,12 +258,12 @@ class ObserverController {
 
       if (!enabled) {
         // Show manual instructions if notifications are disabled
-        NotificationHelper.openNotificationSettings(context);
+        NotificationManager().openNotificationSettings(context);
         return;
       }
 
       // Use platform-aware notification test method
-      await NotificationHelper.useBestNotification(
+      await NotificationManager().useBestNotification(
         id: DateTime.now().millisecondsSinceEpoch,
         title: 'Danoggin Test Notification',
         body:

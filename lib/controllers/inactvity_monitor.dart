@@ -1,7 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:intl/intl.dart';
 import 'package:flutter/material.dart';
-import 'package:danoggin/services/notification_helper.dart';
+import 'package:danoggin/services/notifications/notification_manager.dart';
 import 'package:danoggin/utils/timezone_helper.dart';
 
 // Development mode flag - set to false for production
@@ -188,7 +188,7 @@ class InactivityMonitor {
             : '$inactiveHours hours';
 
         // Send notification
-        await NotificationHelper.useBestNotification(
+        await NotificationManager().useBestNotification(
           id: 'inactivity-${responderUid.hashCode}'.hashCode,
           title: '${devModePrefix}Danoggin Inactivity Alert',
           body: '$responderName has been inactive for $inactivityPeriod. ' +
@@ -232,7 +232,7 @@ class InactivityMonitor {
           : '$inactiveHours hours';
 
       // Send notification with high priority
-      await NotificationHelper.useBestNotification(
+      await NotificationManager().useBestNotification(
         id: 'inactivity-${responderUid.hashCode}'.hashCode,
         title: '${devModePrefix}Danoggin Inactivity Alert',
         body: '$responderName has been inactive for $inactivityPeriod. ' +

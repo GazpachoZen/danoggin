@@ -10,7 +10,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:timezone/data/latest_all.dart' as tz;
 import 'package:timezone/timezone.dart' as tz;
-import 'package:danoggin/services/notification_helper.dart';
+import 'package:danoggin/services/notifications/notification_manager.dart';
 
 class NotificationService {
   static final _notifications = FlutterLocalNotificationsPlugin();
@@ -122,7 +122,7 @@ class NotificationService {
       debugPrint(
           'zonedSchedule failed, falling back to delayed notification: $e');
       Future.delayed(Duration(seconds: delaySeconds), () async {
-        await NotificationHelper.useBestNotification(
+        await NotificationManager().useBestNotification(
           id: 0,
           title: 'Danoggin Alert',
           body: 'This is a scheduled notification.',
@@ -169,7 +169,7 @@ class NotificationService {
       print("❌ Error showing notification: $e");
       // Try a fallback method
       try {
-        await NotificationHelper.useBestNotification(
+        await NotificationManager().useBestNotification(
           id: id,
           title: title,
           body: body,

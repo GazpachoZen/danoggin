@@ -9,7 +9,7 @@ import 'package:danoggin/models/question_pack.dart';
 import 'package:danoggin/services/auth_service.dart';
 import 'package:danoggin/services/question_manager.dart';
 import 'package:danoggin/services/question_pack_service.dart';
-import 'package:danoggin/services/notification_helper.dart';
+import 'package:danoggin/services/notifications/notification_manager.dart';
 
 class QuizController {
   // State variables
@@ -23,6 +23,8 @@ class QuizController {
   AnswerOption? selectedAnswer;
   String? feedback;
   List<QuestionPack> subscribedPacks = [];
+
+  final _notificationManager = NotificationManager();
 
   // Operational settings
   TimeOfDay? startHour;
@@ -183,7 +185,7 @@ class QuizController {
     // Only show alert with refresh event if it's a scheduled update (not initial load)
     if (isScheduled || !_isInitialLoad) {
       // Use the NotificationHelper to show the check-in notification
-      NotificationHelper.useBestNotification(
+      NotificationManager().useBestNotification(
         id: 1, // Use 1 as the ID for check-in notifications
         title: 'Danoggin Check-In',
         body: 'Time to answer a quick question!',
@@ -217,7 +219,7 @@ class QuizController {
       );
 
       // Cancel any outstanding check-in notifications since we've now handled the timeout
-      await NotificationHelper.cancelNotification(1);
+      await NotificationManager().cancelNotification(1);
 
       Future.delayed(Duration(seconds: 3), () {
         _timeoutActive = false;
@@ -238,7 +240,7 @@ class QuizController {
     responseTimer?.cancel();
 
     // Cancel any outstanding check-in notifications to prevent confusion
-    await NotificationHelper.cancelNotification(1);
+    await NotificationManager().cancelNotification(1);
 
     final isCorrect = selectedAnswer == currentQuestion!.correctAnswer;
 
@@ -254,7 +256,7 @@ class QuizController {
       );
 
       // Also cancel any missed check-in notifications on successful answer
-      await NotificationHelper.cancelNotification(2);
+      await NotificationManager().cancelNotification(2);
     } else {
       // Incorrect answer case
       if (!isRetryAttempt) {
@@ -353,8 +355,7 @@ class QuizController {
   // Add method to set up notification listener
   void _setupNotificationListener() {
     // Listen for notification events using a stream
-    _notificationSubscription =
-        NotificationHelper.notificationEventStream.listen((event) {
+    _notificationSubscription = _notificationManager.notificationEvents.listen((event) {
       // If app is already open and showing a question, refresh to the new question
       if (!isLoading && !_isInitialLoad) {
         print('Received notification event, refreshing question');
