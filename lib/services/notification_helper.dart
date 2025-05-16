@@ -619,13 +619,19 @@ class NotificationHelper {
 
   // App state tracking
   static void trackAppState(AppLifecycleState state) {
+    // More explicit tracking of background state for iOS
     if (state == AppLifecycleState.paused ||
         state == AppLifecycleState.detached) {
       _appInBackground = true;
-    } else {
+      log("App entered background state: $state");
+    } else if (state == AppLifecycleState.resumed) {
       _appInBackground = false;
+      log("App entered foreground state: $state");
+    } else {
+      // For inactive and hidden states, don't change the background flag
+      // This preserves the background state for iOS
+      log("App in transition state: $state (keeping isBackground: $_appInBackground)");
     }
-    log("App state changed to: $state, isBackground: $_appInBackground");
   }
 
   // Set current context for notifications
@@ -696,8 +702,12 @@ class NotificationHelper {
       }
 
       // iOS in foreground: Use in-app overlay notification
-      if (Platform.isIOS && !_appInBackground && _currentContext != null) {
-        log("Using in-app notification for iOS in foreground");
+      if (Platform.isIOS &&
+          !_appInBackground &&
+          _currentContext != null &&
+          WidgetsBinding.instance.lifecycleState == AppLifecycleState.resumed) {
+        // Double-check we're truly in foreground
+        log("Using in-app notification for iOS in foreground (confirmed)");
         await showEnhancedInAppNotification(_currentContext!, title, body,
             playSound: playSound);
 
