@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
-import 'package:danoggin/services/notification_helper.dart';
+import 'package:danoggin/services/notifications/notification_manager.dart';
 
 /// Utility functions for direct notification testing and handling
 class NotificationUtils {
@@ -25,7 +25,7 @@ class NotificationUtils {
       // Generate a unique ID
       final int notificationId = DateTime.now().millisecond;
 
-      await NotificationHelper.useBestNotification(
+      await NotificationManager().useBestNotification(
         id: notificationId,
         title: 'Plain Test Notification',
         body: 'This is a simple notification from Danoggin',
@@ -91,7 +91,7 @@ class NotificationUtils {
       final FlutterLocalNotificationsPlugin notifications =
           FlutterLocalNotificationsPlugin();
 
-      await NotificationHelper.useBestNotification(
+      await NotificationManager().useBestNotification(
         id: notificationId,
         title: 'Danoggin Alert: $result',
         body: '$responderName had a $result check-in at $timeStr',

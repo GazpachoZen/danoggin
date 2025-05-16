@@ -1,10 +1,9 @@
 import 'dart:async';
-import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:danoggin/models/user_role.dart';
 import 'package:danoggin/screens/settings_page.dart';
-import 'package:danoggin/services/notification_helper.dart';
+import 'package:danoggin/services/notifications/notification_manager.dart';
 import 'package:danoggin/controllers/quiz_controller.dart';
 import 'package:danoggin/widgets/quiz/question_display.dart';
 import 'package:danoggin/widgets/quiz/answer_grid.dart';
@@ -79,7 +78,7 @@ class _QuizPageState extends State<QuizPage> with WidgetsBindingObserver {
     // Check if notifications are enabled
     bool enabled = true;
     try {
-      enabled = await NotificationHelper.areNotificationsEnabled();
+      enabled = await NotificationManager().areNotificationsEnabled();
     } catch (e) {
       print('Error checking notification permissions: $e');
       return;
@@ -105,7 +104,7 @@ class _QuizPageState extends State<QuizPage> with WidgetsBindingObserver {
               onPressed: () {
                 Navigator.pop(context);
                 // Show manual instructions
-                NotificationHelper.openNotificationSettings(context);
+                NotificationManager().openNotificationSettings(context);
               },
               child: Text('Show Instructions'),
             ),
@@ -118,12 +117,12 @@ class _QuizPageState extends State<QuizPage> with WidgetsBindingObserver {
   Future<void> _testNotifications() async {
     try {
       // Set the current context for notifications
-      NotificationHelper.setCurrentContext(context);
+      NotificationManager().setCurrentContext(context);
 
       // Try to check if notifications are enabled
       bool enabled = true;
       try {
-        enabled = await NotificationHelper.areNotificationsEnabled();
+        enabled = await NotificationManager().areNotificationsEnabled();
       } catch (e) {
         print('Error checking notification permissions: $e');
         // If we can't check, assume they're enabled
@@ -131,7 +130,7 @@ class _QuizPageState extends State<QuizPage> with WidgetsBindingObserver {
 
       if (!enabled) {
         // Show manual instructions if notifications are disabled
-        NotificationHelper.openNotificationSettings(context);
+        NotificationManager().openNotificationSettings(context);
         return;
       }
 
@@ -146,7 +145,7 @@ class _QuizPageState extends State<QuizPage> with WidgetsBindingObserver {
               onPressed: () async {
                 Navigator.pop(context);
                 // Use the platform-aware test notification method
-                await NotificationHelper.useBestNotification(
+                await NotificationManager().useBestNotification(
                   id: DateTime.now().millisecondsSinceEpoch,
                   title: 'Danoggin Test Notification',
                   body:
@@ -178,7 +177,7 @@ class _QuizPageState extends State<QuizPage> with WidgetsBindingObserver {
                 // Schedule a delayed notification using our centralized approach
                 Future.delayed(Duration(seconds: 3), () async {
                   // The delayed notification is handled through our central method
-                  await NotificationHelper.useBestNotification(
+                  await NotificationManager().useBestNotification(
                     id: DateTime.now().millisecondsSinceEpoch,
                     title: 'Delayed Test Notification',
                     body:

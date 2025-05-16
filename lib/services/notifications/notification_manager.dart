@@ -180,4 +180,13 @@ class NotificationManager {
   PlatformHelper get _platformHelper {
     return (_localService as LocalNotificationService).platformHelper;
   }
+
+  void openNotificationSettings(BuildContext context) {
+    if (_localService is LocalNotificationService) {
+      // Use the public platformHelper accessor we created
+      (_localService as LocalNotificationService)
+          .platformHelper
+          .openNotificationSettings(context);
+    }
+  }
 }

@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:danoggin/services/notification_helper.dart';
+import 'package:danoggin/services/notifications/notification_manager.dart';
 import 'package:flutter/services.dart';
 
 class LogsViewerScreen extends StatefulWidget {
@@ -20,7 +20,7 @@ class _LogsViewerScreenState extends State<LogsViewerScreen> {
 
   void _loadLogs() {
     setState(() {
-      _logs = NotificationHelper.logs;
+      _logs = NotificationManager().logs;
     });
   }
 
@@ -42,7 +42,7 @@ class _LogsViewerScreenState extends State<LogsViewerScreen> {
           IconButton(
             icon: const Icon(Icons.delete),
             onPressed: () {
-              NotificationHelper.clearLogs();
+              NotificationManager().clearLogs();
               _loadLogs();
             },
           ),
