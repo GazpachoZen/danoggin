@@ -97,6 +97,7 @@ TESTING...
 	Can I get multiple instances running?
 ================================================================================
 ---------------------
+Let's break out the notification logging system into a stand-alone functionality.
 ---------------------
 I'd like to address some font sizing issues for the iOS implementation vs how things appear on Android. As one example, I've attached a screenshot of a typical observer panel from an Android phone. Notice how nicely things lay out. I've also attached a screenshot of what an observer panel looks like on an iPhone. Notice how horribly it renders. I have a similar example for font appearance for the responder side and how things fit (or don't fit) within the buttons.
 Please discuss our options before making code suggestions. (ref my "Assorted" conversation with Claude earlier)
@@ -396,3 +397,17 @@ bluevista+danoggin@gmail.com
 ----------------------------
 
 The app will periodically present a relatively trivial random question to a user over the course of a day. Whenever they answer incorrectly or neglect to answer at all, a notification is sent to a friend or relative that. This allows the Observer to know that something might be amiss and then check in on the Responder. It is meant to be a relatively non-intrusive way for somebody with a possible cognitive issue to maintain a level of independence while giving peace of mind to a care-giver.
+
+
+lib/services/notifications/
+  ├── base/
+  │   ├── notification_service.dart        # Core interface/abstract class
+  │   ├── notification_handler.dart        # Interface for handling notifications
+  │   └── notification_logger.dart         # Logger functionality
+  ├── local/                               # Current notification implementation
+  │   ├── local_notification_service.dart  # Current service functionality
+  │   ├── display_helper.dart              # UI display methods (in-app overlay)
+  │   └── platform_helper.dart             # Platform-specific implementations
+  ├── fcm/                                 # Future FCM implementation
+  │   └── (placeholder for future files)
+  └── notification_manager.dart            # Main facade - single entry point
