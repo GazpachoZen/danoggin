@@ -149,6 +149,8 @@ class NotificationHelper {
   }
 
   /// Show notification with high priority
+// Update the showAlert method in notification_helper.dart:
+
   static Future<bool> showAlert({
     required int id,
     required String title,
@@ -169,43 +171,66 @@ class NotificationHelper {
         return false;
       }
 
-      // For iOS background, use scheduled notification with minimal delay
+      // Special handling for iOS in background
       if (Platform.isIOS && _appInBackground) {
-        log('iOS background: Using scheduled notification');
+        log('Using specialized iOS background notification approach');
 
-        // Initialize time zones if needed
-        tz.TZDateTime.now(tz.local); // Force initialization
+        final iosPlugin = _notifications.resolvePlatformSpecificImplementation<
+            IOSFlutterLocalNotificationsPlugin>();
 
-        // Schedule the notification 1 second in the future
-        final scheduledTime =
-            tz.TZDateTime.now(tz.local).add(const Duration(seconds: 1));
+        if (iosPlugin != null) {
+          // Request permissions again to ensure they're active
+          final permissionResult = await iosPlugin.requestPermissions(
+            alert: true,
+            badge: true,
+            sound: true,
+            critical: true, // Request critical alert permission if we have it
+          );
 
-        // iOS notification details
-        const DarwinNotificationDetails iosDetails = DarwinNotificationDetails(
+          log('iOS permission refresh result: $permissionResult');
+        }
+
+        // Set up specialized iOS notification details
+        const iosDetails = DarwinNotificationDetails(
           presentAlert: true,
           presentBadge: true,
           presentSound: true,
           sound: 'default',
-          interruptionLevel:
-              InterruptionLevel.timeSensitive, // Try this more urgent level
+          interruptionLevel: InterruptionLevel.timeSensitive,
+          threadIdentifier: 'danoggin_notifications',
         );
 
-        const NotificationDetails platformDetails = NotificationDetails(
-          iOS: iosDetails,
-        );
-
-        await _notifications.zonedSchedule(
+        // Try immediate notification first
+        await _notifications.show(
           id,
           title,
           body,
-          scheduledTime,
-          platformDetails,
-          androidAllowWhileIdle: true,
-          uiLocalNotificationDateInterpretation:
-              UILocalNotificationDateInterpretation.absoluteTime,
+          const NotificationDetails(iOS: iosDetails),
         );
 
-        log('iOS background: Scheduled notification for 1 second later');
+        // If that doesn't work, also try scheduled notification with short delay
+        try {
+          final scheduledTime =
+              tz.TZDateTime.now(tz.local).add(const Duration(seconds: 1));
+
+          await _notifications.zonedSchedule(
+            id + 1, // Use a different ID to avoid conflicts
+            title,
+            body,
+            scheduledTime,
+            const NotificationDetails(iOS: iosDetails),
+            androidAllowWhileIdle: true,
+            uiLocalNotificationDateInterpretation:
+                UILocalNotificationDateInterpretation.absoluteTime,
+          );
+
+          log('iOS background: Also scheduled failsafe notification for 1 second later');
+        } catch (e) {
+          log('Error scheduling failsafe notification: $e');
+          // Continue anyway since we already tried immediate notification
+        }
+
+        log('iOS background notification sent via specialized approach');
         return true;
       }
 
@@ -223,7 +248,7 @@ class NotificationHelper {
         enableVibration: true,
       );
 
-      // iOS notification details
+      // Standard iOS notification details
       const DarwinNotificationDetails iosDetails = DarwinNotificationDetails(
         presentAlert: true,
         presentBadge: true,
@@ -259,30 +284,29 @@ class NotificationHelper {
   }
 
   /// Test notifications to verify they work
-  /// Test notifications to verify they work
-  static Future<bool> testNotification() async {
-    final id = DateTime.now().millisecond;
+  // static Future<bool> testNotification() async {
+  //   final id = DateTime.now().millisecond;
 
-    // For iOS, if we have a context and the app is in foreground, use in-app notification
-    if (Platform.isIOS && _currentContext != null && !_appInBackground) {
-      log('Using in-app notification for iOS test');
-      showEnhancedInAppNotification(
-        _currentContext!,
-        'Danoggin Test',
-        'This is a test notification. If you see this, notifications are working!',
-      );
-      return true;
-    } else {
-      // For Android or iOS background, use standard system notification
-      log('Using system notification for test (Android or iOS background)');
-      return await showAlert(
-        id: id,
-        title: 'Danoggin Test',
-        body:
-            'This is a test notification. If you see this, notifications are working!',
-      );
-    }
-  }
+  //   // For iOS, if we have a context and the app is in foreground, use in-app notification
+  //   if (Platform.isIOS && _currentContext != null && !_appInBackground) {
+  //     log('Using in-app notification for iOS test');
+  //     showEnhancedInAppNotification(
+  //       _currentContext!,
+  //       'Danoggin Test',
+  //       'This is a test notification. If you see this, notifications are working!',
+  //     );
+  //     return true;
+  //   } else {
+  //     // For Android or iOS background, use standard system notification
+  //     log('Using system notification for test (Android or iOS background)');
+  //     return await showAlert(
+  //       id: id,
+  //       title: 'Danoggin Test',
+  //       body:
+  //           'This is a test notification. If you see this, notifications are working!',
+  //     );
+  //   }
+  // }
 
   /// Cancel/remove a specific notification by ID
   static Future<void> cancelNotification(int id) async {

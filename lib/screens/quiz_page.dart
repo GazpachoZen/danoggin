@@ -166,23 +166,28 @@ class _QuizPageState extends State<QuizPage> with WidgetsBindingObserver {
             ElevatedButton(
               onPressed: () async {
                 Navigator.pop(context);
-                // Use the platform-aware delayed notification test
-                Future.delayed(Duration(seconds: 3), () async {
-                  await NotificationHelper.useBestNotification(
-                    id: DateTime.now().millisecondsSinceEpoch,
-                    title: 'Delayed Test Notification',
-                    body:
-                        'This is a delayed notification (3s) to test notification delivery',
-                    triggerRefresh: false,
-                  );
-                });
 
+                // Show a snackbar immediately
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(
                     content: Text('Delayed notification scheduled (3 seconds)'),
                     duration: Duration(seconds: 2),
                   ),
                 );
+
+                // Schedule a delayed notification using our centralized approach
+                Future.delayed(Duration(seconds: 3), () async {
+                  // The delayed notification is handled through our central method
+                  await NotificationHelper.useBestNotification(
+                    id: DateTime.now().millisecondsSinceEpoch,
+                    title: 'Delayed Test Notification',
+                    body:
+                        'This is a delayed notification (3s) to test notifications',
+                    triggerRefresh: true,
+                    // Add this extra parameter to force using the specialized iOS approach
+                    payload: {'force_specialized': 'true'},
+                  );
+                });
               },
               child: Text('Delayed (3s)'),
             ),
