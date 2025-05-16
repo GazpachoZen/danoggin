@@ -169,7 +169,48 @@ class NotificationHelper {
         return false;
       }
 
-      // Enhanced Android notification details for better visibility
+      // For iOS background, use scheduled notification with minimal delay
+      if (Platform.isIOS && _appInBackground) {
+        log('iOS background: Using scheduled notification');
+
+        // Initialize time zones if needed
+        tz.TZDateTime.now(tz.local); // Force initialization
+
+        // Schedule the notification 1 second in the future
+        final scheduledTime =
+            tz.TZDateTime.now(tz.local).add(const Duration(seconds: 1));
+
+        // iOS notification details
+        const DarwinNotificationDetails iosDetails = DarwinNotificationDetails(
+          presentAlert: true,
+          presentBadge: true,
+          presentSound: true,
+          sound: 'default',
+          interruptionLevel:
+              InterruptionLevel.timeSensitive, // Try this more urgent level
+        );
+
+        const NotificationDetails platformDetails = NotificationDetails(
+          iOS: iosDetails,
+        );
+
+        await _notifications.zonedSchedule(
+          id,
+          title,
+          body,
+          scheduledTime,
+          platformDetails,
+          androidAllowWhileIdle: true,
+          uiLocalNotificationDateInterpretation:
+              UILocalNotificationDateInterpretation.absoluteTime,
+        );
+
+        log('iOS background: Scheduled notification for 1 second later');
+        return true;
+      }
+
+      // Regular notification for Android or iOS foreground
+      // Enhanced Android notification details
       const AndroidNotificationDetails androidDetails =
           AndroidNotificationDetails(
         _channelId,
@@ -182,14 +223,13 @@ class NotificationHelper {
         enableVibration: true,
       );
 
-      // iOS notification details with available parameters
+      // iOS notification details
       const DarwinNotificationDetails iosDetails = DarwinNotificationDetails(
         presentAlert: true,
         presentBadge: true,
         presentSound: true,
         sound: 'default',
         interruptionLevel: InterruptionLevel.active,
-        categoryIdentifier: 'danoggin_category',
       );
 
       const NotificationDetails platformDetails = NotificationDetails(
