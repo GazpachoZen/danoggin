@@ -13,34 +13,39 @@ import 'theme/app_theme.dart';
 import 'package:firebase_core/firebase_core.dart';
 import '../firebase_options.dart';
 import 'dart:io';
+import 'package:firebase_messaging/firebase_messaging.dart';
+
+// In main.dart, modify your main function:
 
 void main() async {
   // Ensure Flutter binding is initialized
   WidgetsFlutterBinding.ensureInitialized();
 
-  // Start Firebase initialization but don't await it yet
-  final firebaseInitialization = Firebase.initializeApp(
-    options: DefaultFirebaseOptions.currentPlatform,
-  );
-
-  // Start notification initialization but don't await it yet
-  final notificationInitialization = NotificationManager().initialize();
-  
   // Run the app immediately without waiting for initializations to complete
   runApp(AppLifecycleHandler(
     child: const MyApp(),
   ));
 
-  // Now await the initializations in the background
+  // Start Firebase initialization
   try {
-    await firebaseInitialization;
+    await Firebase.initializeApp(
+      options: DefaultFirebaseOptions.currentPlatform,
+    );
     print('Firebase initialized successfully in main()!');
+    
+    // Set up background message handler after Firebase is initialized
+    FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
+    print('FCM background handler registered');
+    
+    // Initialize FCM after Firebase is ready
+    await NotificationManager().initializeFCM();
   } catch (e) {
     print('Error initializing Firebase in main(): $e');
   }
 
   try {
-    await notificationInitialization;
+    // Initialize only the local notification service
+    await NotificationManager().initialize();
     print('Notification system initialized in main()');
     
     // Add these new calls for improved notification handling
@@ -49,6 +54,18 @@ void main() async {
   } catch (e) {
     print('Error initializing notifications in main(): $e');
   }
+}
+
+@pragma('vm:entry-point')
+Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
+  // Initialize Firebase if needed
+  if (Firebase.apps.isEmpty) {
+    await Firebase.initializeApp(
+      options: DefaultFirebaseOptions.currentPlatform,
+    );
+  }
+  
+  print("Handling a background message: ${message.messageId}");
 }
 
 class MyApp extends StatelessWidget {
@@ -108,10 +125,10 @@ class _AppLifecycleHandlerState extends State<AppLifecycleHandler>
     with WidgetsBindingObserver {
   // Add this static boolean to track active instances
   static bool _hasActiveInstance = false;
-  
+
   // Add a new variable to track if we're in a resumed state
   bool _isResumed = false;
-  
+
   @override
   void initState() {
     super.initState();
@@ -146,10 +163,10 @@ class _AppLifecycleHandlerState extends State<AppLifecycleHandler>
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
     super.didChangeAppLifecycleState(state);
-    
+
     // Add this line to track app state for notifications
     NotificationManager().trackAppState(state);
-    
+
     if (state == AppLifecycleState.resumed) {
       // App came to foreground
       _isResumed = true;
@@ -160,8 +177,8 @@ class _AppLifecycleHandlerState extends State<AppLifecycleHandler>
       _hasActiveInstance = false;
       _isResumed = false;
       print('Danoggin instance terminated');
-    } else if (state == AppLifecycleState.inactive || 
-              state == AppLifecycleState.paused) {
+    } else if (state == AppLifecycleState.inactive ||
+        state == AppLifecycleState.paused) {
       // App is in background or inactive
       _isResumed = false;
     }

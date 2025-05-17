@@ -6,7 +6,7 @@
 // licensing or permissions, contact: danoggin@blue-vistas.com
 //------------------------------------------------------------------------
 
-// Modified version of responder_settings_widget.dart
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:danoggin/screens/responder_invite_code_screen.dart';
@@ -280,6 +280,41 @@ class _ResponderSettingsWidgetState extends State<ResponderSettingsWidget> {
             child: QuestionPackSelectorWidget(
               onPacksChanged: _handlePackSelectionChanged,
             ),
+          ),
+
+// TODO: REMOVE THIS LIST TILE SOMEDAY
+          ListTile(
+            leading: const Icon(Icons.message),
+            title: const Text('Test FCM Setup'),
+            subtitle: const Text('Verify FCM token generation'),
+            onTap: () async {
+              try {
+                final token = await FirebaseMessaging.instance.getToken();
+                if (token != null) {
+                  final truncatedToken = '${token.substring(0, 15)}...';
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text('FCM token generated: $truncatedToken'),
+                      duration: Duration(seconds: 5),
+                    ),
+                  );
+                } else {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text('FCM token generation failed'),
+                      backgroundColor: Colors.red,
+                    ),
+                  );
+                }
+              } catch (e) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text('FCM error: $e'),
+                    backgroundColor: Colors.red,
+                  ),
+                );
+              }
+            },
           ),
 
           const Divider(height: 32),

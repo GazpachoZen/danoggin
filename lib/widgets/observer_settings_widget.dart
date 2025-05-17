@@ -11,6 +11,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:danoggin/screens/observer_manage_responders_screen.dart';
 import 'package:danoggin/repositories/responder_settings_repository.dart';
 import 'package:danoggin/services/auth_service.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 
 // Development mode flag - set to false for production
 const bool kDevModeEnabled = true;
@@ -151,6 +152,41 @@ class _ObserverSettingsWidgetState extends State<ObserverSettingsWidget> {
             if (relationshipsChanged == true &&
                 widget.onRelationshipsChanged != null) {
               widget.onRelationshipsChanged!();
+            }
+          },
+        ),
+
+// TODO: REMOVE THIS SOME DAY...
+        ListTile(
+          leading: const Icon(Icons.message),
+          title: const Text('Test FCM Setup'),
+          subtitle: const Text('Verify FCM token generation'),
+          onTap: () async {
+            try {
+              final token = await FirebaseMessaging.instance.getToken();
+              if (token != null) {
+                final truncatedToken = '${token.substring(0, 15)}...';
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text('FCM token generated: $truncatedToken'),
+                    duration: Duration(seconds: 5),
+                  ),
+                );
+              } else {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text('FCM token generation failed'),
+                    backgroundColor: Colors.red,
+                  ),
+                );
+              }
+            } catch (e) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text('FCM error: $e'),
+                  backgroundColor: Colors.red,
+                ),
+              );
             }
           },
         ),

@@ -3,7 +3,7 @@
 <plist version="1.0">
 	<dict>
 		<key>FirebaseAppDelegateProxyEnabled</key>
-		<false/>
+		<true/>
 		<key>CFBundleDevelopmentRegion</key>
 		<string>$(DEVELOPMENT_LANGUAGE)</string>
 		<key>CFBundleDisplayName</key>
@@ -47,6 +47,7 @@
 		<array>
 			<string>remote-notification</string>
 			<string>processing</string>
+			<string>fetch</string>
 		</array>
 		<key>BGTaskSchedulerPermittedIdentifiers</key>
 		<array>

@@ -5,6 +5,8 @@ import 'base/notification_service.dart';
 import 'base/notification_handler.dart'; // Add this import
 import 'local/local_notification_service.dart';
 import 'local/platform_helper.dart';
+import 'fcm/fcm_notification_service.dart';
+import 'fcm/fcm_helper.dart';
 
 /// Central manager for all notification functionality
 class NotificationManager {
@@ -14,6 +16,7 @@ class NotificationManager {
 
   // Services
   late NotificationService _localService;
+  late NotificationService _fcmService;
   final NotificationLogger _logger = NotificationLogger();
 
   // Flag to track services that are registered
@@ -21,14 +24,41 @@ class NotificationManager {
 
   // Private constructor
   NotificationManager._internal() {
+    // Initialize both services directly
     _localService = LocalNotificationService();
+    _fcmService = FCMNotificationService();
     _registeredServices.add('local');
+    _registeredServices.add('fcm');
   }
 
   /// Initialize all notification services
   Future<void> initialize() async {
-    _logger.log('Initializing all notification services');
-    await _localService.initialize();
+    _logger.log('Initializing notification services');
+    try {
+      // Only initialize local service initially
+      await _localService.initialize();
+      _logger.log('Local notification service initialized');
+    } catch (e) {
+      _logger.log('Error initializing local notification service: $e');
+    }
+  }
+
+  Future<void> initializeFCM() async {
+    try {
+      _logger.log('Initializing FCM notification service');
+      await _fcmService.initialize();
+      _logger.log('FCM notification service initialized');
+    } catch (e) {
+      _logger.log('Error initializing FCM notification service: $e');
+    }
+  }
+
+  Future<void> _initFCM() async {
+    if (!_registeredServices.contains('fcm')) {
+      _fcmService = FCMNotificationService();
+      _registeredServices.add('fcm');
+      await _fcmService.initialize();
+    }
   }
 
   /// Check if notifications are enabled
