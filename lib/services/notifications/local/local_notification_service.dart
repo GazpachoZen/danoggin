@@ -178,6 +178,32 @@ class LocalNotificationService implements NotificationService {
     }
 
     try {
+      // Special case: Clear iOS badge only
+      if (Platform.isIOS &&
+          payload != null &&
+          payload['clearBadgeOnly'] == 'true') {
+        final iosPlugin = _notifications.resolvePlatformSpecificImplementation<
+            IOSFlutterLocalNotificationsPlugin>();
+
+        if (iosPlugin != null) {
+          await _notifications.show(
+            0,
+            null,
+            null,
+            const NotificationDetails(
+              iOS: DarwinNotificationDetails(
+                presentAlert: false,
+                presentBadge: true,
+                presentSound: false,
+                badgeNumber: 0,
+              ),
+            ),
+          );
+          _logger.log('iOS badge cleared');
+        }
+        return true;
+      }
+
       // Ensure id is a valid 32-bit integer
       int notificationId = _normalizeId(id);
 

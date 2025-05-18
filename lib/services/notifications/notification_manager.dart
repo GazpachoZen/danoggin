@@ -227,4 +227,23 @@ class NotificationManager {
   Future<void> requestNotificationPermissions() async {
     await _localService.requestPermissions();
   }
+
+  /// Clear the iOS badge (notification count)
+  Future<void> clearIOSBadge() async {
+    log('Clearing iOS badge');
+    try {
+      if (_localService is LocalNotificationService) {
+        // Use the local service to clear the badge
+        await _localService.showNotification(
+          id: 0,
+          title: '',
+          body: '',
+          triggerRefresh: false,
+          payload: {'clearBadgeOnly': 'true'},
+        );
+      }
+    } catch (e) {
+      log('Error clearing iOS badge: $e');
+    }
+  }
 }
