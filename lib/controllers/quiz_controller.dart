@@ -241,6 +241,7 @@ class QuizController {
 
     // Cancel any outstanding check-in notifications to prevent confusion
     await NotificationManager().cancelNotification(1);
+    NotificationManager().clearIOSBadge();
 
     final isCorrect = selectedAnswer == currentQuestion!.correctAnswer;
 

@@ -94,6 +94,7 @@ Preferences/constraints...
 - For situations where we have a several steps, each relying on completion of the prior, supply them only one at a time and await confirmation of success before providing the next step.
 - Always give a critical eye to things I might suggest. If there are down-sides to my ideas, I'd like to know them up front. 
 ================================================================================
+================================================================================
 Below are the situations when the app will need to notify a user.
 * When it's time for the responder to answer another check-in. In your review of the code you should see mechanisms that define the periodicity of the check-ins and when they can happen during the day.
 * When a responder either answered incorrectly or not at all, all linked observers should be notified.

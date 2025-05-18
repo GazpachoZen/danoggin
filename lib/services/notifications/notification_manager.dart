@@ -229,7 +229,14 @@ class NotificationManager {
   }
 
   /// Clear the iOS badge (notification count)
+  /// Clear the iOS badge (notification count)
   Future<void> clearIOSBadge() async {
+    // Only clear badge on iOS
+    if (!Platform.isIOS) {
+      log('Not iOS - skipping badge clear');
+      return;
+    }
+
     log('Clearing iOS badge');
     try {
       if (_localService is LocalNotificationService) {
