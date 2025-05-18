@@ -52,31 +52,38 @@ class _QuizPageState extends State<QuizPage> with WidgetsBindingObserver {
     _setupForegroundNotifications();
   }
 
-  void _setupForegroundNotifications() {
-    FirebaseMessaging.onMessage.listen((RemoteMessage message) {
-      print('=== QUIZ PAGE FOREGROUND MESSAGE ===');
-      print('Message ID: ${message.messageId}');
-      print('Title: ${message.notification?.title}');
-      print('Body: ${message.notification?.body}');
-      print('Has notification: ${message.notification != null}');
-      print('=== END QUIZ PAGE DEBUG ===');
-
-      if (message.notification != null) {
-        // Show as system notification
-        NotificationManager()
-            .useBestNotification(
-          id: DateTime.now().millisecondsSinceEpoch,
-          title: message.notification!.title ?? 'Danoggin',
-          body: message.notification!.body ?? 'Test notification',
-          triggerRefresh: false,
-        )
-            .then((success) {
-          print('Quiz page notification result: $success');
-        });
-      }
-    });
-    print('Quiz page FCM listener set up');
-  }
+void _setupForegroundNotifications() {
+  FirebaseMessaging.onMessage.listen((RemoteMessage message) {
+    // Use the logging system for iOS debugging
+    NotificationManager().log('=== FCM FOREGROUND MESSAGE RECEIVED ===');
+    NotificationManager().log('Message ID: ${message.messageId}');
+    NotificationManager().log('Title: ${message.notification?.title}');
+    NotificationManager().log('Body: ${message.notification?.body}');
+    NotificationManager().log('Has notification payload: ${message.notification != null}');
+    NotificationManager().log('App in foreground: ${WidgetsBinding.instance.lifecycleState == AppLifecycleState.resumed}');
+    NotificationManager().log('=== END FCM DEBUG ===');
+    
+    if (message.notification != null) {
+      NotificationManager().log('Attempting to show system notification...');
+      
+      NotificationManager().useBestNotification(
+        id: DateTime.now().millisecondsSinceEpoch,
+        title: message.notification!.title ?? 'Danoggin',
+        body: message.notification!.body ?? 'Test notification',
+        triggerRefresh: false,
+        forceSystemNotification: true,
+      ).then((success) {
+        NotificationManager().log('Notification display result: $success');
+      }).catchError((error) {
+        NotificationManager().log('Error displaying notification: $error');
+      });
+    } else {
+      NotificationManager().log('No notification payload found');
+    }
+  });
+  
+  NotificationManager().log('FCM foreground listener set up successfully');
+}
 
   @override
   void dispose() {

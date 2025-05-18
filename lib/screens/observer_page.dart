@@ -31,48 +31,59 @@ class ObserverPage extends StatefulWidget {
 class _ObserverPageState extends State<ObserverPage> {
   // Controller for managing business logic
   late ObserverController _controller;
-  
+
   // Back button handler
   final BackButtonHandler _backButtonHandler = BackButtonHandler();
 
   @override
   void initState() {
     super.initState();
-    
+
     // Initialize the controller with state change callback
-    _controller = ObserverController(
-      onStateChanged: () {
-        if (mounted) setState(() {});
-      }
-    );
-    
+    _controller = ObserverController(onStateChanged: () {
+      if (mounted) setState(() {});
+    });
+
     // Request notification permissions
     requestNotificationPermissions();
-    
+
     // Initialize the controller
     _controller.initialize();
 
-      _setupForegroundNotifications();
+    _setupForegroundNotifications();
   }
 
 void _setupForegroundNotifications() {
   FirebaseMessaging.onMessage.listen((RemoteMessage message) {
-    print('=== OBSERVER PAGE FOREGROUND MESSAGE ===');
-    print('Message ID: ${message.messageId}');
-    print('Title: ${message.notification?.title}');
-    print('Body: ${message.notification?.body}');
-    print('=== END OBSERVER PAGE DEBUG ===');
+    // Use the logging system for iOS debugging
+    NotificationManager().log('=== FCM FOREGROUND MESSAGE RECEIVED ===');
+    NotificationManager().log('Message ID: ${message.messageId}');
+    NotificationManager().log('Title: ${message.notification?.title}');
+    NotificationManager().log('Body: ${message.notification?.body}');
+    NotificationManager().log('Has notification payload: ${message.notification != null}');
+    NotificationManager().log('App in foreground: ${WidgetsBinding.instance.lifecycleState == AppLifecycleState.resumed}');
+    NotificationManager().log('=== END FCM DEBUG ===');
     
     if (message.notification != null) {
+      NotificationManager().log('Attempting to show system notification...');
+      
       NotificationManager().useBestNotification(
         id: DateTime.now().millisecondsSinceEpoch,
         title: message.notification!.title ?? 'Danoggin',
-        body: message.notification!.body ?? 'Observer notification',
+        body: message.notification!.body ?? 'Test notification',
         triggerRefresh: false,
-      );
+        forceSystemNotification: true,
+      ).then((success) {
+        NotificationManager().log('Notification display result: $success');
+      }).catchError((error) {
+        NotificationManager().log('Error displaying notification: $error');
+      });
+    } else {
+      NotificationManager().log('No notification payload found');
     }
   });
-  print('Observer page FCM listener set up');
+  
+  NotificationManager().log('FCM foreground listener set up successfully');
 }
 
   @override
@@ -85,14 +96,15 @@ void _setupForegroundNotifications() {
   Widget build(BuildContext context) {
     // Add WillPopScope to handle back button press
     return WillPopScope(
-      onWillPop: () => _backButtonHandler.handleBackPress(context, UserRole.observer),
+      onWillPop: () =>
+          _backButtonHandler.handleBackPress(context, UserRole.observer),
       child: Scaffold(
         appBar: _buildAppBar(),
         body: _buildBody(),
       ),
     );
   }
-  
+
   // Build the app bar
   AppBar _buildAppBar() {
     return AppBar(
@@ -110,7 +122,7 @@ void _setupForegroundNotifications() {
       ],
     );
   }
-  
+
   // Build the main body content
   Widget _buildBody() {
     return Container(
@@ -124,7 +136,7 @@ void _setupForegroundNotifications() {
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           // Responder selector (only show if multiple responders)
-          if (_controller.responderMap.length > 1) 
+          if (_controller.responderMap.length > 1)
             ResponderSelectorWidget(
               responderMap: _controller.responderMap,
               selectedResponderUid: _controller.selectedResponderUid,
@@ -132,7 +144,8 @@ void _setupForegroundNotifications() {
             ),
 
           // Selected responder info header
-          if (_controller.selectedResponderUid != null && _controller.responderMap.isNotEmpty)
+          if (_controller.selectedResponderUid != null &&
+              _controller.responderMap.isNotEmpty)
             Padding(
               padding: const EdgeInsets.only(bottom: 16.0),
               child: Text(
@@ -154,7 +167,7 @@ void _setupForegroundNotifications() {
       ),
     );
   }
-  
+
   // Navigate to settings page
   Future<void> _navigateToSettings() async {
     final result = await Navigator.push<dynamic>(
