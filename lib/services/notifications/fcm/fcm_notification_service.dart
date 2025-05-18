@@ -39,7 +39,6 @@ FCMNotificationService._internal() {
   _fcmHelper = FCMHelper();
 }
   
-  @override
 @override
 Future<void> initialize() async {
   if (_isInitialized) return;
@@ -47,12 +46,10 @@ Future<void> initialize() async {
   _logger.log('Initializing FCM notification service');
   
   try {
-    // Check if Firebase is initialized before accessing
     if (Firebase.apps.isNotEmpty) {
       _messaging = FirebaseMessaging.instance;
       
-      // Set up message handlers
-      FirebaseMessaging.onMessage.listen(_handleForegroundMessage);
+      // REMOVE the FirebaseMessaging.onMessage.listen calls - keep only these:
       FirebaseMessaging.onMessageOpenedApp.listen(_handleMessageOpenedApp);
       
       // Check for initial message
