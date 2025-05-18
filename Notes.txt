@@ -85,16 +85,20 @@ Admin Tools...
 
 Additional...
 - I do not have access to a Mac; I am not using xCode. My iOS builds are handled exclusively through codemagic, using its workflow (not yamls)
+- I am working on a Windows system - not Linux.
 - We are using Firestore's mechanism for test Android releases
 - We are using Diawi for releases on iOS
 
-Preferences...
+Preferences/constraints...
 - Refrain from providing multi-step suggestions whenever possible. Invariably I have questions or problems with step 1, which invalidate steps 2-N. This is a waste of my time and of your compute limits. 
 - For situations where we have a several steps, each relying on completion of the prior, supply them only one at a time and await confirmation of success before providing the next step.
+- Always give a critical eye to things I might suggest. If there are down-sides to my ideas, I'd like to know them up front. 
 ================================================================================
-TESTING...
-	Notifications on T's phone
-	Can I get multiple instances running?
+Below are the situations when the app will need to notify a user.
+* When it's time for the responder to answer another check-in. In your review of the code you should see mechanisms that define the periodicity of the check-ins and when they can happen during the day.
+* When a responder either answered incorrectly or not at all, all linked observers should be notified.
+* When we want to test all this. We presently handle this through options available via the appBar. This has been VERY helpful, and we'll want to keep this option alive for the time being.
+* Although not yet implemented, an upcoming feature request will be for the ability to have an observer initiate an out-of-schedule notification. Please keep this in mind as you craft your proposed solution.
 ================================================================================
 ---------------------
 Let's break out the notification logging system into a stand-alone functionality.

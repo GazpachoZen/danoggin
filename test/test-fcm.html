@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Test FCM Function</title>
+</head>
+<body>
+    <h1>Test FCM Cloud Function</h1>
+    
+    <form id="testForm">
+        <label for="token">FCM Token:</label><br>
+        <textarea id="token" rows="5" cols="50" placeholder="Paste your FCM token here"></textarea><br><br>
+        
+        <label for="message">Message:</label><br>
+        <input type="text" id="message" value="WOOHOO from Cloud Functions!" /><br><br>
+        
+        <button type="submit">Send Test Notification</button>
+    </form>
+    
+    <div id="result"></div>
+    
+    <script>
+        document.getElementById('testForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const token = document.getElementById('token').value;
+            const message = document.getElementById('message').value;
+            const resultDiv = document.getElementById('result');
+            
+            try {
+                resultDiv.innerHTML = 'Sending...';
+                
+                const response = await fetch('https://us-central1-danoggin-d0478.cloudfunctions.net/testFCM', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        token: token,
+                        message: message
+                    })
+                });
+                
+                const result = await response.text();
+                resultDiv.innerHTML = `<h3>Result:</h3><p>${result}</p>`;
+                
+                if (response.ok) {
+                    resultDiv.style.color = 'green';
+                } else {
+                    resultDiv.style.color = 'red';
+                }
+            } catch (error) {
+                resultDiv.innerHTML = `<h3>Error:</h3><p>${error}</p>`;
+                resultDiv.style.color = 'red';
+            }
+        });
+    </script>
+</body>
+</html>
