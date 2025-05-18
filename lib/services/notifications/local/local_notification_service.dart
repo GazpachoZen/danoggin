@@ -389,6 +389,33 @@ class LocalNotificationService implements NotificationService {
     required String body,
     bool playSound = true,
   }) async {
+    // Clear the iOS badge when showing in-app notification
+    if (Platform.isIOS) {
+      try {
+        final iosPlugin = _notifications.resolvePlatformSpecificImplementation<
+            IOSFlutterLocalNotificationsPlugin>();
+        if (iosPlugin != null) {
+          await iosPlugin.requestPermissions(badge: true);
+          // Clear the badge
+          await _notifications.show(
+            0,
+            null,
+            null,
+            const NotificationDetails(
+              iOS: DarwinNotificationDetails(
+                presentAlert: false,
+                presentBadge: true,
+                presentSound: false,
+                badgeNumber: 0,
+              ),
+            ),
+          );
+        }
+      } catch (e) {
+        _logger.log('Error clearing iOS badge: $e');
+      }
+    }
+
     await _displayHelper.showEnhancedInAppNotification(
       context,
       title,
@@ -457,5 +484,4 @@ class LocalNotificationService implements NotificationService {
   NotificationHandler get notificationHandler => _handler;
 
   PlatformHelper get platformHelper => _platformHelper;
-
 }
