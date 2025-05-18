@@ -1,4 +1,7 @@
 import 'dart:async';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:danoggin/models/user_role.dart';
@@ -45,6 +48,34 @@ class _QuizPageState extends State<QuizPage> with WidgetsBindingObserver {
     _controller.initialize();
     _loadUserName();
     _checkNotificationPermissions();
+
+    _setupForegroundNotifications();
+  }
+
+  void _setupForegroundNotifications() {
+    FirebaseMessaging.onMessage.listen((RemoteMessage message) {
+      print('=== QUIZ PAGE FOREGROUND MESSAGE ===');
+      print('Message ID: ${message.messageId}');
+      print('Title: ${message.notification?.title}');
+      print('Body: ${message.notification?.body}');
+      print('Has notification: ${message.notification != null}');
+      print('=== END QUIZ PAGE DEBUG ===');
+
+      if (message.notification != null) {
+        // Show as system notification
+        NotificationManager()
+            .useBestNotification(
+          id: DateTime.now().millisecondsSinceEpoch,
+          title: message.notification!.title ?? 'Danoggin',
+          body: message.notification!.body ?? 'Test notification',
+          triggerRefresh: false,
+        )
+            .then((success) {
+          print('Quiz page notification result: $success');
+        });
+      }
+    });
+    print('Quiz page FCM listener set up');
   }
 
   @override
@@ -119,87 +150,58 @@ class _QuizPageState extends State<QuizPage> with WidgetsBindingObserver {
       // Set the current context for notifications
       NotificationManager().setCurrentContext(context);
 
-      // Try to check if notifications are enabled
-      bool enabled = true;
-      try {
-        enabled = await NotificationManager().areNotificationsEnabled();
-      } catch (e) {
-        print('Error checking notification permissions: $e');
-        // If we can't check, assume they're enabled
-      }
+      // Get the FCM token
+      final token = await FirebaseMessaging.instance.getToken();
 
-      if (!enabled) {
-        // Show manual instructions if notifications are disabled
-        NotificationManager().openNotificationSettings(context);
+      if (token == null) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Could not get FCM token'),
+            backgroundColor: Colors.red,
+          ),
+        );
         return;
       }
 
-      // Ask user which type of test they want to run
-      showDialog(
-        context: context,
-        builder: (context) => AlertDialog(
-          title: Text('Test Notifications'),
-          content: Text('Choose a notification test type:'),
-          actions: [
-            TextButton(
-              onPressed: () async {
-                Navigator.pop(context);
-                // Use the platform-aware test notification method
-                await NotificationManager().useBestNotification(
-                  id: DateTime.now().millisecondsSinceEpoch,
-                  title: 'Danoggin Test Notification',
-                  body:
-                      'This is a test notification. If you see this, notifications are working!',
-                  triggerRefresh: false,
-                );
-
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: Text('Notification sent!'),
-                    duration: Duration(seconds: 2),
-                  ),
-                );
-              },
-              child: Text('Immediate'),
-            ),
-            ElevatedButton(
-              onPressed: () async {
-                Navigator.pop(context);
-
-                // Show a snackbar immediately
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: Text('Delayed notification scheduled (3 seconds)'),
-                    duration: Duration(seconds: 2),
-                  ),
-                );
-
-                // Schedule a delayed notification using our centralized approach
-                Future.delayed(Duration(seconds: 3), () async {
-                  // The delayed notification is handled through our central method
-                  await NotificationManager().useBestNotification(
-                    id: DateTime.now().millisecondsSinceEpoch,
-                    title: 'Delayed Test Notification',
-                    body:
-                        'This is a delayed notification (3s) to test notifications',
-                    triggerRefresh: true,
-                    // Add this extra parameter to force using the specialized iOS approach
-                    payload: {'force_specialized': 'true'},
-                  );
-                });
-              },
-              child: Text('Delayed (3s)'),
-            ),
-          ],
-        ),
-      );
-    } catch (e) {
-      print('Error testing notifications: $e');
+      // Show loading indicator
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Error sending test notification: $e'),
+          content: Text('Sending test notification...'),
+          duration: Duration(seconds: 2),
+        ),
+      );
+
+      // Call the cloud function
+      final response = await http.post(
+        Uri.parse(
+            'https://us-central1-danoggin-d0478.cloudfunctions.net/testFCM'),
+        headers: {'Content-Type': 'application/json'},
+        body: json.encode({
+          'token': token,
+          'message': 'Test from Danoggin app!',
+        }),
+      );
+
+      if (response.statusCode == 200) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Test notification sent successfully!'),
+            backgroundColor: Colors.green,
+          ),
+        );
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Failed to send notification: ${response.body}'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Error: $e'),
           backgroundColor: Colors.red,
-          duration: Duration(seconds: 3),
         ),
       );
     }

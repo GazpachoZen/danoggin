@@ -32,11 +32,11 @@ void main() async {
       options: DefaultFirebaseOptions.currentPlatform,
     );
     print('Firebase initialized successfully in main()!');
-    
+
     // Set up background message handler after Firebase is initialized
     FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
     print('FCM background handler registered');
-    
+
     // Initialize FCM after Firebase is ready
     await NotificationManager().initializeFCM();
   } catch (e) {
@@ -47,7 +47,7 @@ void main() async {
     // Initialize only the local notification service
     await NotificationManager().initialize();
     print('Notification system initialized in main()');
-    
+
     // Add these new calls for improved notification handling
     await NotificationManager().ensureBackgroundNotificationsEnabled();
     await NotificationManager().requestNotificationPermissions();
@@ -64,7 +64,7 @@ Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
       options: DefaultFirebaseOptions.currentPlatform,
     );
   }
-  
+
   print("Handling a background message: ${message.messageId}");
 }
 

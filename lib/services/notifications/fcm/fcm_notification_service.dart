@@ -7,6 +7,7 @@ import 'package:flutter/material.dart';
 import '../base/notification_service.dart';
 import '../base/notification_handler.dart';
 import '../base/notification_logger.dart';
+import '../notification_manager.dart';
 import 'fcm_helper.dart';
 
 /// FCM implementation of the notification service interface
@@ -39,6 +40,7 @@ FCMNotificationService._internal() {
 }
   
   @override
+@override
 Future<void> initialize() async {
   if (_isInitialized) return;
   
@@ -78,7 +80,6 @@ Future<void> initialize() async {
   }
 }
 
-
   @override
   Future<bool> areNotificationsEnabled() async {
     if (!_isInitialized) {
@@ -102,30 +103,62 @@ Future<void> initialize() async {
   }
 
   // Handle messages received while app is in foreground
-  void _handleForegroundMessage(RemoteMessage message) {
-    _logger.log('Handling foreground FCM message: ${message.messageId}');
-    
-    try {
-      final notification = message.notification;
-      final data = message.data;
-      
-      // Convert the message to an event
-      final Map<String, dynamic> eventData = {
-        'messageId': message.messageId,
-        'title': notification?.title,
-        'body': notification?.body,
-        'data': data,
-      };
-      
-      // Add to event stream
-      _handler.addNotificationEvent(eventData);
-      
-      _logger.log('FCM foreground message processed');
-    } catch (e) {
-      _logger.log('Error handling FCM foreground message: $e');
-    }
-  }
+// Handle messages received while app is in foreground
+void _handleForegroundMessage(RemoteMessage message) {
+  _logger.log('Handling foreground FCM message: ${message.messageId}');
   
+  try {
+    final notification = message.notification;
+    final data = message.data;
+    
+    if (notification != null) {
+      // Show the notification as a system notification even in foreground
+      // We'll use the local notification service for this
+      _showForegroundNotification(
+        title: notification.title ?? 'Danoggin',
+        body: notification.body ?? '',
+        messageId: message.messageId ?? '',
+      );
+    }
+    
+    // Convert the message to an event
+    final Map<String, dynamic> eventData = {
+      'messageId': message.messageId,
+      'title': notification?.title,
+      'body': notification?.body,
+      'data': data,
+    };
+    
+    // Add to event stream
+    _handler.addNotificationEvent(eventData);
+    
+    _logger.log('FCM foreground message processed');
+  } catch (e) {
+    _logger.log('Error handling FCM foreground message: $e');
+  }
+}
+
+// Helper method to show foreground notifications as system notifications
+Future<void> _showForegroundNotification({
+  required String title,
+  required String body,
+  required String messageId,
+}) async {
+  try {
+    // Use the local notification service to show the notification
+    // This will ensure it appears even when the app is in foreground
+    await NotificationManager().useBestNotification(
+      id: messageId.hashCode,
+      title: title,
+      body: body,
+      triggerRefresh: false,
+    );
+    
+    _logger.log('Foreground notification displayed: $title');
+  } catch (e) {
+    _logger.log('Error showing foreground notification: $e');
+  }
+}  
   // Handle when app is opened from notification in background/terminated state
   void _handleMessageOpenedApp(RemoteMessage message) {
     _logger.log('App opened from FCM notification: ${message.messageId}');

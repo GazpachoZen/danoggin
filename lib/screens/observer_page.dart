@@ -1,5 +1,7 @@
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'package:danoggin/services/notifications/notification_manager.dart';
 import 'package:danoggin/models/user_role.dart';
 import 'package:danoggin/screens/settings_page.dart';
 import 'package:danoggin/screens/quiz_page.dart';
@@ -49,7 +51,29 @@ class _ObserverPageState extends State<ObserverPage> {
     
     // Initialize the controller
     _controller.initialize();
+
+      _setupForegroundNotifications();
   }
+
+void _setupForegroundNotifications() {
+  FirebaseMessaging.onMessage.listen((RemoteMessage message) {
+    print('=== OBSERVER PAGE FOREGROUND MESSAGE ===');
+    print('Message ID: ${message.messageId}');
+    print('Title: ${message.notification?.title}');
+    print('Body: ${message.notification?.body}');
+    print('=== END OBSERVER PAGE DEBUG ===');
+    
+    if (message.notification != null) {
+      NotificationManager().useBestNotification(
+        id: DateTime.now().millisecondsSinceEpoch,
+        title: message.notification!.title ?? 'Danoggin',
+        body: message.notification!.body ?? 'Observer notification',
+        triggerRefresh: false,
+      );
+    }
+  });
+  print('Observer page FCM listener set up');
+}
 
   @override
   void dispose() {
