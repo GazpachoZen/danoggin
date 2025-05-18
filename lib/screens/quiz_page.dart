@@ -71,7 +71,6 @@ void _setupForegroundNotifications() {
         title: message.notification!.title ?? 'Danoggin',
         body: message.notification!.body ?? 'Test notification',
         triggerRefresh: false,
-        forceSystemNotification: true,
       ).then((success) {
         NotificationManager().log('Notification display result: $success');
       }).catchError((error) {

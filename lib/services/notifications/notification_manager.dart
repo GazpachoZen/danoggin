@@ -72,52 +72,62 @@ class NotificationManager {
   }
 
   /// Show a notification using the best available method
-/// Show a notification using the best available method
-Future<bool> useBestNotification({
-  required String title,
-  required String body,
-  dynamic id = 0,
-  bool playSound = true,
-  bool triggerRefresh = false,
-  Map<String, dynamic>? payload,
-  bool forceSystemNotification = false, // Add this parameter
-}) async {
-  _logger.log("useBestNotification called: title=$title, id=$id");
+  Future<bool> useBestNotification({
+    required String title,
+    required String body,
+    dynamic id = 0,
+    bool playSound = true,
+    bool triggerRefresh = false,
+    Map<String, dynamic>? payload,
+  }) async {
+    _logger.log("useBestNotification called: title=$title, id=$id");
 
-  try {
-    // iOS in foreground with context: Use system notification if forced, otherwise in-app
-    if (Platform.isIOS &&
-        !_platformHelper.isInBackground &&
-        _platformHelper.currentContext != null &&
-        WidgetsBinding.instance.lifecycleState == AppLifecycleState.resumed &&
-        !forceSystemNotification) { // Check the new parameter
-      // Use system notification instead of in-app for test notifications
-      _logger.log("iOS foreground: Using system notification for test");
-      
-      return await _localService.showNotification(
-        id: id,
-        title: title,
-        body: body,
-        triggerRefresh: triggerRefresh,
-        payload: payload,
-      );
+    try {
+      // iOS in foreground with context: Use in-app overlay notification
+      if (Platform.isIOS &&
+          !_platformHelper.isInBackground &&
+          _platformHelper.currentContext != null &&
+          WidgetsBinding.instance.lifecycleState == AppLifecycleState.resumed) {
+        _logger.log("iOS foreground: Using in-app notification");
+
+        await _localService.showInAppNotification(
+          context: _platformHelper.currentContext!,
+          title: title,
+          body: body,
+          playSound: playSound,
+        );
+
+        // If refresh is needed
+        if (triggerRefresh) {
+          ((_localService as LocalNotificationService).notificationHandler)
+              .addNotificationEvent({
+            'id': id,
+            'title': title,
+            'body': body,
+            'payload': payload,
+          });
+          _logger.log('Emitted notification event for refresh');
+        }
+
+        return true;
+      }
+      // All other cases: Use system notification
+      else {
+        _logger.log("Using system notification");
+        return await _localService.showNotification(
+          id: id,
+          title: title,
+          body: body,
+          triggerRefresh: triggerRefresh,
+          payload: payload,
+        );
+      }
+    } catch (e) {
+      _logger.log('Error in useBestNotification: $e');
+      return false;
     }
-    // All other cases: Use system notification
-    else {
-      _logger.log("Using system notification");
-      return await _localService.showNotification(
-        id: id,
-        title: title,
-        body: body,
-        triggerRefresh: triggerRefresh,
-        payload: payload,
-      );
-    }
-  } catch (e) {
-    _logger.log('Error in useBestNotification: $e');
-    return false;
   }
-}
+
   /// Show a delayed notification
   Future<bool> showDelayedNotification({
     required String title,
