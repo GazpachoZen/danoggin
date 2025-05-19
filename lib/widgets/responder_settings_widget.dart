@@ -18,6 +18,8 @@ import 'package:flutter/services.dart';
 import 'package:danoggin/services/notifications/notification_manager.dart';
 import 'package:danoggin/services/check_in_scheduler.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
 
 class ResponderSettingsWidget extends StatefulWidget {
   // Add callback for relationship changes
@@ -161,10 +163,8 @@ class _ResponderSettingsWidgetState extends State<ResponderSettingsWidget> {
     try {
       // Get current timezone from Firestore
       final uid = AuthService.currentUserId;
-      final userDoc = await FirebaseFirestore.instance
-          .collection('users')
-          .doc(uid)
-          .get();
+      final userDoc =
+          await FirebaseFirestore.instance.collection('users').doc(uid).get();
 
       String timeZone = 'UTC'; // Default fallback
       if (userDoc.exists) {
@@ -181,7 +181,8 @@ class _ResponderSettingsWidgetState extends State<ResponderSettingsWidget> {
         timeZone: timeZone,
       );
 
-      print('ResponderSettings: Check-in schedule updated after settings change');
+      print(
+          'ResponderSettings: Check-in schedule updated after settings change');
     } catch (e) {
       print('ResponderSettings: Error updating check-in schedule: $e');
       // Don't re-throw since settings were saved successfully
@@ -325,101 +326,99 @@ class _ResponderSettingsWidgetState extends State<ResponderSettingsWidget> {
           // Enhanced FCM test section
           ListTile(
             leading: const Icon(Icons.message),
-            title: const Text('Test FCM Setup'),
-            subtitle: const Text('Verify FCM token generation and storage'),
+            title: const Text('Test FCM Notifications'),
+            subtitle: const Text('Test complete notification pipeline'),
             onTap: () async {
               try {
-                // Check if Firebase Messaging is available
-                NotificationManager().log('=== FCM TEST BUTTON PRESSED (Responder) ===');
-                NotificationManager().log('Checking FCM setup...');
-                
+                // Show loading state
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text('Testing FCM notification delivery...'),
+                    duration: Duration(seconds: 2),
+                  ),
+                );
+
+                NotificationManager()
+                    .log('=== FCM PIPELINE TEST (Responder Settings) ===');
+
                 final messaging = FirebaseMessaging.instance;
-                
-                // Request permission explicitly
-                NotificationSettings settings = await messaging.requestPermission(
+
+                // Ensure we have permission
+                NotificationSettings settings =
+                    await messaging.requestPermission(
                   alert: true,
-                  announcement: false,
                   badge: true,
-                  carPlay: false,
-                  criticalAlert: false,
-                  provisional: false,
                   sound: true,
                 );
-                
-                NotificationManager().log('Permission granted: ${settings.authorizationStatus}');
-                
+
+                if (settings.authorizationStatus !=
+                    AuthorizationStatus.authorized) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text('Notification permission not granted'),
+                      backgroundColor: Colors.orange,
+                      duration: Duration(seconds: 3),
+                    ),
+                  );
+                  return;
+                }
+
+                // Get token and test the full pipeline
                 final token = await messaging.getToken();
-                if (token != null) {
-                  NotificationManager().log('FCM Token retrieved successfully');
-                  NotificationManager().log('Token length: ${token.length}');
-                  
-                  // Trigger FCM initialization which should save the token to Firestore
-                  await NotificationManager().initializeFCM();
-                  
-                  showDialog(
-                    context: context,
-                    builder: (context) => AlertDialog(
-                      title: Text('FCM Debug Info'),
-                      content: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text('Permission: ${settings.authorizationStatus}'),
-                          SizedBox(height: 8),
-                          Text('Token generated: ${token.isNotEmpty ? "Yes" : "No"}'),
-                          SizedBox(height: 8),
-                          Text('Token length: ${token.length}'),
-                          SizedBox(height: 16),
-                          Text('Full token:'),
-                          Container(
-                            height: 100,
-                            child: SingleChildScrollView(
-                              child: SelectableText(
-                                token,
-                                style: TextStyle(fontSize: 10, fontFamily: 'monospace'),
-                              ),
-                            ),
-                          ),
-                          SizedBox(height: 16),
-                          Text('Check logs for Firestore save operation details.',
-                               style: TextStyle(fontStyle: FontStyle.italic, color: Colors.blue[700])),
-                        ],
-                      ),
-                      actions: [
-                        TextButton(
-                          onPressed: () async {
-                            await Clipboard.setData(ClipboardData(text: token));
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(
-                                content: Text('Token copied to clipboard'),
-                                duration: Duration(seconds: 2),
-                              ),
-                            );
-                          },
-                          child: Text('Copy Token'),
-                        ),
-                        TextButton(
-                          onPressed: () => Navigator.pop(context),
-                          child: Text('Close'),
-                        ),
-                      ],
+                if (token == null) {
+                  NotificationManager().log('FCM token is null - test failed');
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text('Failed to get FCM token'),
+                      backgroundColor: Colors.red,
+                    ),
+                  );
+                  return;
+                }
+
+                // Ensure token is saved to Firestore
+                await NotificationManager().initializeFCM();
+
+                // Test the complete pipeline via Cloud Function
+                final response = await http.post(
+                  Uri.parse(
+                      'https://us-central1-danoggin-d0478.cloudfunctions.net/testFCM'),
+                  headers: {'Content-Type': 'application/json'},
+                  body: json.encode({
+                    'token': token,
+                    'message':
+                        'Test from responder settings - pipeline working!',
+                  }),
+                );
+
+                if (response.statusCode == 200) {
+                  NotificationManager().log('FCM pipeline test successful');
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text(
+                          'FCM test successful! Check your notification tray.'),
+                      backgroundColor: Colors.green,
+                      duration: Duration(seconds: 4),
                     ),
                   );
                 } else {
-                  NotificationManager().log('FCM token is null - indicates a problem');
+                  NotificationManager()
+                      .log('FCM pipeline test failed: ${response.statusCode}');
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(
-                      content: Text('FCM token generation failed'),
+                      content: Text('FCM test failed: ${response.body}'),
                       backgroundColor: Colors.red,
+                      duration: Duration(seconds: 3),
                     ),
                   );
                 }
               } catch (e) {
-                NotificationManager().log('FCM test error: $e');
+                NotificationManager().log('FCM pipeline test error: $e');
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(
-                    content: Text('FCM error: $e'),
+                    content: Text('FCM test error: $e'),
                     backgroundColor: Colors.red,
+                    duration: Duration(seconds: 3),
                   ),
                 );
               }

@@ -52,37 +52,41 @@ class _QuizPageState extends State<QuizPage> with WidgetsBindingObserver {
     _setupForegroundNotifications();
   }
 
-void _setupForegroundNotifications() {
-  FirebaseMessaging.onMessage.listen((RemoteMessage message) {
-    // Use the logging system for iOS debugging
-    NotificationManager().log('=== FCM FOREGROUND MESSAGE RECEIVED ===');
-    NotificationManager().log('Message ID: ${message.messageId}');
-    NotificationManager().log('Title: ${message.notification?.title}');
-    NotificationManager().log('Body: ${message.notification?.body}');
-    NotificationManager().log('Has notification payload: ${message.notification != null}');
-    NotificationManager().log('App in foreground: ${WidgetsBinding.instance.lifecycleState == AppLifecycleState.resumed}');
-    NotificationManager().log('=== END FCM DEBUG ===');
-    
-    if (message.notification != null) {
-      NotificationManager().log('Attempting to show system notification...');
-      
-      NotificationManager().useBestNotification(
-        id: DateTime.now().millisecondsSinceEpoch,
-        title: message.notification!.title ?? 'Danoggin',
-        body: message.notification!.body ?? 'Test notification',
-        triggerRefresh: false,
-      ).then((success) {
-        NotificationManager().log('Notification display result: $success');
-      }).catchError((error) {
-        NotificationManager().log('Error displaying notification: $error');
-      });
-    } else {
-      NotificationManager().log('No notification payload found');
-    }
-  });
-  
-  NotificationManager().log('FCM foreground listener set up successfully');
-}
+  void _setupForegroundNotifications() {
+    FirebaseMessaging.onMessage.listen((RemoteMessage message) {
+      // Use the logging system for iOS debugging
+      NotificationManager().log('=== FCM FOREGROUND MESSAGE RECEIVED ===');
+      NotificationManager().log('Message ID: ${message.messageId}');
+      NotificationManager().log('Title: ${message.notification?.title}');
+      NotificationManager().log('Body: ${message.notification?.body}');
+      NotificationManager()
+          .log('Has notification payload: ${message.notification != null}');
+      NotificationManager().log(
+          'App in foreground: ${WidgetsBinding.instance.lifecycleState == AppLifecycleState.resumed}');
+      NotificationManager().log('=== END FCM DEBUG ===');
+
+      if (message.notification != null) {
+        NotificationManager().log('Attempting to show system notification...');
+
+        NotificationManager()
+            .useBestNotification(
+          id: DateTime.now().millisecondsSinceEpoch,
+          title: message.notification!.title ?? 'Danoggin',
+          body: message.notification!.body ?? 'Test notification',
+          triggerRefresh: false,
+        )
+            .then((success) {
+          NotificationManager().log('Notification display result: $success');
+        }).catchError((error) {
+          NotificationManager().log('Error displaying notification: $error');
+        });
+      } else {
+        NotificationManager().log('No notification payload found');
+      }
+    });
+
+    NotificationManager().log('FCM foreground listener set up successfully');
+  }
 
   @override
   void dispose() {
@@ -156,60 +160,76 @@ void _setupForegroundNotifications() {
       // Set the current context for notifications
       NotificationManager().setCurrentContext(context);
 
-      // Get the FCM token
+      // Show loading indicator
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Testing FCM notification pipeline...'),
+          duration: Duration(seconds: 3),
+        ),
+      );
+
+      // First ensure we have a valid FCM token
       final token = await FirebaseMessaging.instance.getToken();
 
       if (token == null) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Could not get FCM token'),
+            content: Text('Failed to get FCM token'),
             backgroundColor: Colors.red,
           ),
         );
         return;
       }
 
-      // Show loading indicator
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Sending test notification...'),
-          duration: Duration(seconds: 2),
-        ),
-      );
-
-      // Call the cloud function
+      // Test the full FCM pipeline by calling our Cloud Function
       final response = await http.post(
         Uri.parse(
             'https://us-central1-danoggin-d0478.cloudfunctions.net/testFCM'),
         headers: {'Content-Type': 'application/json'},
         body: json.encode({
           'token': token,
-          'message': 'Test from Danoggin app!',
+          'message':
+              'Test notification from responder app - FCM pipeline working!',
         }),
       );
 
       if (response.statusCode == 200) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Test notification sent successfully!'),
+            content: Text(
+                'FCM test notification sent successfully!\nCheck your notification tray.'),
             backgroundColor: Colors.green,
+            duration: Duration(seconds: 4),
           ),
         );
+
+        // Log success for debugging
+        NotificationManager()
+            .log('FCM test notification sent via Cloud Function');
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Failed to send notification: ${response.body}'),
+            content: Text('Failed to send test notification: ${response.body}'),
             backgroundColor: Colors.red,
+            duration: Duration(seconds: 4),
           ),
         );
+
+        // Log failure for debugging
+        NotificationManager()
+            .log('FCM test failed: ${response.statusCode} - ${response.body}');
       }
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Error: $e'),
+          content: Text('Error testing FCM: $e'),
           backgroundColor: Colors.red,
+          duration: Duration(seconds: 4),
         ),
       );
+
+      // Log error for debugging
+      NotificationManager().log('FCM test error: $e');
     }
   }
 
@@ -322,7 +342,7 @@ void _setupForegroundNotifications() {
         // Only keep the notification test button
         IconButton(
           icon: const Icon(Icons.notifications),
-          tooltip: 'Test Notifications',
+          tooltip: 'Test FCM Pipeline',
           onPressed: _testNotifications,
         ),
         // Keep the settings button

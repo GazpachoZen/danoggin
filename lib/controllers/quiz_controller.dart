@@ -11,6 +11,7 @@ import 'package:danoggin/services/question_manager.dart';
 import 'package:danoggin/services/question_pack_service.dart';
 import 'package:danoggin/services/notifications/notification_manager.dart';
 import 'package:danoggin/services/check_in_scheduler.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 
 class QuizController {
   // State variables
@@ -34,7 +35,6 @@ class QuizController {
   Duration responseTimeout = Duration(minutes: 1);
 
   // Timers
-  Timer? alertTimer;
   Timer? responseTimer;
 
   // Notification subscription
@@ -58,7 +58,7 @@ class QuizController {
   // Initialize the controller
   Future<void> initialize() async {
     // Set up notification listener
-    _setupNotificationListener();
+    _setupFCMMessageListener();
 
     // Load question packs and initialize
     await loadPackFromFirestore();
@@ -66,7 +66,6 @@ class QuizController {
 
   void dispose() {
     _notificationSubscription.cancel();
-    alertTimer?.cancel();
     responseTimer?.cancel();
   }
 
@@ -116,7 +115,6 @@ class QuizController {
       loadRandomQuestion();
       isLoading = false;
       onStateChanged();
-      startAlertLoop();
     } catch (e) {
       print('Error loading packs: $e');
     }
@@ -152,20 +150,20 @@ class QuizController {
   }
 
   // Methods for quiz operation
-  void startAlertLoop() {
-    alertTimer?.cancel();
-    alertTimer = Timer.periodic(alertInterval, (_) async {
-      final prefs = await SharedPreferences.getInstance();
-      final startStr = prefs.getString('startHour') ?? '08:00';
-      final endStr = prefs.getString('endHour') ?? '20:00';
-      _parseOperationHours(startStr, endStr);
+  // void startAlertLoop() {
+  //   alertTimer?.cancel();
+  //   alertTimer = Timer.periodic(alertInterval, (_) async {
+  //     final prefs = await SharedPreferences.getInstance();
+  //     final startStr = prefs.getString('startHour') ?? '08:00';
+  //     final endStr = prefs.getString('endHour') ?? '20:00';
+  //     _parseOperationHours(startStr, endStr);
 
-      if (_isWithinActiveHours()) {
-        // Pass isScheduled=true to indicate this is a scheduled alert
-        loadRandomQuestion(isScheduled: true);
-      }
-    });
-  }
+  //     if (_isWithinActiveHours()) {
+  //       // Pass isScheduled=true to indicate this is a scheduled alert
+  //       loadRandomQuestion(isScheduled: true);
+  //     }
+  //   });
+  // }
 
   void loadRandomQuestion({bool isScheduled = false}) {
     // Use the question manager to get a random question from any pack
@@ -178,24 +176,22 @@ class QuizController {
     uiDisabled = false;
     isRetryAttempt = false;
     previousIncorrectAnswer = null;
-    _timeoutActive = false; // Reset timeout flag for new question
+    _timeoutActive = false;
 
     responseTimer?.cancel();
     responseTimer = Timer(responseTimeout, _handleTimeout);
 
-    // Only show alert with refresh event if it's a scheduled update (not initial load)
-    if (isScheduled || !_isInitialLoad) {
-      // Use the NotificationHelper to show the check-in notification
-      NotificationManager().useBestNotification(
-        id: 1, // Use 1 as the ID for check-in notifications
-        title: 'Danoggin Check-In',
-        body: 'Time to answer a quick question!',
-        triggerRefresh:
-            isScheduled, // Only trigger refresh for scheduled alerts
-      );
-    } else {
-      // First load, just mark that we've completed initial load
+    // Mark initial load as complete if this is the first time
+    if (_isInitialLoad) {
       _isInitialLoad = false;
+    }
+
+    // Log that question was loaded (helpful for debugging FCM triggers)
+    if (isScheduled) {
+      print('QuizController: New question loaded via FCM trigger');
+      NotificationManager().log('Question loaded from FCM notification');
+    } else {
+      print('QuizController: Initial question loaded');
     }
 
     onStateChanged();
@@ -223,7 +219,7 @@ class QuizController {
       await _updateScheduleAfterCheckIn();
 
       // Cancel any outstanding check-in notifications since we've now handled the timeout
-      await NotificationManager().cancelNotification(1);
+      NotificationManager().clearIOSBadge(); // Keep this
 
       Future.delayed(Duration(seconds: 3), () {
         _timeoutActive = false;
@@ -243,8 +239,6 @@ class QuizController {
 
     responseTimer?.cancel();
 
-    // Cancel any outstanding check-in notifications to prevent confusion
-    await NotificationManager().cancelNotification(1);
     NotificationManager().clearIOSBadge();
 
     final isCorrect = selectedAnswer == currentQuestion!.correctAnswer;
@@ -375,35 +369,69 @@ class QuizController {
   }
 
   // Add method to set up notification listener
-  void _setupNotificationListener() {
-    // Listen for notification events using a stream
-    _notificationSubscription = _notificationManager.notificationEvents.listen((event) {
-      // If app is already open and showing a question, refresh to the new question
-      if (!isLoading && !_isInitialLoad) {
-        print('Received notification event, refreshing question');
+// Add method to set up FCM message listener instead of notification listener
+  void _setupFCMMessageListener() {
+    // Listen for FCM messages when app is in foreground
+    FirebaseMessaging.onMessage.listen((RemoteMessage message) {
+      print('QuizController: Received FCM message in foreground');
+      NotificationManager()
+          .log('QuizController: FCM message received: ${message.messageId}');
 
-        // Cancel existing response timer
-        responseTimer?.cancel();
+      // Extract message details
+      final notification = message.notification;
+      final data = message.data;
 
-        // Reset timeout state
-        _timeoutActive = false;
+      // Check if this is a check-in reminder
+      if (data['type'] == 'check_in_reminder') {
+        print('QuizController: Processing check-in reminder from FCM');
 
-        // Refresh the question without triggering another notification
-        currentQuestion = questionManager.getNextQuestion();
-        displayedChoices = currentQuestion!.getShuffledChoices();
-        selectedAnswer = null;
-        feedback = null;
-        uiDisabled = false;
-        isRetryAttempt = false;
-        previousIncorrectAnswer = null;
-        onStateChanged();
-
-        // Set new timeout
-        responseTimer?.cancel();
-        responseTimer = Timer(responseTimeout, _handleTimeout);
-
-        print('Question refreshed due to notification event');
+        // If app is already showing a question, refresh to new question
+        if (!isLoading && !_isInitialLoad) {
+          _refreshQuestionFromFCM();
+        }
       }
     });
+
+    // Listen for when app is opened from FCM notification
+    FirebaseMessaging.onMessageOpenedApp.listen((RemoteMessage message) {
+      print('QuizController: App opened from FCM notification');
+      NotificationManager()
+          .log('QuizController: App opened from FCM: ${message.messageId}');
+
+      final data = message.data;
+
+      // If opened from a check-in reminder, ensure we show a fresh question
+      if (data['type'] == 'check_in_reminder') {
+        _refreshQuestionFromFCM();
+      }
+    });
+
+    print('QuizController: FCM message listeners set up');
+  }
+
+// Helper method to refresh question when FCM triggers it
+  void _refreshQuestionFromFCM() {
+    print('QuizController: Refreshing question due to FCM trigger');
+
+    // Cancel existing response timer
+    responseTimer?.cancel();
+
+    // Reset timeout state
+    _timeoutActive = false;
+
+    // Load a fresh question without generating local notification
+    currentQuestion = questionManager.getNextQuestion();
+    displayedChoices = currentQuestion!.getShuffledChoices();
+    selectedAnswer = null;
+    feedback = null;
+    uiDisabled = false;
+    isRetryAttempt = false;
+    previousIncorrectAnswer = null;
+    onStateChanged();
+
+    // Set new timeout
+    responseTimer = Timer(responseTimeout, _handleTimeout);
+
+    print('QuizController: Question refreshed due to FCM');
   }
 }
