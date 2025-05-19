@@ -10,6 +10,7 @@ import 'package:danoggin/services/auth_service.dart';
 import 'package:danoggin/services/question_manager.dart';
 import 'package:danoggin/services/question_pack_service.dart';
 import 'package:danoggin/services/notifications/notification_manager.dart';
+import 'package:danoggin/services/check_in_scheduler.dart';
 
 class QuizController {
   // State variables
@@ -218,6 +219,9 @@ class QuizController {
         questionPrompt: currentQuestion!.prompt,
       );
 
+      // Update the check-in schedule after missed check-in
+      await _updateScheduleAfterCheckIn();
+
       // Cancel any outstanding check-in notifications since we've now handled the timeout
       await NotificationManager().cancelNotification(1);
 
@@ -256,6 +260,9 @@ class QuizController {
         questionPrompt: currentQuestion!.prompt,
       );
 
+      // Update the check-in schedule after successful check-in
+      await _updateScheduleAfterCheckIn();
+
       // Also cancel any missed check-in notifications on successful answer
       await NotificationManager().cancelNotification(2);
     } else {
@@ -287,7 +294,21 @@ class QuizController {
           result: 'incorrect',
           questionPrompt: currentQuestion!.prompt,
         );
+
+        // Update the check-in schedule after failed check-in
+        await _updateScheduleAfterCheckIn();
       }
+    }
+  }
+
+  /// Update the check-in schedule after any check-in completion (success or failure)
+  Future<void> _updateScheduleAfterCheckIn() async {
+    try {
+      await CheckInScheduler.updateAfterCheckIn();
+      print('QuizController: Check-in schedule updated after completion');
+    } catch (e) {
+      print('QuizController: Error updating check-in schedule: $e');
+      // Don't block the UI for scheduler errors
     }
   }
 

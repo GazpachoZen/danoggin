@@ -16,6 +16,8 @@ import 'package:danoggin/repositories/responder_settings_repository.dart';
 import 'package:danoggin/services/auth_service.dart';
 import 'package:flutter/services.dart';
 import 'package:danoggin/services/notifications/notification_manager.dart';
+import 'package:danoggin/services/check_in_scheduler.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 class ResponderSettingsWidget extends StatefulWidget {
   // Add callback for relationship changes
@@ -132,6 +134,9 @@ class _ResponderSettingsWidgetState extends State<ResponderSettingsWidget> {
         endHour: endHourStr,
       );
 
+      // Update the check-in schedule based on new settings
+      await _updateCheckInSchedule();
+
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('Settings saved successfully'),
@@ -148,6 +153,39 @@ class _ResponderSettingsWidgetState extends State<ResponderSettingsWidget> {
           duration: Duration(seconds: 3),
         ),
       );
+    }
+  }
+
+  /// Update the check-in schedule after user changes settings
+  Future<void> _updateCheckInSchedule() async {
+    try {
+      // Get current timezone from Firestore
+      final uid = AuthService.currentUserId;
+      final userDoc = await FirebaseFirestore.instance
+          .collection('users')
+          .doc(uid)
+          .get();
+
+      String timeZone = 'UTC'; // Default fallback
+      if (userDoc.exists) {
+        final userData = userDoc.data() as Map<String, dynamic>;
+        final activeHours = userData['activeHours'] as Map<String, dynamic>?;
+        timeZone = activeHours?['timeZone'] as String? ?? 'UTC';
+      }
+
+      // Call the scheduler with new settings
+      await CheckInScheduler.updateAfterSettingsChange(
+        intervalMinutes: alertFrequencyMinutes.round(),
+        activeStartHour: startHour,
+        activeEndHour: endHour,
+        timeZone: timeZone,
+      );
+
+      print('ResponderSettings: Check-in schedule updated after settings change');
+    } catch (e) {
+      print('ResponderSettings: Error updating check-in schedule: $e');
+      // Don't re-throw since settings were saved successfully
+      // Just log the error for debugging
     }
   }
 
