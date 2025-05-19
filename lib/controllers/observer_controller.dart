@@ -161,40 +161,6 @@ class ObserverController {
 
         // Create a unique identifier for this check-in
         final checkInKey = "$responderUid:$docId";
-
-        // Only notify for recent check-ins that are missed or incorrect
-        if ((result == 'missed' || result == 'incorrect') &&
-            checkInAge.inHours < 24) {
-          // Check if we've already acknowledged this issue
-          final isAcknowledged = checkInKey == lastAcknowledgedId;
-
-          // Check if we've already notified about this issue
-          final alreadyNotified = checkInKey == lastNotifiedId;
-
-          if (!isAcknowledged && !alreadyNotified) {
-            print("Issue detected: $responderName had a $result check-in");
-
-            // Update tracking of last notification
-            lastNotifiedId = checkInKey;
-            onStateChanged();
-
-            // Save to persistent storage
-            SharedPreferences.getInstance().then((prefs) {
-              prefs.setString('lastNotifiedId', checkInKey);
-            });
-
-            // Show notification
-            NotificationManager().useBestNotification(
-              id: responderUid.hashCode.abs(),
-              title: 'Danoggin Alert',
-              body:
-                  '$responderName had a $result check-in at $mostRecentTimeStr',
-              triggerRefresh: true,
-            );
-
-            print("Notification sent for $responderName's $result check-in");
-          }
-        }
       }, onError: (error) {
         print('Error in check-in listener for $responderName: $error');
       });

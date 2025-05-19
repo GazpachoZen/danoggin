@@ -9,6 +9,10 @@ if (getApps().length === 0) {
   initializeApp();
 }
 
+/**
+ * HTTP Cloud Function to test FCM notifications
+ * Accepts token and message via GET or POST
+ */
 export const testFCM = onRequest(async (req, res) => {
   // Set CORS headers
   res.set("Access-Control-Allow-Origin", "*");
@@ -34,7 +38,8 @@ export const testFCM = onRequest(async (req, res) => {
       token: token as string,
       notification: {
         title: "Danoggin Test",
-        body: (message as string) || "Test notification from Cloud Functions",
+        body: (message as string) ||
+          "Test notification from Cloud Functions",
       },
     });
 
@@ -45,6 +50,11 @@ export const testFCM = onRequest(async (req, res) => {
   }
 });
 
+/**
+ * Firestore trigger that processes check-in results and sends alerts
+ * Triggers on creation of documents in
+ * responder_status/{responderId}/check_ins/{checkInId}
+ */
 export const processCheckInResult = onDocumentCreated(
   "responder_status/{responderId}/check_ins/{checkInId}",
   async (event) => {
@@ -101,13 +111,14 @@ export const processCheckInResult = onDocumentCreated(
   });
 
 /**
- * Notifies observers about check-in issues via FCM
- * @param {string[]} observerIds Array of observer user IDs
- * @param {string} responderName Name of the responder
- * @param {string} result Check-in result (missed or incorrect)
- * @param {string} prompt The question prompt
- * @param {string} timestamp Check-in timestamp
- * @param {string} checkInId Check-in document ID
+ * Send FCM notifications to observers about a responder's check-in issue
+ * @param {string[]} observerIds Array of observer user IDs to notify
+ * @param {string} responderName Name of the responder who had the issue
+ * @param {string} result Type of check-in result (missed or incorrect)
+ * @param {string} prompt The question that was missed/incorrectly answered
+ * @param {string} timestamp ISO 8601 timestamp of when the check-in occurred
+ * @param {string} checkInId Firestore document ID of the check-in record
+ * @return {Promise<void>} Promise that resolves when notifications are sent
  */
 async function notifyObserversOfCheckInIssue(
   observerIds: string[],
@@ -124,7 +135,8 @@ async function notifyObserversOfCheckInIssue(
 
   try {
     // Get FCM tokens for all observers
-    const observerTokens: string[] = [];
+    const allTokens: string[] = [];
+    const invalidTokens: { [userId: string]: string[] } = {};
 
     for (const observerId of observerIds) {
       const observerDoc = await admin.firestore()
@@ -132,15 +144,42 @@ async function notifyObserversOfCheckInIssue(
 
       if (observerDoc.exists) {
         const observerData = observerDoc.data();
-        const token = observerData?.fcmToken;
 
-        if (token) {
-          observerTokens.push(token);
+        // Extract tokens from the new fcmTokens array structure
+        const fcmTokens = observerData?.fcmTokens || [];
+        const validTokens: string[] = [];
+
+        for (const tokenData of fcmTokens) {
+          if (typeof tokenData === "object" && tokenData.token) {
+            // Check if token is not too old (clean up old tokens)
+            const tokenAge = Date.now() -
+              new Date(tokenData.createdAt).getTime();
+            const maxAge = 270 * 24 * 60 * 60 * 1000; // 270 days in ms
+
+            if (tokenAge < maxAge) {
+              validTokens.push(tokenData.token);
+              allTokens.push(tokenData.token);
+            } else {
+              console.log(
+                `Token for observer ${observerId} is older than 270 days, ` +
+                "skipping"
+              );
+              // Track for potential cleanup
+              if (!invalidTokens[observerId]) {
+                invalidTokens[observerId] = [];
+              }
+              invalidTokens[observerId].push(tokenData.token);
+            }
+          }
         }
+
+        console.log(
+          `Observer ${observerId} has ${validTokens.length} valid FCM tokens`
+        );
       }
     }
 
-    if (observerTokens.length === 0) {
+    if (allTokens.length === 0) {
       console.log("No valid FCM tokens found for observers");
       return;
     }
@@ -156,28 +195,130 @@ async function notifyObserversOfCheckInIssue(
     const title = `Danoggin Alert: ${result} check-in`;
     const body = `${responderName} ${result} a check-in at ${timeStr}`;
 
-    // Send notification to all observer tokens
-    const message = {
-      notification: {
-        title: title,
-        body: body,
-      },
-      data: {
-        type: "check_in_alert",
-        responderName: responderName,
-        result: result,
-        timestamp: timestamp,
-        checkInId: checkInId,
-      },
-      tokens: observerTokens,
-    };
+    // Send individual notifications instead of using sendMulticast
+    let successCount = 0;
+    let failureCount = 0;
+    const failedTokens: string[] = [];
 
-    const response = await admin.messaging().sendMulticast(message);
+    for (const token of allTokens) {
+      try {
+        await admin.messaging().send({
+          notification: {
+            title: title,
+            body: body,
+          },
+          data: {
+            type: "check_in_alert",
+            responderName: responderName,
+            result: result,
+            timestamp: timestamp,
+            checkInId: checkInId,
+          },
+          token: token,
+        });
+        successCount++;
+        console.log(`Successfully sent to token ${token.substring(0, 10)}...`);
+      } catch (error: unknown) {
+        failureCount++;
+        failedTokens.push(token);
+        console.log(
+          `Failed to send to token ${token.substring(0, 10)}...: ${error}`
+        );
+      }
+    }
 
-    console.log(`Notification sent to ${response.successCount} observers`);
-    console.log(`Failed to send to ${response.failureCount} observers`);
+    console.log(`Notification sent to ${successCount} devices`);
+    console.log(`Failed to send to ${failureCount} devices`);
+
+    // Handle failed tokens - remove them from Firestore
+    if (failedTokens.length > 0) {
+      await cleanupFailedTokensIndividual(failedTokens, observerIds);
+    }
+
+    // Clean up old tokens that we identified earlier
+    await cleanupOldTokens(invalidTokens);
   } catch (error) {
     console.error("Error sending observer notifications:", error);
     throw error;
+  }
+}
+
+/**
+ * Remove FCM tokens that failed to send notifications (individual method)
+ * @param {string[]} failedTokens Array of tokens that failed to send
+ * @param {string[]} observerIds Array of observer user IDs who should have
+ *   tokens removed
+ * @return {Promise<void>} Promise that resolves when cleanup is complete
+ */
+async function cleanupFailedTokensIndividual(
+  failedTokens: string[],
+  observerIds: string[]
+): Promise<void> {
+  console.log("Cleaning up failed FCM tokens...");
+
+  for (const failedToken of failedTokens) {
+    console.log(
+      `Removing invalid FCM token: ${failedToken.substring(0, 10)}...`
+    );
+
+    // Find which observer this token belongs to and remove it
+    for (const observerId of observerIds) {
+      await removeTokenFromUser(observerId, failedToken);
+    }
+  }
+}
+
+/**
+ * Remove old/expired tokens from user documents
+ * @param {object} invalidTokens Map of user IDs to arrays of invalid tokens
+ *   to remove
+ * @return {Promise<void>} Promise that resolves when all old tokens are
+ *   removed
+ */
+async function cleanupOldTokens(
+  invalidTokens: { [userId: string]: string[] }
+): Promise<void> {
+  for (const [userId, tokens] of Object.entries(invalidTokens)) {
+    console.log(`Cleaning up ${tokens.length} old tokens for user ${userId}`);
+    for (const token of tokens) {
+      await removeTokenFromUser(userId, token);
+    }
+  }
+}
+
+/**
+ * Remove a specific FCM token from a user's Firestore document
+ * @param {string} userId The user ID whose document should be updated
+ * @param {string} tokenToRemove The specific FCM token string to remove
+ * @return {Promise<void>} Promise that resolves when the token is removed
+ */
+async function removeTokenFromUser(
+  userId: string,
+  tokenToRemove: string
+): Promise<void> {
+  try {
+    const userDoc = await admin.firestore()
+      .collection("users").doc(userId).get();
+
+    if (userDoc.exists) {
+      const userData = userDoc.data();
+      const fcmTokens = userData?.fcmTokens || [];
+
+      // Filter out the token to remove
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const updatedTokens = fcmTokens.filter((tokenData: any) => {
+        return !(typeof tokenData === "object" &&
+          tokenData.token === tokenToRemove);
+      });
+
+      // Update the document
+      await admin.firestore().collection("users").doc(userId).update({
+        fcmTokens: updatedTokens,
+      });
+
+      console.log(`Removed invalid token from user ${userId}`);
+    }
+  } catch (error) {
+    console.error(`Error removing token from user ${userId}:`, error);
   }
 }

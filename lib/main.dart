@@ -36,9 +36,6 @@ void main() async {
     // Set up background message handler after Firebase is initialized
     FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
     print('FCM background handler registered');
-
-    // Initialize FCM after Firebase is ready
-    await NotificationManager().initializeFCM();
   } catch (e) {
     print('Error initializing Firebase in main(): $e');
   }

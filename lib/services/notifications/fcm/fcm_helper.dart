@@ -94,47 +94,105 @@ class FCMHelper {
     }
   }
   
-  /// Save FCM token to Firestore for server-side targeting
+  /// Save FCM token to Firestore with timestamp and proper error handling
   Future<void> _saveTokenToFirestore(String token) async {
     try {
-      final user = AuthService.currentUserId;
+      _logger.log('ATTEMPTING TO SAVE FCM TOKEN TO FIRESTORE');
+      _logger.log('Token length: ${token.length}');
+      _logger.log('Token preview: ${token.substring(0, 20)}...');
       
-      // Save to users collection
-      await FirebaseFirestore.instance.collection('users').doc(user).update({
-        'fcmTokens': FieldValue.arrayUnion([token]),
-        'fcmToken': token, // Also save as single field for compatibility
-        'fcmTokenUpdatedAt': FieldValue.serverTimestamp(),
-      });
+      // Check if user is authenticated
+      final user = AuthService.currentUser;
+      if (user == null) {
+        _logger.log('ERROR: No authenticated user - cannot save FCM token');
+        return;
+      }
       
-      _logger.log('FCM token saved to Firestore');
-    } catch (e) {
-      _logger.log('Error saving FCM token to Firestore: $e');
+      final uid = user.uid;
+      _logger.log('Current user ID: $uid');
       
-      // Try to create the document if it doesn't exist
-      try {
-        final user = AuthService.currentUserId;
+      // Create token object with regular timestamp (not FieldValue.serverTimestamp())
+      final tokenData = {
+        'token': token,
+        'createdAt': DateTime.now().toIso8601String(), // Use regular timestamp for arrays
+        'platform': Platform.isIOS ? 'ios' : 'android',
+      };
+      
+      // Get existing user document to check for existing tokens
+      final userDoc = await FirebaseFirestore.instance.collection('users').doc(uid).get();
+      
+      if (userDoc.exists) {
+        final userData = userDoc.data() as Map<String, dynamic>;
+        final existingTokens = userData['fcmTokens'] as List<dynamic>? ?? [];
         
-        // If update failed, try to set the document instead
-        await FirebaseFirestore.instance.collection('users').doc(user).set({
-          'fcmTokens': [token],
+        // Check if this exact token already exists
+        bool tokenExists = existingTokens.any((tokenDoc) => 
+          tokenDoc is Map<String, dynamic> && tokenDoc['token'] == token);
+        
+        if (!tokenExists) {
+          // Add new token and update convenience field
+          await FirebaseFirestore.instance.collection('users').doc(uid).update({
+            'fcmTokens': FieldValue.arrayUnion([tokenData]),
+            'fcmToken': token, // Convenience field for latest token
+            'fcmTokenUpdatedAt': FieldValue.serverTimestamp(), // This is OK outside arrays
+          });
+          _logger.log('New FCM token added to existing user document');
+        } else {
+          _logger.log('FCM token already exists, skipping duplicate save');
+        }
+      } else {
+        // Create new user document with FCM token
+        await FirebaseFirestore.instance.collection('users').doc(uid).set({
+          'fcmTokens': [tokenData],
           'fcmToken': token,
           'fcmTokenUpdatedAt': FieldValue.serverTimestamp(),
+          'createdAt': FieldValue.serverTimestamp(),
         }, SetOptions(merge: true));
-        
-        _logger.log('FCM token saved to Firestore with merge');
-      } catch (e2) {
-        _logger.log('Error saving FCM token to Firestore (second attempt): $e2');
+        _logger.log('Created new user document with FCM token');
       }
+      
+      // Verification step
+      final verifyDoc = await FirebaseFirestore.instance.collection('users').doc(uid).get();
+      final verifyData = verifyDoc.data();
+      _logger.log('Verification: User document exists: ${verifyDoc.exists}');
+      _logger.log('Verification: FCM token field exists: ${verifyData?.containsKey('fcmToken')}');
+      _logger.log('Verification: FCM tokens array length: ${(verifyData?['fcmTokens'] as List?)?.length ?? 0}');
+      
+    } catch (e, stackTrace) {
+      _logger.log('ERROR saving FCM token to Firestore: $e');
+      _logger.log('Stack trace: $stackTrace');
     }
   }
   
   /// Remove a token from Firestore
   Future<void> removeTokenFromFirestore(String token) async {
     try {
-      final user = AuthService.currentUserId;
+      final user = AuthService.currentUser;
+      if (user == null) {
+        _logger.log('No authenticated user - cannot remove FCM token');
+        return;
+      }
       
-      await FirebaseFirestore.instance.collection('users').doc(user).update({
-        'fcmTokens': FieldValue.arrayRemove([token]),
+      final uid = user.uid;
+      
+      // Get current tokens
+      final userDoc = await FirebaseFirestore.instance.collection('users').doc(uid).get();
+      if (!userDoc.exists) return;
+      
+      final userData = userDoc.data() as Map<String, dynamic>;
+      final existingTokens = userData['fcmTokens'] as List<dynamic>? ?? [];
+      
+      // Find and remove the token object that matches
+      final updatedTokens = existingTokens.where((tokenDoc) {
+        if (tokenDoc is Map<String, dynamic>) {
+          return tokenDoc['token'] != token;
+        }
+        return true;
+      }).toList();
+      
+      // Update the document
+      await FirebaseFirestore.instance.collection('users').doc(uid).update({
+        'fcmTokens': updatedTokens,
       });
       
       _logger.log('FCM token removed from Firestore');
@@ -146,9 +204,15 @@ class FCMHelper {
   /// Delete all FCM tokens for a user
   Future<void> clearAllTokens() async {
     try {
-      final user = AuthService.currentUserId;
+      final user = AuthService.currentUser;
+      if (user == null) {
+        _logger.log('No authenticated user - cannot clear FCM tokens');
+        return;
+      }
       
-      await FirebaseFirestore.instance.collection('users').doc(user).update({
+      final uid = user.uid;
+      
+      await FirebaseFirestore.instance.collection('users').doc(uid).update({
         'fcmTokens': [],
         'fcmToken': null,
       });

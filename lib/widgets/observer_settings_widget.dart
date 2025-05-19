@@ -12,6 +12,7 @@ import 'package:danoggin/repositories/responder_settings_repository.dart';
 import 'package:danoggin/services/auth_service.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/services.dart';
+import 'package:danoggin/services/notifications/notification_manager.dart';
 
 // Development mode flag - set to false for production
 const bool kDevModeEnabled = true;
@@ -156,103 +157,109 @@ class _ObserverSettingsWidgetState extends State<ObserverSettingsWidget> {
           },
         ),
 
-// TODO: REMOVE THIS SOME DAY...
-ListTile(
-  leading: const Icon(Icons.message),
-  title: const Text('Test FCM Setup'),
-  subtitle: const Text('Verify FCM token generation and test cloud function'),
-  onTap: () async {
-    try {
-      // Check if Firebase Messaging is available
-      print('Checking FCM setup...');
-      
-      final messaging = FirebaseMessaging.instance;
-      
-      // Request permission explicitly
-      NotificationSettings settings = await messaging.requestPermission(
-        alert: true,
-        announcement: false,
-        badge: true,
-        carPlay: false,
-        criticalAlert: false,
-        provisional: false,
-        sound: true,
-      );
-      
-      print('Permission granted: ${settings.authorizationStatus}');
-      
-      final token = await messaging.getToken();
-      if (token != null) {
-        print('FCM Token: $token');
-        print('Token length: ${token.length}');
-        
-        showDialog(
-          context: context,
-          builder: (context) => AlertDialog(
-            title: Text('FCM Debug Info'),
-            content: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text('Permission: ${settings.authorizationStatus}'),
-                SizedBox(height: 8),
-                Text('Token generated: ${token.isNotEmpty ? "Yes" : "No"}'),
-                SizedBox(height: 8),
-                Text('Token length: ${token.length}'),
-                SizedBox(height: 16),
-                Text('Full token:'),
-                Container(
-                  height: 100,
-                  child: SingleChildScrollView(
-                    child: SelectableText(
-                      token,
-                      style: TextStyle(fontSize: 10, fontFamily: 'monospace'),
+        // Enhanced FCM test section
+        ListTile(
+          leading: const Icon(Icons.message),
+          title: const Text('Test FCM Setup'),
+          subtitle: const Text('Verify FCM token generation and storage'),
+          onTap: () async {
+            try {
+              // Check if Firebase Messaging is available
+              NotificationManager().log('=== FCM TEST BUTTON PRESSED (Observer) ===');
+              NotificationManager().log('Checking FCM setup...');
+              
+              final messaging = FirebaseMessaging.instance;
+              
+              // Request permission explicitly
+              NotificationSettings settings = await messaging.requestPermission(
+                alert: true,
+                announcement: false,
+                badge: true,
+                carPlay: false,
+                criticalAlert: false,
+                provisional: false,
+                sound: true,
+              );
+              
+              NotificationManager().log('Permission granted: ${settings.authorizationStatus}');
+              
+              final token = await messaging.getToken();
+              if (token != null) {
+                NotificationManager().log('FCM Token retrieved successfully');
+                NotificationManager().log('Token length: ${token.length}');
+                
+                // Trigger FCM initialization which should save the token to Firestore
+                await NotificationManager().initializeFCM();
+                
+                showDialog(
+                  context: context,
+                  builder: (context) => AlertDialog(
+                    title: Text('FCM Debug Info'),
+                    content: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text('Permission: ${settings.authorizationStatus}'),
+                        SizedBox(height: 8),
+                        Text('Token generated: ${token.isNotEmpty ? "Yes" : "No"}'),
+                        SizedBox(height: 8),
+                        Text('Token length: ${token.length}'),
+                        SizedBox(height: 16),
+                        Text('Full token:'),
+                        Container(
+                          height: 100,
+                          child: SingleChildScrollView(
+                            child: SelectableText(
+                              token,
+                              style: TextStyle(fontSize: 10, fontFamily: 'monospace'),
+                            ),
+                          ),
+                        ),
+                        SizedBox(height: 16),
+                        Text('Check logs for Firestore save operation details.',
+                             style: TextStyle(fontStyle: FontStyle.italic, color: Colors.blue[700])),
+                      ],
                     ),
+                    actions: [
+                      TextButton(
+                        onPressed: () async {
+                          await Clipboard.setData(ClipboardData(text: token));
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text('Token copied to clipboard'),
+                              duration: Duration(seconds: 2),
+                            ),
+                          );
+                        },
+                        child: Text('Copy Token'),
+                      ),
+                      TextButton(
+                        onPressed: () => Navigator.pop(context),
+                        child: Text('Close'),
+                      ),
+                    ],
                   ),
+                );
+              } else {
+                NotificationManager().log('FCM token is null - indicates a problem');
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text('FCM token generation failed'),
+                    backgroundColor: Colors.red,
+                  ),
+                );
+              }
+            } catch (e) {
+              NotificationManager().log('FCM test error: $e');
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text('FCM error: $e'),
+                  backgroundColor: Colors.red,
                 ),
-              ],
-            ),
-            actions: [
-              TextButton(
-                onPressed: () async {
-                  await Clipboard.setData(ClipboardData(text: token));
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: Text('Token copied to clipboard'),
-                      duration: Duration(seconds: 2),
-                    ),
-                  );
-                },
-                child: Text('Copy Token'),
-              ),
-              TextButton(
-                onPressed: () => Navigator.pop(context),
-                child: Text('Close'),
-              ),
-            ],
-          ),
-        );
-      } else {
-        print('FCM token is null');
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('FCM token generation failed'),
-            backgroundColor: Colors.red,
-          ),
-        );
-      }
-    } catch (e) {
-      print('FCM error: $e');
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('FCM error: $e'),
-          backgroundColor: Colors.red,
+              );
+            }
+          },
         ),
-      );
-    }
-  },
-),
-
       ],
     );
   }
