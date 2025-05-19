@@ -7,11 +7,11 @@
 //------------------------------------------------------------------------
 
 import 'package:flutter/material.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import 'package:danoggin/screens/observer_manage_responders_screen.dart';
 import 'package:danoggin/repositories/responder_settings_repository.dart';
 import 'package:danoggin/services/auth_service.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
+import 'package:flutter/services.dart';
 
 // Development mode flag - set to false for production
 const bool kDevModeEnabled = true;
@@ -157,39 +157,102 @@ class _ObserverSettingsWidgetState extends State<ObserverSettingsWidget> {
         ),
 
 // TODO: REMOVE THIS SOME DAY...
-        ListTile(
-          leading: const Icon(Icons.message),
-          title: const Text('Test FCM Setup'),
-          subtitle: const Text('Verify FCM token generation'),
-          onTap: () async {
-            try {
-              final token = await FirebaseMessaging.instance.getToken();
-              if (token != null) {
-                final truncatedToken = '${token.substring(0, 15)}...';
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: Text('FCM token generated: $truncatedToken'),
-                    duration: Duration(seconds: 5),
+ListTile(
+  leading: const Icon(Icons.message),
+  title: const Text('Test FCM Setup'),
+  subtitle: const Text('Verify FCM token generation and test cloud function'),
+  onTap: () async {
+    try {
+      // Check if Firebase Messaging is available
+      print('Checking FCM setup...');
+      
+      final messaging = FirebaseMessaging.instance;
+      
+      // Request permission explicitly
+      NotificationSettings settings = await messaging.requestPermission(
+        alert: true,
+        announcement: false,
+        badge: true,
+        carPlay: false,
+        criticalAlert: false,
+        provisional: false,
+        sound: true,
+      );
+      
+      print('Permission granted: ${settings.authorizationStatus}');
+      
+      final token = await messaging.getToken();
+      if (token != null) {
+        print('FCM Token: $token');
+        print('Token length: ${token.length}');
+        
+        showDialog(
+          context: context,
+          builder: (context) => AlertDialog(
+            title: Text('FCM Debug Info'),
+            content: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text('Permission: ${settings.authorizationStatus}'),
+                SizedBox(height: 8),
+                Text('Token generated: ${token.isNotEmpty ? "Yes" : "No"}'),
+                SizedBox(height: 8),
+                Text('Token length: ${token.length}'),
+                SizedBox(height: 16),
+                Text('Full token:'),
+                Container(
+                  height: 100,
+                  child: SingleChildScrollView(
+                    child: SelectableText(
+                      token,
+                      style: TextStyle(fontSize: 10, fontFamily: 'monospace'),
+                    ),
                   ),
-                );
-              } else {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: Text('FCM token generation failed'),
-                    backgroundColor: Colors.red,
-                  ),
-                );
-              }
-            } catch (e) {
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: Text('FCM error: $e'),
-                  backgroundColor: Colors.red,
                 ),
-              );
-            }
-          },
+              ],
+            ),
+            actions: [
+              TextButton(
+                onPressed: () async {
+                  await Clipboard.setData(ClipboardData(text: token));
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text('Token copied to clipboard'),
+                      duration: Duration(seconds: 2),
+                    ),
+                  );
+                },
+                child: Text('Copy Token'),
+              ),
+              TextButton(
+                onPressed: () => Navigator.pop(context),
+                child: Text('Close'),
+              ),
+            ],
+          ),
+        );
+      } else {
+        print('FCM token is null');
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('FCM token generation failed'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    } catch (e) {
+      print('FCM error: $e');
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('FCM error: $e'),
+          backgroundColor: Colors.red,
         ),
+      );
+    }
+  },
+),
+
       ],
     );
   }

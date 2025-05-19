@@ -1,6 +1,6 @@
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'package:danoggin/screens/logs_viewer_screen.dart';
 import 'package:danoggin/services/notifications/notification_manager.dart';
 import 'package:danoggin/models/user_role.dart';
 import 'package:danoggin/screens/settings_page.dart';
@@ -53,37 +53,41 @@ class _ObserverPageState extends State<ObserverPage> {
     _setupForegroundNotifications();
   }
 
-void _setupForegroundNotifications() {
-  FirebaseMessaging.onMessage.listen((RemoteMessage message) {
-    // Use the logging system for iOS debugging
-    NotificationManager().log('=== FCM FOREGROUND MESSAGE RECEIVED ===');
-    NotificationManager().log('Message ID: ${message.messageId}');
-    NotificationManager().log('Title: ${message.notification?.title}');
-    NotificationManager().log('Body: ${message.notification?.body}');
-    NotificationManager().log('Has notification payload: ${message.notification != null}');
-    NotificationManager().log('App in foreground: ${WidgetsBinding.instance.lifecycleState == AppLifecycleState.resumed}');
-    NotificationManager().log('=== END FCM DEBUG ===');
-    
-    if (message.notification != null) {
-      NotificationManager().log('Attempting to show system notification...');
-      
-      NotificationManager().useBestNotification(
-        id: DateTime.now().millisecondsSinceEpoch,
-        title: message.notification!.title ?? 'Danoggin',
-        body: message.notification!.body ?? 'Test notification',
-        triggerRefresh: false,
-      ).then((success) {
-        NotificationManager().log('Notification display result: $success');
-      }).catchError((error) {
-        NotificationManager().log('Error displaying notification: $error');
-      });
-    } else {
-      NotificationManager().log('No notification payload found');
-    }
-  });
-  
-  NotificationManager().log('FCM foreground listener set up successfully');
-}
+  void _setupForegroundNotifications() {
+    FirebaseMessaging.onMessage.listen((RemoteMessage message) {
+      // Use the logging system for iOS debugging
+      NotificationManager().log('=== FCM FOREGROUND MESSAGE RECEIVED ===');
+      NotificationManager().log('Message ID: ${message.messageId}');
+      NotificationManager().log('Title: ${message.notification?.title}');
+      NotificationManager().log('Body: ${message.notification?.body}');
+      NotificationManager()
+          .log('Has notification payload: ${message.notification != null}');
+      NotificationManager().log(
+          'App in foreground: ${WidgetsBinding.instance.lifecycleState == AppLifecycleState.resumed}');
+      NotificationManager().log('=== END FCM DEBUG ===');
+
+      if (message.notification != null) {
+        NotificationManager().log('Attempting to show system notification...');
+
+        NotificationManager()
+            .useBestNotification(
+          id: DateTime.now().millisecondsSinceEpoch,
+          title: message.notification!.title ?? 'Danoggin',
+          body: message.notification!.body ?? 'Test notification',
+          triggerRefresh: false,
+        )
+            .then((success) {
+          NotificationManager().log('Notification display result: $success');
+        }).catchError((error) {
+          NotificationManager().log('Error displaying notification: $error');
+        });
+      } else {
+        NotificationManager().log('No notification payload found');
+      }
+    });
+
+    NotificationManager().log('FCM foreground listener set up successfully');
+  }
 
   @override
   void dispose() {
@@ -113,6 +117,17 @@ void _setupForegroundNotifications() {
           icon: const Icon(Icons.notifications),
           tooltip: 'Test Notifications',
           onPressed: () => _controller.testNotifications(context),
+        ),
+        IconButton(
+          icon: const Icon(Icons.list),
+          tooltip: 'View Logs',
+          onPressed: () {
+            Navigator.of(context).push(
+              MaterialPageRoute(
+                builder: (_) => LogsViewerScreen(),
+              ),
+            );
+          },
         ),
         IconButton(
           icon: const Icon(Icons.settings),

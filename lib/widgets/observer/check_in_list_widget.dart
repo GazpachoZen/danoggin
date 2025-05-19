@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:intl/intl.dart';
 import 'package:timeago/timeago.dart' as timeago;
+import 'package:danoggin/services/notifications/notification_manager.dart';
 
 class CheckInListWidget extends StatelessWidget {
   final Map<String, String> responderMap;
@@ -79,7 +80,10 @@ class CheckInListWidget extends StatelessWidget {
                 child: ElevatedButton.icon(
                   icon: const Icon(Icons.check),
                   label: const Text('Acknowledge Issue'),
-                  onPressed: () => onAcknowledge(latestKey),
+                  onPressed: () {
+                    onAcknowledge(latestKey);
+                    NotificationManager().clearIOSBadge();
+                  }
                 ),
               ),
             Expanded(

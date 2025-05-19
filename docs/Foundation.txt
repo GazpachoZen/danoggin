@@ -14,6 +14,7 @@ Main Functionality...
 Architecture...
 - Flutter-based mobile app with Firebase backend
 - FireStore for data storage
+- Firebase's FCM mechanism for coordination notifications
 - Firebase Cloud Storage for image assets
 - Firebase Authentication for user management
 
@@ -30,4 +31,5 @@ Additional...
 Preferences/constraints...
 - Refrain from providing multi-step suggestions whenever possible. Invariably I have questions or problems with step 1, which invalidate steps 2-N. This is a waste of my time and of your compute limits. 
 - For situations where we have a several steps, each relying on completion of the prior, supply them only one at a time and await confirmation of success before providing the next step.
+- When generating TypeScript code, always make it compliant with lint rules.
 - Always give a critical eye to things I might suggest. If there are down-sides to my ideas, I'd like to know them up front. 
