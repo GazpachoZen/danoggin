@@ -149,22 +149,6 @@ class QuizController {
     return nowMinutes >= startMinutes && nowMinutes <= endMinutes;
   }
 
-  // Methods for quiz operation
-  // void startAlertLoop() {
-  //   alertTimer?.cancel();
-  //   alertTimer = Timer.periodic(alertInterval, (_) async {
-  //     final prefs = await SharedPreferences.getInstance();
-  //     final startStr = prefs.getString('startHour') ?? '08:00';
-  //     final endStr = prefs.getString('endHour') ?? '20:00';
-  //     _parseOperationHours(startStr, endStr);
-
-  //     if (_isWithinActiveHours()) {
-  //       // Pass isScheduled=true to indicate this is a scheduled alert
-  //       loadRandomQuestion(isScheduled: true);
-  //     }
-  //   });
-  // }
-
   void loadRandomQuestion({bool isScheduled = false}) {
     // Use the question manager to get a random question from any pack
     currentQuestion = questionManager.getNextQuestion();
