@@ -9,6 +9,8 @@ import '../base/notification_handler.dart';
 import '../base/notification_logger.dart';
 import '../notification_manager.dart';
 import 'fcm_helper.dart';
+import 'package:danoggin/utils/logger.dart';
+
 
 /// FCM implementation of the notification service interface
 class FCMNotificationService implements NotificationService {
@@ -18,7 +20,7 @@ class FCMNotificationService implements NotificationService {
   factory FCMNotificationService() => _instance;
 
   // Logger and FCM helper
-  final NotificationLogger _logger = NotificationLogger();
+  final Logger _logger = Logger();
   late FCMHelper _fcmHelper;
 
   // Notification handler for event stream

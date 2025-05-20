@@ -62,6 +62,7 @@ iOS...
 ================================================================================
 ================================================================================
 ================================================================================
+Please review the contents in the project knowledge to the point where you understand what the Danoggin project is about and how it operates. Pay particular attention to the Foundation.txt file. Do not provide a summary. Await further instruction.
 ================================================================================
 Let's break out the notification logging system into a stand-alone functionality.
 ---------------------

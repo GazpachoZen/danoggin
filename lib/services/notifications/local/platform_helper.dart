@@ -3,11 +3,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:device_info_plus/device_info_plus.dart';
 import 'package:timezone/timezone.dart' as tz;
-import '../base/notification_logger.dart';
+import 'package:danoggin/utils/logger.dart';
 
 /// Helper for platform-specific notification behaviors
 class PlatformHelper {
-  final NotificationLogger _logger = NotificationLogger();
+  final Logger _logger = Logger();
   final FlutterLocalNotificationsPlugin _notifications;
   
   // Channel details for Android

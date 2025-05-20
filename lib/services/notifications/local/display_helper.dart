@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:audioplayers/audioplayers.dart' as audio;
-import '../base/notification_logger.dart';
+import 'package:danoggin/utils/logger.dart';
 
 /// Helper for displaying in-app notifications
 class DisplayHelper {
-  final NotificationLogger _logger = NotificationLogger();
+  final Logger _logger = Logger();
   
   /// Show enhanced in-app notification
   Future<void> showEnhancedInAppNotification(

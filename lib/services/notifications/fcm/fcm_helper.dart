@@ -5,10 +5,11 @@ import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../base/notification_logger.dart';
 import '../../auth_service.dart';
+import 'package:danoggin/utils/logger.dart';
 
 /// Helper class for Firebase Cloud Messaging functionality
 class FCMHelper {
-  final NotificationLogger _logger = NotificationLogger();
+  final Logger _logger = Logger();
   late FirebaseMessaging _messaging;
   
   FCMHelper() {

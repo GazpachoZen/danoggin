@@ -6,7 +6,7 @@ import 'package:timezone/data/latest.dart' as tz_data;
 
 import '../base/notification_service.dart';
 import '../base/notification_handler.dart';
-import '../base/notification_logger.dart';
+import 'package:danoggin/utils/logger.dart';
 import 'platform_helper.dart';
 import 'display_helper.dart';
 
@@ -17,7 +17,7 @@ class LocalNotificationService implements NotificationService {
   factory LocalNotificationService() => _instance;
 
   // Logger and notification plugin
-  final NotificationLogger _logger = NotificationLogger();
+  final Logger _logger = Logger();
   final FlutterLocalNotificationsPlugin _notifications =
       FlutterLocalNotificationsPlugin();
 

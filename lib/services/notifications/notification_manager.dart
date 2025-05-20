@@ -1,11 +1,10 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
-import 'base/notification_logger.dart';
 import 'base/notification_service.dart';
-import 'base/notification_handler.dart'; // Add this import
 import 'local/local_notification_service.dart';
 import 'local/platform_helper.dart';
 import 'fcm/fcm_notification_service.dart';
+import 'package:danoggin/utils/logger.dart';
 import 'fcm/fcm_helper.dart';
 
 /// Central manager for all notification functionality
@@ -17,7 +16,7 @@ class NotificationManager {
   // Services
   late NotificationService _localService;
   late NotificationService _fcmService;
-  final NotificationLogger _logger = NotificationLogger();
+  final Logger _logger = Logger();
 
   // Flag to track services that are registered
   final Set<String> _registeredServices = {};
