@@ -22,7 +22,7 @@ class LogService {
   final Logger _logger = Logger();
   
   // Default support email
-  String _supportEmail = "support@your-domain.com"; // Replace with actual email
+  String _supportEmail = "bluevista+danoggin@gmail.com"; // Replace with actual email
   
   // String representations for log levels (for nice display)
   final Map<LogLevel, String> _logLevelNames = {
