@@ -91,7 +91,6 @@ It would be nice to have a mechanism for an observer to somehow coerce a related
 The app presently uses anonymous authentication for Firebase. We should probably button that up before making this app generally available. I'm not very familiar with Firebase. What would be the necessary steps?
 ================================================================================ Quick hits...
 Get rid of the double set of instructions for enabling notification. (and how do we know when to suggest them?)
-Move log and bell to special "DEBUG" section of settings page (think this through)
 Need ability to email the logs back home
 Change all prints to logs
 Break logging out to its own class

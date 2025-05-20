@@ -1,5 +1,7 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:url_launcher/url_launcher.dart';
 import 'base/notification_service.dart';
 import 'local/local_notification_service.dart';
 import 'local/platform_helper.dart';
@@ -20,6 +22,9 @@ class NotificationManager {
 
   // Flag to track services that are registered
   final Set<String> _registeredServices = {};
+  
+  // Flag to track if permission dialog has been shown this session
+  bool _hasShownPermissionDialog = false;
 
   // Private constructor
   NotificationManager._internal() {
@@ -70,6 +75,130 @@ class NotificationManager {
     await _localService.requestPermissions();
   }
 
+  /// Check notification permissions and show dialog if needed
+  /// Returns true if notifications are enabled
+  Future<bool> checkAndRequestPermissions(BuildContext context) async {
+    // If we've already shown the dialog this session, don't show again
+    if (_hasShownPermissionDialog) {
+      return await areNotificationsEnabled();
+    }
+
+    bool enabled = true;
+    try {
+      enabled = await areNotificationsEnabled();
+    } catch (e) {
+      _logger.e('Error checking notification permissions: $e');
+      return false;
+    }
+
+    // If notifications are already enabled, return true
+    if (enabled) {
+      return true;
+    }
+
+    // Mark that we've shown the dialog
+    _hasShownPermissionDialog = true;
+    
+    // Check if we can directly open settings
+    bool canOpenSettings = await _canLaunchNotificationSettings();
+
+    // Show permission dialog
+    if (context.mounted) {
+      await showDialog(
+        context: context,
+        barrierDismissible: false,
+        builder: (context) => AlertDialog(
+          title: const Text('Enable Notifications'),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'Danoggin requires notifications to function properly.',
+                style: TextStyle(fontWeight: FontWeight.bold),
+              ),
+              SizedBox(height: 12),
+              Text('To enable notifications for Danoggin:'),
+              SizedBox(height: 8),
+              if (Platform.isAndroid) ...[
+                Text('1. Open your device Settings'),
+                Text('2. Tap on Apps or Application Manager'),
+                Text('3. Find and tap on "Danoggin"'),
+                Text('4. Tap on Notifications'),
+                Text('5. Enable "Allow notifications"'),
+              ] else if (Platform.isIOS) ...[
+                Text('1. Open your device Settings'),
+                Text('2. Scroll down and tap on "Danoggin"'),
+                Text('3. Tap on Notifications'),
+                Text('4. Enable "Allow Notifications"'),
+              ],
+              SizedBox(height: 12),
+              Text(
+                'Notifications are important for alerting you about check-ins.',
+                style: TextStyle(fontStyle: FontStyle.italic),
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: Text('Later'),
+            ),
+            if (canOpenSettings)
+              ElevatedButton(
+                onPressed: () {
+                  Navigator.pop(context);
+                  _openNotificationSettings();
+                },
+                child: Text('Open Settings'),
+              ),
+          ],
+        ),
+      );
+    }
+
+    // Return current permission status
+    return enabled;
+  }
+
+  // Check if we can launch notification settings
+  Future<bool> _canLaunchNotificationSettings() async {
+    try {
+      if (Platform.isIOS) {
+        return await canLaunchUrl(Uri.parse('app-settings:'));
+      } else if (Platform.isAndroid) {
+        // For Android, this is more complex and less reliable
+        // For simplicity, we'll return true for Android 6.0 and higher
+        return true;
+      }
+      return false;
+    } catch (e) {
+      _logger.e('Error checking if can launch settings: $e');
+      return false;
+    }
+  }
+
+  // Open notification settings
+  Future<void> _openNotificationSettings() async {
+    try {
+      if (Platform.isIOS) {
+        await launchUrl(Uri.parse('app-settings:'));
+      } else if (Platform.isAndroid) {
+        // Try different approaches for Android
+        try {
+          // Android 8+
+          await launchUrl(Uri.parse('package:com.bluevistas.danoggin'));
+        } catch (e) {
+          _logger.e('Failed to open app settings: $e');
+          // Fallback to app info page on older Android
+          await launchUrl(Uri.parse('package:com.bluevistas.danoggin'));
+        }
+      }
+    } catch (e) {
+      _logger.e('Error opening notification settings: $e');
+    }
+  }
+
   /// Show a notification using the best available method
   Future<bool> useBestNotification({
     required String title,
@@ -82,15 +211,21 @@ class NotificationManager {
     _logger.d("useBestNotification called: title=$title, id=$id");
 
     try {
+      // Get platform helper
+      final platformHelper = (_localService is LocalNotificationService)
+        ? (_localService as LocalNotificationService).platformHelper
+        : null;
+
       // iOS in foreground with context: Use in-app overlay notification
       if (Platform.isIOS &&
-          !_platformHelper.isInBackground &&
-          _platformHelper.currentContext != null &&
+          platformHelper != null && 
+          !platformHelper.isInBackground &&
+          platformHelper.currentContext != null &&
           WidgetsBinding.instance.lifecycleState == AppLifecycleState.resumed) {
         _logger.i("iOS foreground: Using in-app notification");
 
         await _localService.showInAppNotification(
-          context: _platformHelper.currentContext!,
+          context: platformHelper.currentContext!,
           title: title,
           body: body,
           playSound: playSound,
@@ -166,14 +301,6 @@ class NotificationManager {
     _localService.setCurrentContext(context);
   }
 
-  /// Show permission dialog
-  Future<void> showPermissionDialog(BuildContext context) async {
-    if (_localService is LocalNotificationService) {
-      await (_localService as LocalNotificationService)
-          .showPermissionDialog(context);
-    }
-  }
-
   /// Get notification event stream
   Stream<dynamic> get notificationEvents {
     if (_localService is LocalNotificationService) {
@@ -203,17 +330,10 @@ class NotificationManager {
   }
 
   // Helper shortcut to the platform helper
-  PlatformHelper get _platformHelper {
-    return (_localService as LocalNotificationService).platformHelper;
-  }
-
-  void openNotificationSettings(BuildContext context) {
-    if (_localService is LocalNotificationService) {
-      // Use the public platformHelper accessor we created
-      (_localService as LocalNotificationService)
-          .platformHelper
-          .openNotificationSettings(context);
-    }
+  PlatformHelper? get platformHelper {
+    return (_localService is LocalNotificationService)
+        ? (_localService as LocalNotificationService).platformHelper
+        : null;
   }
 
   Future<void> ensureBackgroundNotificationsEnabled() async {
@@ -250,5 +370,17 @@ class NotificationManager {
     } catch (e) {
       _logger.e('Error clearing iOS badge: $e');
     }
+  }
+  
+  // Deprecated method - kept for backward compatibility
+  // but now just redirects to our new implementation
+  Future<void> showPermissionDialog(BuildContext context) async {
+    _logger.w('showPermissionDialog is deprecated. Using checkAndRequestPermissions instead.');
+    await checkAndRequestPermissions(context);
+  }
+  
+  // Provide access to open notification settings directly
+  Future<void> openNotificationSettings(BuildContext context) async {
+    await _openNotificationSettings();
   }
 }

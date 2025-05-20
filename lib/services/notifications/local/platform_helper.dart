@@ -2,8 +2,8 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:device_info_plus/device_info_plus.dart';
-import 'package:timezone/timezone.dart' as tz;
 import 'package:danoggin/utils/logger.dart';
+import 'package:danoggin/services/notifications/notification_manager.dart';
 
 /// Helper for platform-specific notification behaviors
 class PlatformHelper {
@@ -87,129 +87,14 @@ class PlatformHelper {
   }
   
   /// Show platform-specific permission dialog
-  Future<void> showPermissionDialog(BuildContext context) async {
-    if (_permissionDialogShown) return;
-    _permissionDialogShown = true;
-    
-    int sdkVersion = 0;
-    if (Platform.isAndroid) {
-      sdkVersion = await getAndroidSdkVersion();
-    }
-    
-    bool enabled = false;
-    try {
-      // This will need to be updated to call the service's method
-      final plugin = _notifications.resolvePlatformSpecificImplementation
-          <AndroidFlutterLocalNotificationsPlugin>();
-      enabled = await plugin?.areNotificationsEnabled() ?? false;
-    } catch (e) {
-      _logger.e('error checking notification permissions: $e');
-    }
-    
-    if (!enabled && context.mounted) {
-      final String instructions = Platform.isAndroid && sdkVersion >= 33
-          ? 'On Android 13 or higher, you will need to explicitly grant notification permission when prompted.'
-          : Platform.isIOS
-              ? 'On iOS, you need to enable notifications when prompted.'
-              : 'You need to enable notifications in your device settings.';
-              
-      // Show dialog code (same as in the original file)
-      showDialog(
-        context: context,
-        barrierDismissible: false,
-        builder: (context) => AlertDialog(
-          title: const Text('Enable Notifications'),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                'Danoggin requires notifications to function properly.',
-                style: TextStyle(fontWeight: FontWeight.bold),
-              ),
-              SizedBox(height: 8),
-              Text(instructions),
-              SizedBox(height: 12),
-              Text('To enable notifications for Danoggin:'),
-              SizedBox(height: 8),
-              if (Platform.isAndroid) ...[
-                Text('1. Open your device Settings'),
-                Text('2. Tap on Apps or Application Manager'),
-                Text('3. Find and tap on "Danoggin"'),
-                Text('4. Tap on Notifications'),
-                Text('5. Enable "Allow notifications"'),
-              ] else if (Platform.isIOS) ...[
-                Text('1. Open your device Settings'),
-                Text('2. Scroll down and tap on "Danoggin"'),
-                Text('3. Tap on Notifications'),
-                Text('4. Enable "Allow Notifications"'),
-              ],
-              SizedBox(height: 12),
-              Text(
-                'After enabling notifications, return to the app and tap the "Test Notifications" button in the app bar.',
-                style: TextStyle(fontStyle: FontStyle.italic),
-              ),
-            ],
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(context),
-              child: Text('Later'),
-            ),
-            ElevatedButton(
-              onPressed: () {
-                Navigator.pop(context);
-                openNotificationSettings(context);
-              },
-              child: Text('Show Settings Instructions'),
-            ),
-          ],
-        ),
-      );
-    }
-  }
+ Future<void> showPermissionDialog(BuildContext context) async {
+  // Instead of showing its own dialog, delegate to the NotificationManager
+  _logger.i("PlatformHelper: Delegating permission dialog to NotificationManager");
   
-  /// Open notification settings dialog
-  void openNotificationSettings(BuildContext context) {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: Text('Enable Notifications'),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              'To enable notifications for Danoggin, please follow these steps:',
-              style: TextStyle(fontWeight: FontWeight.bold),
-            ),
-            SizedBox(height: 10),
-            if (Platform.isAndroid) ...[
-              Text('1. Open your device Settings'),
-              Text('2. Tap on Apps or Application Manager'),
-              Text('3. Find and tap on "Danoggin"'),
-              Text('4. Tap on Notifications'),
-              Text('5. Enable "Allow notifications"'),
-            ] else if (Platform.isIOS) ...[
-              Text('1. Open your device Settings'),
-              Text('2. Scroll down and tap on "Danoggin"'),
-              Text('3. Tap on Notifications'),
-              Text('4. Enable "Allow Notifications"'),
-            ],
-            SizedBox(height: 10),
-            Text('Notifications are important for alerting you to check-in issues.'),
-          ],
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: Text('OK'),
-          ),
-        ],
-      ),
-    );
-  }
-  
+  // This will ensure only one dialog is shown during the app session
+  await NotificationManager().checkAndRequestPermissions(context);
+}
+ 
   /// Generate platform-specific notification details
   NotificationDetails getPlatformNotificationDetails({bool isIosBackground = false}) {
     // Android notification details

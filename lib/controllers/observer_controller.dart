@@ -223,11 +223,11 @@ class ObserverController {
         // If we can't check, assume they're enabled
       }
 
-      if (!enabled) {
-        // Show manual instructions if notifications are disabled
-        NotificationManager().openNotificationSettings(context);
-        return;
-      }
+      // if (!enabled) {
+      //   // Show manual instructions if notifications are disabled
+      //   NotificationManager().openNotificationSettings(context);
+      //   return;
+      // }
 
       // Use platform-aware notification test method
       await NotificationManager().useBestNotification(

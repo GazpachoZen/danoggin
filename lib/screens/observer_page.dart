@@ -45,13 +45,16 @@ class _ObserverPageState extends State<ObserverPage> {
       if (mounted) setState(() {});
     });
 
-    // Request notification permissions
-    requestNotificationPermissions();
+  // Request notification permissions
+  requestNotificationPermissions();
 
-    // Initialize the controller
-    _controller.initialize();
+  // Initialize the controller
+  _controller.initialize();
 
-    _setupForegroundNotifications();
+  _setupForegroundNotifications();
+  
+  // Add this line to check notification permissions
+  _checkNotificationPermissions();
   }
 
   void _setupForegroundNotifications() {
@@ -192,5 +195,14 @@ class _ObserverPageState extends State<ObserverPage> {
         ),
       );
     }
+  }
+
+  Future<void> _checkNotificationPermissions() async {
+    // Wait for UI to be fully initialized
+    await Future.delayed(Duration(seconds: 2));
+    if (!mounted) return;
+
+    // Use the centralized method from NotificationManager
+    await NotificationManager().checkAndRequestPermissions(context);
   }
 }

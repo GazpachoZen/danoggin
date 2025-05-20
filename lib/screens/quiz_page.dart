@@ -1,3 +1,5 @@
+import 'package:url_launcher/url_launcher.dart';
+import 'dart:io';
 import 'package:danoggin/utils/logger.dart';
 import 'dart:async';
 import 'package:http/http.dart' as http;
@@ -117,42 +119,32 @@ class _QuizPageState extends State<QuizPage> with WidgetsBindingObserver {
     await Future.delayed(Duration(seconds: 2));
     if (!mounted) return;
 
-    // Check if notifications are enabled
-    bool enabled = true;
-    try {
-      enabled = await NotificationManager().areNotificationsEnabled();
-    } catch (e) {
-      Logger().e('Error checking notification permissions: $e');
-      return;
-    }
+    // Use the centralized method from NotificationManager
+    // This will show one dialog if needed and handle all permission logic
+    await NotificationManager().checkAndRequestPermissions(context);
+  }
 
-    // If notifications are disabled, show a more urgent dialog for responders
-    if (!enabled && mounted) {
-      showDialog(
-        context: context,
-        barrierDismissible: false, // User must respond to dialog
-        builder: (context) => AlertDialog(
-          title: Text('Important: Enable Notifications'),
-          content: Text('Notifications appear to be disabled for this app. '
-              'As a Responder, you need notifications to be alerted when it\'s time for a check-in.\n\n'
-              'Please enable notifications for this app in your device settings to '
-              'ensure you receive check-in alerts.'),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(context),
-              child: Text('Later'),
-            ),
-            ElevatedButton(
-              onPressed: () {
-                Navigator.pop(context);
-                // Show manual instructions
-                NotificationManager().openNotificationSettings(context);
-              },
-              child: Text('Show Instructions'),
-            ),
-          ],
-        ),
-      );
+// Add this new method to directly open settings without showing another dialog
+  void _directlyOpenNotificationSettings() {
+    try {
+      // On iOS, we can try to directly open the app's notification settings
+      if (Platform.isIOS) {
+        final Uri settingsUrl = Uri.parse('app-settings:notification');
+        launchUrl(settingsUrl);
+      }
+      // On Android, we can try to directly open the app's notification settings
+      else if (Platform.isAndroid) {
+        final Uri settingsUrl = Uri.parse(
+            'package:${const String.fromEnvironment('PACKAGE_NAME', defaultValue: 'com.example.danoggin')}');
+        launchUrl(settingsUrl);
+      }
+      // If direct launch fails or on other platforms, just log the attempt
+      else {
+        Logger()
+            .i('Cannot directly open notification settings on this platform');
+      }
+    } catch (e) {
+      Logger().e('Error opening notification settings: $e');
     }
   }
 
