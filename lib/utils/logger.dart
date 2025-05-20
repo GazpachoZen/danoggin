@@ -10,7 +10,7 @@ class Logger {
 
   // Logging queue
   final Queue<String> _logMessages = Queue<String>();
-  static const int _maxLogMessages = 200;
+  static const int _maxLogMessages = 400;
   
   // Callback function for external integrations
   Function(String)? _onLogCallback;
@@ -19,7 +19,6 @@ class Logger {
   void log(String message) {
     final timestamp = DateTime.now().toString().substring(0, 19);
     final logMessage = "$timestamp: $message";
-    print(logMessage);
 
     // Add to our queue with a maximum size
     _logMessages.add(logMessage);

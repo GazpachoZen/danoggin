@@ -60,7 +60,7 @@ class _ObserverManageRespondersScreenState extends State<ObserverManageResponder
         });
       }
     } catch (e) {
-      print('Error loading responders: $e');
+      print('❌ Error loading responders: $e');
       setState(() {
         _loadingResponders = false;
       });
@@ -139,7 +139,7 @@ class _ObserverManageRespondersScreenState extends State<ObserverManageResponder
         _message = 'You are now linked to $responderName!';
       });
     } catch (e) {
-      print('Error linking to responder: $e');
+      print('❌ Error linking to responder: $e');
       setState(() {
         _loading = false;
         _message = 'An error occurred. Please try again.';
@@ -227,7 +227,7 @@ class _ObserverManageRespondersScreenState extends State<ObserverManageResponder
         );
       }
     } catch (e) {
-      print('Error unlinking responder: $e');
+      print('❌ Error unlinking responder: $e');
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Error unlinking. Please try again.')),

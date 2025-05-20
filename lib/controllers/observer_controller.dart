@@ -58,7 +58,7 @@ class ObserverController {
       inactivityThresholdHours = threshold;
       onStateChanged();
     } catch (e) {
-      print('Error loading inactivity threshold: $e');
+      print('❌ Error loading inactivity threshold: $e');
     }
   }
 
@@ -99,7 +99,7 @@ class ObserverController {
 
       onStateChanged();
     } catch (e) {
-      print('Error loading responders: $e');
+      print('❌ Error loading responders: $e');
     }
   }
 
@@ -162,7 +162,7 @@ class ObserverController {
         // Create a unique identifier for this check-in
         final checkInKey = "$responderUid:$docId";
       }, onError: (error) {
-        print('Error in check-in listener for $responderName: $error');
+        print('❌ Error in check-in listener for $responderName: $error');
       });
 
       // Store the subscription for later cleanup
@@ -218,7 +218,7 @@ class ObserverController {
       try {
         enabled = await NotificationManager().areNotificationsEnabled();
       } catch (e) {
-        print('Error checking notification permissions: $e');
+        print('❌ Error checking notification permissions: $e');
         // If we can't check, assume they're enabled
       }
 
@@ -244,7 +244,7 @@ class ObserverController {
         ),
       );
     } catch (e) {
-      print('Error testing notifications: $e');
+      print('❌ Error testing notifications: $e');
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('Error sending test notification: $e'),

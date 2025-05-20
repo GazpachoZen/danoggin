@@ -55,7 +55,7 @@ class QuestionPackService {
         final pack = await QuestionPack.loadFromFirestore(packId);
         subscribedPacks.add(pack);
       } catch (e) {
-        print('Error loading pack $packId: $e');
+        print('❌ Error loading pack $packId: $e');
       }
     }
     
@@ -65,7 +65,7 @@ class QuestionPackService {
         final demoPack = await QuestionPack.loadFromFirestore('demo_pack');
         subscribedPacks.add(demoPack);
       } catch (e) {
-        print('Error loading fallback demo_pack: $e');
+        print('❌ Error loading fallback demo_pack: $e');
       }
     }
     

@@ -58,7 +58,7 @@ class _ResponderManageObserversScreenState extends State<ResponderManageObserver
         });
       }
     } catch (e) {
-      print('Error loading observers: $e');
+      print('❌ Error loading observers: $e');
       setState(() {
         _loadingObservers = false;
       });
@@ -145,7 +145,7 @@ class _ResponderManageObserversScreenState extends State<ResponderManageObserver
         );
       }
     } catch (e) {
-      print('Error removing observer: $e');
+      print('❌ Error removing observer: $e');
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Error removing observer. Please try again.')),

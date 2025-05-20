@@ -74,7 +74,7 @@ class InactivityMonitor {
           print('Converted active hours: $startTime -> $convertedStartTime');
           print('Converted active hours: $endTime -> $convertedEndTime');
         } catch (e) {
-          print('Error converting time zones: $e');
+          print('❌ Error converting time zones: $e');
           // Continue with original times if conversion fails
         }
       }
@@ -205,7 +205,7 @@ class InactivityMonitor {
             'Responder $responderName is active within threshold (${timeSinceLastActivity.inHours} hours)');
       }
     } catch (e) {
-      print('Error checking inactivity for responder $responderName: $e');
+      print('❌ Error checking inactivity for responder $responderName: $e');
     }
   }
 
@@ -245,7 +245,7 @@ class InactivityMonitor {
       // Update tracking
       onAlertSent(alertKey);
     } catch (e) {
-      print('Error sending inactivity alert: $e');
+      print('❌ Error sending inactivity alert: $e');
     }
   }
 }

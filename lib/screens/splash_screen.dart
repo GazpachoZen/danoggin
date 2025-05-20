@@ -76,7 +76,7 @@ class _SplashScreenState extends State<SplashScreen>
       });
       print('App version: $_version+$_buildNumber');
     } catch (e) {
-      print('Error getting package info: $e');
+      print('❌ Error getting package info: $e');
       // If we can't get version info, just continue with empty values
     }
   }
@@ -89,7 +89,7 @@ class _SplashScreenState extends State<SplashScreen>
         // Just verify NotificationHelper is working, initialization happened in main.dart
         print('Notification system verification...');
       } catch (e) {
-        print('Error verifying notifications: $e');
+        print('❌ Error verifying notifications: $e');
         // Continue with app initialization even if notification verification fails
       }
 

@@ -121,7 +121,7 @@ class _QuizPageState extends State<QuizPage> with WidgetsBindingObserver {
     try {
       enabled = await NotificationManager().areNotificationsEnabled();
     } catch (e) {
-      print('Error checking notification permissions: $e');
+      print('❌ Error checking notification permissions: $e');
       return;
     }
 

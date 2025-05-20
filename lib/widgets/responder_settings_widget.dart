@@ -146,7 +146,7 @@ class _ResponderSettingsWidgetState extends State<ResponderSettingsWidget> {
         ),
       );
     } catch (e) {
-      print('Error syncing settings to Firestore: $e');
+      print('❌ Error syncing settings to Firestore: $e');
 
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(

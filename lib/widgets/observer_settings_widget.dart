@@ -53,7 +53,7 @@ class _ObserverSettingsWidgetState extends State<ObserverSettingsWidget> {
         inactivityThresholdHours = threshold.toDouble();
       });
     } catch (e) {
-      print('Error loading inactivity threshold: $e');
+      print('❌ Error loading inactivity threshold: $e');
     }
   }
 
@@ -73,7 +73,7 @@ class _ObserverSettingsWidgetState extends State<ObserverSettingsWidget> {
         ),
       );
     } catch (e) {
-      print('Error saving inactivity threshold: $e');
+      print('❌ Error saving inactivity threshold: $e');
 
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(

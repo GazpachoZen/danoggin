@@ -88,7 +88,7 @@ class QuizController {
         }
       }
     } catch (e) {
-      print('Error loading user name: $e');
+      print('❌ Error loading user name: $e');
     }
     return "Responder";
   }
@@ -116,7 +116,7 @@ class QuizController {
       isLoading = false;
       onStateChanged();
     } catch (e) {
-      print('Error loading packs: $e');
+      print('❌ Error loading packs: $e');
     }
   }
 

@@ -14,8 +14,11 @@ import 'package:firebase_core/firebase_core.dart';
 import '../firebase_options.dart';
 import 'dart:io';
 import 'package:firebase_messaging/firebase_messaging.dart';
+import 'package:danoggin/utils/logger.dart';
 
 // In main.dart, modify your main function:
+
+final Logger _logger = Logger();
 
 void main() async {
   // Ensure Flutter binding is initialized
@@ -31,25 +34,25 @@ void main() async {
     await Firebase.initializeApp(
       options: DefaultFirebaseOptions.currentPlatform,
     );
-    print('Firebase initialized successfully in main()!');
+    _logger.log('Firebase initialized successfully in main()!');
 
     // Set up background message handler after Firebase is initialized
     FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
-    print('FCM background handler registered');
+    _logger.log('FCM background handler registered');
   } catch (e) {
-    print('Error initializing Firebase in main(): $e');
+    _logger.log('Error initializing Firebase in main(): $e');
   }
 
   try {
     // Initialize only the local notification service
     await NotificationManager().initialize();
-    print('Notification system initialized in main()');
+    _logger.log('Notification system initialized in main()');
 
     // Add these new calls for improved notification handling
     await NotificationManager().ensureBackgroundNotificationsEnabled();
     await NotificationManager().requestNotificationPermissions();
   } catch (e) {
-    print('Error initializing notifications in main(): $e');
+    _logger.log('Error initializing notifications in main(): $e');
   }
 }
 
@@ -62,7 +65,7 @@ Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
     );
   }
 
-  print("Handling a background message: ${message.messageId}");
+  _logger.log("Handling a background message: ${message.messageId}");
 }
 
 class MyApp extends StatelessWidget {
@@ -100,7 +103,7 @@ class _NotificationPermissionObserver extends NavigatorObserver {
       // Delay slightly to ensure UI is fully loaded
       Future.delayed(Duration(seconds: 2), () async {
         if (navigator?.context != null) {
-          print('Checking notification permissions after app loaded');
+          _logger.log('Checking notification permissions after app loaded');
           await NotificationManager().showPermissionDialog(navigator!.context);
         }
       });
@@ -137,14 +140,14 @@ class _AppLifecycleHandlerState extends State<AppLifecycleHandler>
   // Modified to prevent false detection when resuming
   void _checkForMultipleInstances() {
     if (_hasActiveInstance && !_isResumed) {
-      print('WARNING: Multiple instances of Danoggin detected!');
+      _logger.log('WARNING: Multiple instances of Danoggin detected!');
       // Force exit this instance after a short delay to ensure message is logged
       Future.delayed(Duration(milliseconds: 100), () {
         exit(0); // This will terminate the current instance
       });
     } else {
       _hasActiveInstance = true;
-      print('Danoggin instance initialized and active');
+      _logger.log('Danoggin instance initialized and active');
     }
   }
 
@@ -167,13 +170,13 @@ class _AppLifecycleHandlerState extends State<AppLifecycleHandler>
     if (state == AppLifecycleState.resumed) {
       // App came to foreground
       _isResumed = true;
-      print('App resumed - checking for multiple instances');
+      _logger.log('App resumed - checking for multiple instances');
       _checkForMultipleInstances();
     } else if (state == AppLifecycleState.detached) {
       // App is being terminated
       _hasActiveInstance = false;
       _isResumed = false;
-      print('Danoggin instance terminated');
+      _logger.log('Danoggin instance terminated');
     } else if (state == AppLifecycleState.inactive ||
         state == AppLifecycleState.paused) {
       // App is in background or inactive

@@ -27,7 +27,7 @@ class TimezoneHelper {
       final now = tz.TZDateTime.now(detroit);
       return now.location.name;
     } catch (e) {
-      print('Error getting time zone: $e');
+      print('❌ Error getting time zone: $e');
       return 'UTC'; // Default fallback
     }
   }
@@ -59,7 +59,7 @@ class TimezoneHelper {
       // Return as TimeOfDay
       return TimeOfDay(hour: targetDateTime.hour, minute: targetDateTime.minute);
     } catch (e) {
-      print('Error converting time zones: $e');
+      print('❌ Error converting time zones: $e');
       // Return original time if conversion fails
       return time;
     }

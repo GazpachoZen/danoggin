@@ -52,7 +52,7 @@ class _QuestionPackSelectorWidgetState
         _isLoading = false;
       });
     } catch (e) {
-      print('Error loading question packs: $e');
+      print('❌ Error loading question packs: $e');
       setState(() => _isLoading = false);
     }
   }

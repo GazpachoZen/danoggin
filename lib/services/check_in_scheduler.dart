@@ -45,7 +45,7 @@ class CheckInScheduler {
         return _scheduleForNextActiveStart(nextTime, activeStartHour);
       }
     } catch (e) {
-      print('Error in timezone calculation: $e');
+      print('❌ Error in timezone calculation: $e');
       // Fallback: just add interval
       return nextTime;
     }
@@ -129,7 +129,7 @@ class CheckInScheduler {
       
       print('CheckInScheduler: Next check-in scheduled for ${nextCheckInTime.toIso8601String()}');
     } catch (e) {
-      print('Error updating next check-in time: $e');
+      print('❌ Error updating next check-in time: $e');
       rethrow;
     }
   }
@@ -173,7 +173,7 @@ class CheckInScheduler {
       );
       
     } catch (e) {
-      print('Error updating schedule after check-in: $e');
+      print('❌ Error updating schedule after check-in: $e');
       rethrow;
     }
   }
@@ -195,7 +195,7 @@ class CheckInScheduler {
         lastCheckInTime: null, // Use current time as base
       );
     } catch (e) {
-      print('Error updating schedule after settings change: $e');
+      print('❌ Error updating schedule after settings change: $e');
       rethrow;
     }
   }
@@ -209,7 +209,7 @@ class CheckInScheduler {
         minute: int.parse(parts[1]),
       );
     } catch (e) {
-      print('Error parsing time string "$timeStr": $e');
+      print('❌ Error parsing time string "$timeStr": $e');
       // Return default time
       return TimeOfDay(hour: 8, minute: 0);
     }
@@ -231,7 +231,7 @@ class CheckInScheduler {
       final nextCheckInTimestamp = checkInSettings['nextCheckInTime'] as Timestamp?;
       return nextCheckInTimestamp?.toDate();
     } catch (e) {
-      print('Error getting next check-in time: $e');
+      print('❌ Error getting next check-in time: $e');
       return null;
     }
   }
@@ -258,7 +258,7 @@ class CheckInScheduler {
       
       return now.isAfter(dueTime) && now.isBefore(expireTime);
     } catch (e) {
-      print('Error checking if check-in is due: $e');
+      print('❌ Error checking if check-in is due: $e');
       return false;
     }
   }

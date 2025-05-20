@@ -25,7 +25,7 @@ class FirebaseService {
       _initialized = true;
       return _app!;
     } catch (e) {
-      print('Error initializing Firebase in service: $e');
+      print('❌ Error initializing Firebase in service: $e');
       rethrow;
     }
   }
