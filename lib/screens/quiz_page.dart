@@ -340,29 +340,12 @@ class _QuizPageState extends State<QuizPage> with WidgetsBindingObserver {
               );
             },
           ),
-        // Only keep the notification test button
-        IconButton(
-          icon: const Icon(Icons.notifications),
-          tooltip: 'Test FCM Pipeline',
-          onPressed: _testNotifications,
-        ),
         // Keep the settings button
         IconButton(
           icon: const Icon(Icons.settings),
           onPressed: () => _navigateToSettings(),
         ),
         // Keep the logs viewer button for debugging
-        IconButton(
-          icon: const Icon(Icons.list),
-          tooltip: 'View Logs',
-          onPressed: () {
-            Navigator.of(context).push(
-              MaterialPageRoute(
-                builder: (_) => LogsViewerScreen(),
-              ),
-            );
-          },
-        ),
       ],
     );
   }

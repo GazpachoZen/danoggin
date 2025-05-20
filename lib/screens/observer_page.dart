@@ -115,22 +115,6 @@ class _ObserverPageState extends State<ObserverPage> {
       title: const Text('Observer Dashboard'),
       actions: [
         IconButton(
-          icon: const Icon(Icons.notifications),
-          tooltip: 'Test Notifications',
-          onPressed: () => _controller.testNotifications(context),
-        ),
-        IconButton(
-          icon: const Icon(Icons.list),
-          tooltip: 'View Logs',
-          onPressed: () {
-            Navigator.of(context).push(
-              MaterialPageRoute(
-                builder: (_) => LogsViewerScreen(),
-              ),
-            );
-          },
-        ),
-        IconButton(
           icon: const Icon(Icons.settings),
           onPressed: _navigateToSettings,
         ),
