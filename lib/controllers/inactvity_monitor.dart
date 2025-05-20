@@ -3,6 +3,7 @@ import 'package:intl/intl.dart';
 import 'package:flutter/material.dart';
 import 'package:danoggin/services/notifications/notification_manager.dart';
 import 'package:danoggin/utils/timezone_helper.dart';
+import 'package:danoggin/utils/logger.dart';
 
 // Development mode flag - set to false for production
 const bool kDevModeEnabled = true;
@@ -25,7 +26,7 @@ class InactivityMonitor {
     try {
       // Skip check if active hours are not available
       if (activeHours == null) {
-        print('No active hours available for responder: $responderName');
+        Logger().i('No active hours available for responder: $responderName');
         return;
       }
 
@@ -35,7 +36,7 @@ class InactivityMonitor {
       final responderTimeZone = activeHours['timeZone'] as String?;
 
       if (startHourStr == null || endHourStr == null) {
-        print('Invalid active hours for responder: $responderName');
+        Logger().i('Invalid active hours for responder: $responderName');
         return;
       }
 
@@ -58,7 +59,7 @@ class InactivityMonitor {
       TimeOfDay convertedEndTime = endTime;
 
       if (responderTimeZone != null && responderTimeZone != observerTimeZone) {
-        print(
+        Logger().i(
             'Converting from responder time zone ($responderTimeZone) to observer time zone ($observerTimeZone)');
 
         try {
@@ -71,10 +72,10 @@ class InactivityMonitor {
           convertedEndTime = TimezoneHelper.convertTimeOfDay(
               endTime, responderTimeZone, observerTimeZone);
 
-          print('Converted active hours: $startTime -> $convertedStartTime');
-          print('Converted active hours: $endTime -> $convertedEndTime');
+          Logger().i('Converted active hours: $startTime -> $convertedStartTime');
+          Logger().i('Converted active hours: $endTime -> $convertedEndTime');
         } catch (e) {
-          print('❌ Error converting time zones: $e');
+          Logger().e('Error converting time zones: $e');
           // Continue with original times if conversion fails
         }
       }
@@ -82,9 +83,9 @@ class InactivityMonitor {
       // Check if current time is within active hours
       if (!TimezoneHelper.isWithinActiveHours(
           currentTime, convertedStartTime, convertedEndTime)) {
-        print(
+        Logger().i(
             'Current time is outside active hours for responder: $responderName');
-        print('Current: ${currentTime.hour}:${currentTime.minute}, ' +
+        Logger().i('Current: ${currentTime.hour}:${currentTime.minute}, ' +
             'Active hours: ${convertedStartTime.hour}:${convertedStartTime.minute} - ' +
             '${convertedEndTime.hour}:${convertedEndTime.minute}');
         return;
@@ -101,7 +102,7 @@ class InactivityMonitor {
 
       // If no check-ins found, this might be a new user
       if (snapshot.docs.isEmpty) {
-        print('No check-ins found for responder: $responderName');
+        Logger().i('No check-ins found for responder: $responderName');
         return;
       }
 
@@ -111,14 +112,14 @@ class InactivityMonitor {
       final timestampStr = latestData['timestamp'] as String?;
 
       if (timestampStr == null) {
-        print(
+        Logger().i(
             'Invalid timestamp for latest check-in of responder: $responderName');
         return;
       }
 
       final timestamp = DateTime.tryParse(timestampStr);
       if (timestamp == null) {
-        print(
+        Logger().i(
             'Failed to parse timestamp for latest check-in of responder: $responderName');
         return;
       }
@@ -128,10 +129,10 @@ class InactivityMonitor {
 
       // In dev mode, print detailed inactivity time info
       if (kDevModeEnabled) {
-        print(
+        Logger().i(
             'DEV MODE: $responderName\'s last activity was ${timeSinceLastActivity.inHours} hours and ' +
                 '${timeSinceLastActivity.inMinutes % 60} minutes ago');
-        print('DEV MODE: Threshold set to $inactivityThresholdHours hours');
+        Logger().i('DEV MODE: Threshold set to $inactivityThresholdHours hours');
       }
 
       // Check if inactive for longer than threshold
@@ -141,7 +142,7 @@ class InactivityMonitor {
         isInactive =
             timeSinceLastActivity.inMinutes >= inactivityThresholdHours;
         if (isInactive) {
-          print(
+          Logger().i(
               'DEV MODE ULTRA-FAST: Using minutes (${timeSinceLastActivity.inMinutes}) instead of hours for testing!');
         }
       } else {
@@ -156,7 +157,7 @@ class InactivityMonitor {
 
         // Check if we've already sent an alert for this inactivity period
         if (alertKey == lastInactivityAlertKey) {
-          print('Already sent inactivity alert for responder: $responderName');
+          Logger().i('Already sent inactivity alert for responder: $responderName');
           return;
         }
 
@@ -196,16 +197,16 @@ class InactivityMonitor {
           triggerRefresh: true,
         );
 
-        print('Inactivity alert sent for responder: $responderName');
+        Logger().i('Inactivity alert sent for responder: $responderName');
 
         // Update tracking
         onAlertSent(alertKey);
       } else {
-        print(
+        Logger().i(
             'Responder $responderName is active within threshold (${timeSinceLastActivity.inHours} hours)');
       }
     } catch (e) {
-      print('❌ Error checking inactivity for responder $responderName: $e');
+      Logger().e('Error checking inactivity for responder $responderName: $e');
     }
   }
 
@@ -240,12 +241,12 @@ class InactivityMonitor {
         triggerRefresh: true,
       );
 
-      print('Inactivity alert sent for responder: $responderName');
+      Logger().i('Inactivity alert sent for responder: $responderName');
 
       // Update tracking
       onAlertSent(alertKey);
     } catch (e) {
-      print('❌ Error sending inactivity alert: $e');
+      Logger().e('Error sending inactivity alert: $e');
     }
   }
 }

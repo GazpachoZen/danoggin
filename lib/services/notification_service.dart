@@ -6,6 +6,7 @@
 // licensing or permissions, contact: ivory@blue-vistas.com
 //------------------------------------------------------------------------
 
+import 'package:danoggin/utils/logger.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:timezone/data/latest_all.dart' as tz;
@@ -16,7 +17,7 @@ class NotificationService {
   static final _notifications = FlutterLocalNotificationsPlugin();
 
   static Future<void> initialize() async {
-    print("Initializing notification service...");
+    Logger().i("Initializing notification service...");
 
     // Android initialization settings
     final androidInit = AndroidInitializationSettings('@mipmap/ic_launcher');
@@ -38,26 +39,26 @@ class NotificationService {
     final success = await _notifications.initialize(
       initSettings,
       onDidReceiveNotificationResponse: (NotificationResponse response) {
-        print("Notification clicked: ${response.id}");
+        Logger().i("Notification clicked: ${response.id}");
         // Handle notification tap
       },
     );
 
-    print("Notification initialization result: $success");
+    Logger().i("Notification initialization result: $success");
 
     // Initialize timezone data
     tz.initializeTimeZones();
     final locationName = await tz.TZDateTime.now(tz.local).timeZoneName;
-    print("Using timezone: $locationName");
+    Logger().i("Using timezone: $locationName");
 
     // In earlier versions of flutter_local_notifications,
     // permissions are handled through channel creation
-    print("Setting up notification channels (which handles permissions)");
+    Logger().i("Setting up notification channels (which handles permissions)");
 
     // Create the notification channels
     await _createNotificationChannels();
 
-    print("Notification service initialization complete");
+    Logger().i("Notification service initialization complete");
   }
 
   static Future<void> _createNotificationChannels() async {
@@ -88,7 +89,7 @@ class NotificationService {
         enableLights: true,
       ));
 
-      print("Notification channels created");
+      Logger().i("Notification channels created");
     }
   }
 
@@ -119,7 +120,7 @@ class NotificationService {
       );
     } catch (e) {
       // Fallback using delayed useBestNotification
-      debugPrint(
+      Logger().i(
           'zonedSchedule failed, falling back to delayed notification: $e');
       Future.delayed(Duration(seconds: delaySeconds), () async {
         await NotificationManager().useBestNotification(
@@ -155,7 +156,7 @@ class NotificationService {
           NotificationDetails(android: androidDetails);
 
       // Add debug logging
-      print("⚠️ Showing notification: Title='$title', Body='$body', ID=$id");
+      Logger().i("⚠️ Showing notification: Title='$title', Body='$body', ID=$id");
 
       await _notifications.show(
         id,
@@ -164,9 +165,9 @@ class NotificationService {
         platformDetails,
       );
 
-      print("✓ Notification sent successfully");
+      Logger().i("✓ Notification sent successfully");
     } catch (e) {
-      print("❌ Error showing notification: $e");
+      Logger().i("❌ Error showing notification: $e");
       // Try a fallback method
       try {
         await NotificationManager().useBestNotification(
@@ -176,7 +177,7 @@ class NotificationService {
           triggerRefresh: true,
         );
       } catch (e2) {
-        print("❌❌ Fallback notification also failed: $e2");
+        Logger().i("❌❌ Fallback notification also failed: $e2");
       }
     }
   }

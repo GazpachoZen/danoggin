@@ -1,3 +1,4 @@
+import 'package:danoggin/utils/logger.dart';
 import 'dart:async';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
@@ -121,7 +122,7 @@ class _QuizPageState extends State<QuizPage> with WidgetsBindingObserver {
     try {
       enabled = await NotificationManager().areNotificationsEnabled();
     } catch (e) {
-      print('❌ Error checking notification permissions: $e');
+      Logger().e('Error checking notification permissions: $e');
       return;
     }
 

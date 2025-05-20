@@ -1,3 +1,4 @@
+import 'package:danoggin/utils/logger.dart';
 import 'package:timezone/timezone.dart' as tz;
 import 'package:timezone/data/latest.dart' as tz_data;
 import 'package:flutter/material.dart';
@@ -27,7 +28,7 @@ class TimezoneHelper {
       final now = tz.TZDateTime.now(detroit);
       return now.location.name;
     } catch (e) {
-      print('❌ Error getting time zone: $e');
+      Logger().e('Error getting time zone: $e');
       return 'UTC'; // Default fallback
     }
   }
@@ -59,7 +60,7 @@ class TimezoneHelper {
       // Return as TimeOfDay
       return TimeOfDay(hour: targetDateTime.hour, minute: targetDateTime.minute);
     } catch (e) {
-      print('❌ Error converting time zones: $e');
+      Logger().e('Error converting time zones: $e');
       // Return original time if conversion fails
       return time;
     }

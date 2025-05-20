@@ -5,8 +5,7 @@
 // distribution of this file, via any medium, is strictly prohibited. For
 // licensing or permissions, contact: danoggin@blue-vistas.com
 //------------------------------------------------------------------------
-
-// widgets/question_pack_selector_widget.dart
+import 'package:danoggin/utils/logger.dart';
 import 'package:flutter/material.dart';
 import 'package:danoggin/models/question_pack.dart';
 import 'package:danoggin/services/question_pack_service.dart';
@@ -52,7 +51,7 @@ class _QuestionPackSelectorWidgetState
         _isLoading = false;
       });
     } catch (e) {
-      print('❌ Error loading question packs: $e');
+      Logger().e('Error loading question packs: $e');
       setState(() => _isLoading = false);
     }
   }

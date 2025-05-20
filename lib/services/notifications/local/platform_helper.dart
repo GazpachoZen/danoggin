@@ -31,20 +31,20 @@ class PlatformHelper {
   /// Set current context for notifications
   void setCurrentContext(BuildContext? context) {
     _currentContext = context;
-    _logger.log("Current notification context ${context != null ? 'set' : 'cleared'}");
+    _logger.i("Current notification context ${context != null ? 'set' : 'cleared'}");
   }
   
   /// Track application lifecycle state
   void trackAppState(AppLifecycleState state) {
     if (state == AppLifecycleState.paused || state == AppLifecycleState.detached) {
       _appInBackground = true;
-      _logger.log("App entered background state: $state");
+      _logger.i("App entered background state: $state");
     } else if (state == AppLifecycleState.resumed) {
       _appInBackground = false;
-      _logger.log("App entered foreground state: $state");
+      _logger.i("App entered foreground state: $state");
     } else {
       // For inactive and hidden states, don't change the background flag
-      _logger.log("App in transition state: $state (keeping isBackground: $_appInBackground)");
+      _logger.i("App in transition state: $state (keeping isBackground: $_appInBackground)");
     }
   }
   
@@ -64,10 +64,10 @@ class PlatformHelper {
           );
           
           await androidPlugin.createNotificationChannel(channel);
-          _logger.log('Android notification channel created successfully');
+          _logger.i('Android notification channel created successfully');
         }
       } catch (e) {
-        _logger.log('Error creating Android notification channel: $e');
+        _logger.e('error creating Android notification channel: $e');
       }
     }
   }
@@ -81,7 +81,7 @@ class PlatformHelper {
       final androidInfo = await deviceInfo.androidInfo;
       return androidInfo.version.sdkInt;
     } catch (e) {
-      _logger.log('Error getting Android SDK version: $e');
+      _logger.e('error getting Android SDK version: $e');
       return 0;
     }
   }
@@ -103,7 +103,7 @@ class PlatformHelper {
           <AndroidFlutterLocalNotificationsPlugin>();
       enabled = await plugin?.areNotificationsEnabled() ?? false;
     } catch (e) {
-      _logger.log('Error checking notification permissions: $e');
+      _logger.e('error checking notification permissions: $e');
     }
     
     if (!enabled && context.mounted) {

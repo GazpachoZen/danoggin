@@ -6,7 +6,6 @@ import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import '../base/notification_service.dart';
 import '../base/notification_handler.dart';
-import '../base/notification_logger.dart';
 import '../notification_manager.dart';
 import 'fcm_helper.dart';
 import 'package:danoggin/utils/logger.dart';
@@ -46,11 +45,11 @@ class FCMNotificationService implements NotificationService {
   Future<void> initialize() async {
     if (_isInitialized) return;
 
-    _logger.log('=== FCM INITIALIZATION STARTING ===');
+    _logger.i('=== FCM INITIALIZATION STARTING ===');
 
     try {
       if (Firebase.apps.isNotEmpty) {
-        _logger.log('Firebase is available, proceeding with FCM setup');
+        _logger.i('Firebase is available, proceeding with FCM setup');
         _messaging = FirebaseMessaging.instance;
 
         // Set up message handlers first
@@ -70,17 +69,17 @@ class FCMNotificationService implements NotificationService {
 
         // Set up token refresh listener
         FirebaseMessaging.instance.onTokenRefresh.listen((token) {
-          _logger.log('FCM token refreshed, saving new token');
+          _logger.i('FCM token refreshed, saving new token');
           _fcmHelper.getAndSaveToken();
         });
 
         _isInitialized = true;
-        _logger.log('FCM notification service initialized successfully');
+        _logger.i('FCM notification service initialized successfully');
       } else {
-        _logger.log('Firebase not initialized yet, FCM initialization skipped');
+        _logger.i('Firebase not initialized yet, FCM initialization skipped');
       }
     } catch (e) {
-      _logger.log('Error initializing FCM notification service: $e');
+      _logger.e('error initializing FCM notification service: $e');
     }
   }
 
@@ -94,10 +93,10 @@ class FCMNotificationService implements NotificationService {
       final settings = await _messaging.getNotificationSettings();
       final enabled =
           settings.authorizationStatus == AuthorizationStatus.authorized;
-      _logger.log('FCM notifications enabled: $enabled');
+      _logger.i('FCM notifications enabled: $enabled');
       return enabled;
     } catch (e) {
-      _logger.log('Error checking FCM notification permissions: $e');
+      _logger.e('error checking FCM notification permissions: $e');
       return false;
     }
   }
@@ -110,7 +109,7 @@ class FCMNotificationService implements NotificationService {
   // Handle messages received while app is in foreground
 // Handle messages received while app is in foreground
   void _handleForegroundMessage(RemoteMessage message) {
-    _logger.log('Handling foreground FCM message: ${message.messageId}');
+    _logger.i('Handling foreground FCM message: ${message.messageId}');
 
     try {
       final notification = message.notification;
@@ -137,9 +136,9 @@ class FCMNotificationService implements NotificationService {
       // Add to event stream
       _handler.addNotificationEvent(eventData);
 
-      _logger.log('FCM foreground message processed');
+      _logger.i('FCM foreground message processed');
     } catch (e) {
-      _logger.log('Error handling FCM foreground message: $e');
+      _logger.e('error handling FCM foreground message: $e');
     }
   }
 
@@ -159,15 +158,15 @@ class FCMNotificationService implements NotificationService {
         triggerRefresh: false,
       );
 
-      _logger.log('Foreground notification displayed: $title');
+      _logger.i('Foreground notification displayed: $title');
     } catch (e) {
-      _logger.log('Error showing foreground notification: $e');
+      _logger.e('error showing foreground notification: $e');
     }
   }
 
   // Handle when app is opened from notification in background/terminated state
   void _handleMessageOpenedApp(RemoteMessage message) {
-    _logger.log('App opened from FCM notification: ${message.messageId}');
+    _logger.i('App opened from FCM notification: ${message.messageId}');
 
     try {
       final notification = message.notification;
@@ -185,14 +184,14 @@ class FCMNotificationService implements NotificationService {
       // Add to event stream
       _handler.addNotificationEvent(eventData);
     } catch (e) {
-      _logger.log('Error handling opened app FCM message: $e');
+      _logger.e('error handling opened app FCM message: $e');
     }
   }
 
   // Handle initial message (app opened from terminated state)
   void _handleInitialMessage(RemoteMessage message) {
     _logger
-        .log('App opened from terminated state via FCM: ${message.messageId}');
+        .i('App opened from terminated state via FCM: ${message.messageId}');
 
     try {
       final notification = message.notification;
@@ -210,7 +209,7 @@ class FCMNotificationService implements NotificationService {
       // Add to event stream
       _handler.addNotificationEvent(eventData);
     } catch (e) {
-      _logger.log('Error handling initial FCM message: $e');
+      _logger.e('error handling initial FCM message: $e');
     }
   }
 
@@ -225,7 +224,7 @@ class FCMNotificationService implements NotificationService {
     // FCM can't directly show notifications from the client
     // This is just a placeholder that returns false to indicate
     // it couldn't show a notification (which is expected behavior)
-    _logger.log('FCM cannot show notifications directly from client');
+    _logger.i('FCM cannot show notifications directly from client');
     return false;
   }
 
@@ -239,7 +238,7 @@ class FCMNotificationService implements NotificationService {
     Map<String, dynamic>? payload,
   }) async {
     // FCM can't directly schedule notifications from the client
-    _logger.log('FCM cannot schedule notifications directly from client');
+    _logger.i('FCM cannot schedule notifications directly from client');
     return false;
   }
 
@@ -251,19 +250,19 @@ class FCMNotificationService implements NotificationService {
     bool playSound = true,
   }) async {
     // FCM doesn't handle in-app notifications directly
-    _logger.log('FCM service does not handle in-app notifications');
+    _logger.i('FCM service does not handle in-app notifications');
   }
 
   @override
   Future<void> cancelNotification(int id) async {
     // FCM doesn't support cancelling notifications directly
-    _logger.log('Cancelling FCM notifications not supported');
+    _logger.i('Cancelling FCM notifications not supported');
   }
 
   @override
   Future<void> cancelAllNotifications() async {
     // FCM doesn't support cancelling notifications directly
-    _logger.log('Cancelling all FCM notifications not supported');
+    _logger.i('Cancelling all FCM notifications not supported');
   }
 
   @override
@@ -274,7 +273,7 @@ class FCMNotificationService implements NotificationService {
     } else if (state == AppLifecycleState.resumed) {
       _appInBackground = false;
     }
-    _logger.log('FCM tracked app state change to: $state');
+    _logger.i('FCM tracked app state change to: $state');
   }
 
   @override

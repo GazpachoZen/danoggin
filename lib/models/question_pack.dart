@@ -1,3 +1,4 @@
+import 'package:danoggin/utils/logger.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'question.dart';
 import 'dart:async';
@@ -88,7 +89,7 @@ class QuestionPack {
           .doc(id)
           .set(toJson());
     } catch (e) {
-      debugPrint('Error saving question pack: $e');
+      Logger().e('Error saving question pack: $e');
       rethrow;
     }
   }

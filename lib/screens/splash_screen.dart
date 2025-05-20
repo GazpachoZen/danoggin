@@ -1,3 +1,4 @@
+import 'package:danoggin/utils/logger.dart';
 import 'package:danoggin/services/notifications/notification_manager.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_native_splash/flutter_native_splash.dart';
@@ -74,9 +75,9 @@ class _SplashScreenState extends State<SplashScreen>
         _version = packageInfo.version;
         _buildNumber = packageInfo.buildNumber;
       });
-      print('App version: $_version+$_buildNumber');
+      Logger().i('App version: $_version+$_buildNumber');
     } catch (e) {
-      print('❌ Error getting package info: $e');
+      Logger().e('Error getting package info: $e');
       // If we can't get version info, just continue with empty values
     }
   }
@@ -87,9 +88,9 @@ class _SplashScreenState extends State<SplashScreen>
       setState(() => _statusMessage = "Setting up notifications...");
       try {
         // Just verify NotificationHelper is working, initialization happened in main.dart
-        print('Notification system verification...');
+        Logger().i('Notification system verification...');
       } catch (e) {
-        print('❌ Error verifying notifications: $e');
+        Logger().e('Error verifying notifications: $e');
         // Continue with app initialization even if notification verification fails
       }
 
@@ -105,12 +106,12 @@ class _SplashScreenState extends State<SplashScreen>
           // Try to access Firebase
           if (Firebase.apps.isNotEmpty) {
             final app = Firebase.app();
-            print('Firebase is initialized and working: ${app.name}');
+            Logger().i('Firebase is initialized and working: ${app.name}');
             break; // Success - exit the loop
           }
         } catch (e) {
           // Ignore errors, just retry
-          print('Attempt ${attempts + 1}: Firebase not ready yet');
+          Logger().i('Attempt ${attempts + 1}: Firebase not ready yet');
         }
 
         // Wait a bit before trying again
@@ -126,20 +127,20 @@ class _SplashScreenState extends State<SplashScreen>
         return;
       }
 
-      print('Firebase verification complete');
+      Logger().i('Firebase verification complete');
 
       // Ensure user is signed in
       setState(() => _statusMessage = "Setting up your account...");
-      print('Ensuring anonymous sign-in...');
+      Logger().i('Ensuring anonymous sign-in...');
       await AuthService.ensureSignedIn();
-      print('User signed in: ${AuthService.currentUserId}');
+      Logger().i('User signed in: ${AuthService.currentUserId}');
 
       // Check user role
       setState(() => _statusMessage = "Loading your profile...");
-      print('Checking role...');
+      Logger().i('Checking role...');
       final uid = AuthService.currentUserId;
       final role = await UserRepository.getUserRole(uid);
-      print('Role from Firestore: $role');
+      Logger().i('Role from Firestore: $role');
 
       // Sync settings to Firestore if needed
       if (role == UserRole.responder) {
@@ -175,7 +176,7 @@ class _SplashScreenState extends State<SplashScreen>
         ),
       );
     } catch (e) {
-      print("Error during initialization: $e");
+      Logger().e("Error during initialization: $e");
       setState(() {
         _statusMessage = "Failed to initialize: $e";
         _error = true;

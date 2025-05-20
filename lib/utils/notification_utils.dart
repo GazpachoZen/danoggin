@@ -1,3 +1,4 @@
+import 'package:danoggin/utils/logger.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:danoggin/services/notifications/notification_manager.dart';
@@ -7,7 +8,7 @@ class NotificationUtils {
   /// Test direct notification delivery
   static Future<void> testDirectNotification() async {
     try {
-      print("Testing direct notification...");
+      Logger().i("Testing direct notification...");
 
       const AndroidNotificationDetails androidPlatformChannelSpecifics =
           AndroidNotificationDetails(
@@ -32,9 +33,9 @@ class NotificationUtils {
         triggerRefresh: false,
       );
 
-      print("Direct test notification sent!");
+      Logger().i("Direct test notification sent!");
     } catch (e) {
-      print("Error sending direct test notification: $e");
+      Logger().e("Error sending direct test notification: $e");
     }
   }
 
@@ -56,11 +57,12 @@ class NotificationUtils {
 
       // Check if we've already notified for this
       if (checkInKey == lastNotifiedId || checkInKey == lastAcknowledgedId) {
-        print("Already notified or acknowledged for check-in: $checkInKey");
+        Logger()
+            .i("Already notified or acknowledged for check-in: $checkInKey");
         return;
       }
 
-      print("🔔 Preparing to send notification for $responderName");
+      Logger().i("🔔 Preparing to send notification for $responderName");
 
       // Update tracking
       onNotificationSent(checkInKey);
@@ -85,7 +87,7 @@ class NotificationUtils {
       // Generate a unique notification ID based on the check-in
       final notificationId = checkInId.hashCode.abs();
 
-      print("🔔 Sending notification with ID: $notificationId");
+      Logger().i("🔔 Sending notification with ID: $notificationId");
 
       // Use the plugin directly
       final FlutterLocalNotificationsPlugin notifications =
@@ -98,7 +100,7 @@ class NotificationUtils {
         triggerRefresh: true,
       );
 
-      print("🔔 Notification sent successfully!");
+      Logger().i("🔔 Notification sent successfully!");
 
       // Also show a snackbar in the UI
       if (context.mounted) {
@@ -111,8 +113,7 @@ class NotificationUtils {
         );
       }
     } catch (e, stackTrace) {
-      print("❌ Error sending notification: $e");
-      print(stackTrace);
+      Logger().e("Error sending notification: $e\nStack trace:\n$stackTrace");
 
       // Show error in UI
       if (context.mounted) {

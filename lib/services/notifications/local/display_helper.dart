@@ -13,7 +13,7 @@ class DisplayHelper {
     String body, {
     bool playSound = true,
   }) async {
-    _logger.log("Showing in-app notification: $title");
+    _logger.i("Showing in-app notification: $title");
     
     // Play notification sound
     if (playSound) {
@@ -21,7 +21,7 @@ class DisplayHelper {
         final player = audio.AudioPlayer();
         await player.play(audio.AssetSource('sounds/notification_sound.mp3'));
       } catch (e) {
-        _logger.log("Error playing notification sound: $e");
+        _logger.i("Error playing notification sound: $e");
       }
     }
     
@@ -95,7 +95,7 @@ class DisplayHelper {
           entry.remove();
         }
       } catch (e) {
-        _logger.log("Error removing notification overlay: $e");
+        _logger.i("Error removing notification overlay: $e");
       }
     });
   }

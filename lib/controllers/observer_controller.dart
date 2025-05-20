@@ -8,6 +8,7 @@ import 'package:danoggin/services/auth_service.dart';
 import 'package:danoggin/services/notifications/notification_manager.dart';
 import 'package:danoggin/repositories/responder_settings_repository.dart';
 import 'package:danoggin/controllers/inactvity_monitor.dart';
+import 'package:danoggin/utils/logger.dart';
 
 class ObserverController {
   // State variables
@@ -58,7 +59,7 @@ class ObserverController {
       inactivityThresholdHours = threshold;
       onStateChanged();
     } catch (e) {
-      print('❌ Error loading inactivity threshold: $e');
+      Logger().e('Error loading inactivity threshold: $e');
     }
   }
 
@@ -99,7 +100,7 @@ class ObserverController {
 
       onStateChanged();
     } catch (e) {
-      print('❌ Error loading responders: $e');
+      Logger().e('Error loading responders: $e');
     }
   }
 
@@ -156,13 +157,13 @@ class ObserverController {
         final mostRecentTimeStr =
             DateFormat('M/d h:mma').format(timestamp).toLowerCase();
 
-        print(
+        Logger().i(
             'Real-time update: responder=$responderName, result=$result, age=${checkInAge.inMinutes}m');
 
         // Create a unique identifier for this check-in
         final checkInKey = "$responderUid:$docId";
       }, onError: (error) {
-        print('❌ Error in check-in listener for $responderName: $error');
+        Logger().e('Error in check-in listener for $responderName: $error');
       });
 
       // Store the subscription for later cleanup
@@ -203,7 +204,7 @@ class ObserverController {
         );
       }
     } catch (e) {
-      print("Error in checkInactivity: $e");
+      Logger().e("Error in checkInactivity: $e");
     }
   }
 
@@ -218,7 +219,7 @@ class ObserverController {
       try {
         enabled = await NotificationManager().areNotificationsEnabled();
       } catch (e) {
-        print('❌ Error checking notification permissions: $e');
+        Logger().e('Error checking notification permissions: $e');
         // If we can't check, assume they're enabled
       }
 
@@ -244,7 +245,7 @@ class ObserverController {
         ),
       );
     } catch (e) {
-      print('❌ Error testing notifications: $e');
+      Logger().e('Error testing notifications: $e');
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('Error sending test notification: $e'),

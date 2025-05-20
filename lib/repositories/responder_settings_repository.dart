@@ -1,3 +1,4 @@
+import 'package:danoggin/utils/logger.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:danoggin/utils/timezone_helper.dart';
@@ -30,10 +31,10 @@ class ResponderSettingsRepository {
         }
       }, SetOptions(merge: true));
 
-      print(
+      Logger().i(
           'Active hours saved to Firestore for user $uid in time zone $timeZone');
     } catch (e) {
-      print('❌ Error saving active hours to Firestore: $e');
+      Logger().e('Error saving active hours to Firestore: $e');
       rethrow;
     }
   }
@@ -50,7 +51,7 @@ class ResponderSettingsRepository {
 
       return null;
     } catch (e) {
-      print('❌ Error getting active hours from Firestore: $e');
+      Logger().e('Error getting active hours from Firestore: $e');
       return null;
     }
   }
@@ -72,10 +73,10 @@ class ResponderSettingsRepository {
         }
       }, SetOptions(merge: true));
 
-      print(
+      Logger().i(
           'Inactivity threshold saved to Firestore for observer $observerUid');
     } catch (e) {
-      print('❌ Error saving inactivity threshold to Firestore: $e');
+      Logger().e('Error saving inactivity threshold to Firestore: $e');
       rethrow;
     }
   }
@@ -98,7 +99,7 @@ class ResponderSettingsRepository {
       // Return default threshold if not found
       return 24; // 24 hours default
     } catch (e) {
-      print('❌ Error getting inactivity threshold from Firestore: $e');
+      Logger().e('Error getting inactivity threshold from Firestore: $e');
       return 24; // Default fallback
     }
   }
@@ -119,7 +120,7 @@ class ResponderSettingsRepository {
         endHour: endHourStr,
       );
     } catch (e) {
-      print('❌ Error syncing local settings to Firestore: $e');
+      Logger().e('Error syncing local settings to Firestore: $e');
     }
   }
 }

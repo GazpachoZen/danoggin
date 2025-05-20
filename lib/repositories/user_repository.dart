@@ -1,3 +1,4 @@
+import 'package:danoggin/utils/logger.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:danoggin/models/user_role.dart';
 
@@ -46,16 +47,16 @@ class UserRepository {
         'lastUpdated': FieldValue.serverTimestamp(),
       };
       
-      print('UserRepository: Created responder with initial check-in scheduled for ${initialNextCheckIn.toIso8601String()}');
+      Logger().i('UserRepository: Created responder with initial check-in scheduled for ${initialNextCheckIn.toIso8601String()}');
     }
 
     // Create or update the user document
     if (!snapshot.exists) {
       await doc.set(userData);
-      print('UserRepository: Created new user profile for $uid');
+      Logger().i('UserRepository: Created new user profile for $uid');
     } else {
       await doc.update(userData);
-      print('UserRepository: Updated existing user profile for $uid');
+      Logger().i('UserRepository: Updated existing user profile for $uid');
     }
   }
 

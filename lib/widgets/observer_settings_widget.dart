@@ -1,3 +1,4 @@
+//------------------------------------------------------------------------
 // Copyright (c) 2025, Blue Vista Solutions.  All rights reserved.
 //
 // This source code is part of the Danoggin project and is intended for
@@ -5,7 +6,7 @@
 // distribution of this file, via any medium, is strictly prohibited. For
 // licensing or permissions, contact: danoggin@blue-vistas.com
 //------------------------------------------------------------------------
-
+import 'package:danoggin/utils/logger.dart';
 import 'package:flutter/material.dart';
 import 'package:danoggin/screens/observer_manage_responders_screen.dart';
 import 'package:danoggin/repositories/responder_settings_repository.dart';
@@ -53,7 +54,7 @@ class _ObserverSettingsWidgetState extends State<ObserverSettingsWidget> {
         inactivityThresholdHours = threshold.toDouble();
       });
     } catch (e) {
-      print('❌ Error loading inactivity threshold: $e');
+      Logger().e('Error loading inactivity threshold: $e');
     }
   }
 
@@ -73,7 +74,7 @@ class _ObserverSettingsWidgetState extends State<ObserverSettingsWidget> {
         ),
       );
     } catch (e) {
-      print('❌ Error saving inactivity threshold: $e');
+      Logger().e('Error saving inactivity threshold: $e');
 
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(

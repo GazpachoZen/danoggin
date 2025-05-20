@@ -1,4 +1,4 @@
-// In a new service file: question_pack_service.dart
+import 'package:danoggin/utils/logger.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:danoggin/services/auth_service.dart';
 import 'package:danoggin/models/question_pack.dart';
@@ -55,7 +55,7 @@ class QuestionPackService {
         final pack = await QuestionPack.loadFromFirestore(packId);
         subscribedPacks.add(pack);
       } catch (e) {
-        print('❌ Error loading pack $packId: $e');
+        Logger().e('Error loading pack $packId: $e');
       }
     }
     
@@ -65,7 +65,7 @@ class QuestionPackService {
         final demoPack = await QuestionPack.loadFromFirestore('demo_pack');
         subscribedPacks.add(demoPack);
       } catch (e) {
-        print('❌ Error loading fallback demo_pack: $e');
+        Logger().e('Error loading fallback demo_pack: $e');
       }
     }
     

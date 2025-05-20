@@ -1,3 +1,4 @@
+import 'package:danoggin/utils/logger.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:danoggin/services/auth_service.dart';
@@ -58,7 +59,7 @@ class _ResponderManageObserversScreenState extends State<ResponderManageObserver
         });
       }
     } catch (e) {
-      print('❌ Error loading observers: $e');
+      Logger().e('Error loading observers: $e');
       setState(() {
         _loadingObservers = false;
       });
@@ -145,7 +146,7 @@ class _ResponderManageObserversScreenState extends State<ResponderManageObserver
         );
       }
     } catch (e) {
-      print('❌ Error removing observer: $e');
+      Logger().e('Error removing observer: $e');
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Error removing observer. Please try again.')),

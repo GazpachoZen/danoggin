@@ -40,7 +40,7 @@ class LocalNotificationService implements NotificationService {
   Future<void> initialize() async {
     if (_isInitialized) return;
 
-    _logger.log('Starting notification helper initialization...');
+    _logger.i('Starting notification helper initialization...');
 
     // Initialize time zones
     tz_data.initializeTimeZones();
@@ -65,7 +65,7 @@ class LocalNotificationService implements NotificationService {
     await _notifications.initialize(
       initSettings,
       onDidReceiveNotificationResponse: (NotificationResponse response) {
-        _logger.log('Notification clicked: ${response.id}');
+        _logger.i('Notification clicked: ${response.id}');
         // Convert NotificationResponse to a Map
         final Map<String, dynamic> eventData = {
           'id': response.id,
@@ -83,7 +83,7 @@ class LocalNotificationService implements NotificationService {
     await _platformHelper.initializePlatformChannels();
 
     _isInitialized = true;
-    _logger.log('Notifications initialized successfully');
+    _logger.i('Notifications initialized successfully');
   }
 
   @override
@@ -92,7 +92,7 @@ class LocalNotificationService implements NotificationService {
       await initialize();
     }
 
-    _logger.log('Checking notification permissions...');
+    _logger.i('Checking notification permissions...');
 
     try {
       if (Platform.isAndroid) {
@@ -105,10 +105,10 @@ class LocalNotificationService implements NotificationService {
         try {
           final enabled =
               await androidPlugin.areNotificationsEnabled() ?? false;
-          _logger.log('Android notification permission status: $enabled');
+          _logger.i('Android notification permission status: $enabled');
           return enabled;
         } catch (e) {
-          _logger.log('Error calling areNotificationsEnabled: $e');
+          _logger.e('error calling areNotificationsEnabled: $e');
           return true; // Assume enabled on error
         }
       } else if (Platform.isIOS) {
@@ -121,13 +121,13 @@ class LocalNotificationService implements NotificationService {
           sound: true,
         );
 
-        _logger.log('iOS notification permission request result: $result');
+        _logger.i('iOS notification permission request result: $result');
         return result ?? false;
       }
 
       return false;
     } catch (e) {
-      _logger.log('Error checking notification permissions: $e');
+      _logger.e('error checking notification permissions: $e');
       return false;
     }
   }
@@ -140,7 +140,7 @@ class LocalNotificationService implements NotificationService {
 
     try {
       if (Platform.isAndroid) {
-        _logger.log(
+        _logger.i(
             'Android notification permissions handled through channel creation');
       }
 
@@ -155,11 +155,11 @@ class LocalNotificationService implements NotificationService {
             sound: true,
           );
 
-          _logger.log('iOS notification permission request result: $result');
+          _logger.i('iOS notification permission request result: $result');
         }
       }
     } catch (e) {
-      _logger.log('Error requesting notification permissions: $e');
+      _logger.e('error requesting notification permissions: $e');
     }
   }
 
@@ -171,7 +171,7 @@ class LocalNotificationService implements NotificationService {
     bool triggerRefresh = false,
     Map<String, dynamic>? payload,
   }) async {
-    _logger.log('Attempting to show notification: id=$id, title=$title');
+    _logger.i('Attempting to show notification: id=$id, title=$title');
 
     if (!_isInitialized) {
       await initialize();
@@ -199,7 +199,7 @@ class LocalNotificationService implements NotificationService {
               ),
             ),
           );
-          _logger.log('iOS badge cleared');
+          _logger.i('iOS badge cleared');
         }
         return true;
       }
@@ -210,7 +210,7 @@ class LocalNotificationService implements NotificationService {
       // Check if notifications are enabled
       final enabled = await areNotificationsEnabled();
       if (!enabled) {
-        _logger.log('Notifications are not enabled for this app');
+        _logger.i('Notifications are not enabled for this app');
         return false;
       }
 
@@ -242,13 +242,13 @@ class LocalNotificationService implements NotificationService {
           'body': body,
           'payload': payload,
         });
-        _logger.log('Emitted notification event for refresh');
+        _logger.i('Emitted notification event for refresh');
       }
 
-      _logger.log('Notification sent successfully');
+      _logger.i('Notification sent successfully');
       return true;
     } catch (e) {
-      _logger.log('Error showing notification: $e');
+      _logger.e('error showing notification: $e');
       return false;
     }
   }
@@ -260,7 +260,7 @@ class LocalNotificationService implements NotificationService {
     required String body,
     required bool triggerRefresh,
   }) async {
-    _logger.log('iOS in background: Using special handling');
+    _logger.i('iOS in background: Using special handling');
 
     // Try three approaches for iOS background notifications:
 
@@ -269,9 +269,9 @@ class LocalNotificationService implements NotificationService {
       final platformDetails = _platformHelper.getPlatformNotificationDetails(
           isIosBackground: false);
       await _notifications.show(id, title, body, platformDetails);
-      _logger.log('iOS background: Sent via show method');
+      _logger.i('iOS background: Sent via show method');
     } catch (e) {
-      _logger.log('Error with show method: $e');
+      _logger.e('error with show method: $e');
     }
 
     // 2. Scheduled notification with 1-second delay
@@ -290,9 +290,9 @@ class LocalNotificationService implements NotificationService {
         uiLocalNotificationDateInterpretation:
             UILocalNotificationDateInterpretation.absoluteTime,
       );
-      _logger.log('iOS background: Scheduled notification for 1 second later');
+      _logger.i('iOS background: Scheduled notification for 1 second later');
     } catch (e) {
-      _logger.log('Error with scheduled notification: $e');
+      _logger.e('error with scheduled notification: $e');
     }
 
     // 3. Try with badge update as fallback
@@ -306,9 +306,9 @@ class LocalNotificationService implements NotificationService {
         body,
         platformDetails,
       );
-      _logger.log('iOS background: Sent with badge update');
+      _logger.i('iOS background: Sent with badge update');
     } catch (e) {
-      _logger.log('Error with badge notification: $e');
+      _logger.e('error with badge notification: $e');
     }
 
     // If refresh needed, trigger it anyway
@@ -318,10 +318,10 @@ class LocalNotificationService implements NotificationService {
         'title': title,
         'body': body,
       });
-      _logger.log('Emitted notification event for refresh');
+      _logger.i('Emitted notification event for refresh');
     }
 
-    _logger.log('iOS background: Attempted multiple notification methods');
+    _logger.i('iOS background: Attempted multiple notification methods');
     return true;
   }
 
@@ -339,7 +339,7 @@ class LocalNotificationService implements NotificationService {
         await initialize();
       }
 
-      _logger.log(
+      _logger.i(
           'Scheduling delayed notification for ${delay.inSeconds} seconds...');
 
       // Normalize ID
@@ -351,7 +351,7 @@ class LocalNotificationService implements NotificationService {
 
       // If in foreground, schedule in-app notification
       if (inForeground && Platform.isIOS) {
-        _logger.log('Scheduling delayed in-app notification');
+        _logger.i('Scheduling delayed in-app notification');
 
         // Use a timer for in-app notification
         Future.delayed(delay, () {
@@ -377,7 +377,7 @@ class LocalNotificationService implements NotificationService {
         return true;
       } else {
         // For background or Android, schedule system notification
-        _logger.log('Scheduling delayed system notification');
+        _logger.i('Scheduling delayed system notification');
 
         // Calculate the scheduled time
         final scheduledTime = tz.TZDateTime.now(tz.local).add(delay);
@@ -399,11 +399,11 @@ class LocalNotificationService implements NotificationService {
           payload: payload != null ? payload.toString() : null,
         );
 
-        _logger.log('Delayed notification scheduled!');
+        _logger.i('Delayed notification scheduled!');
         return true;
       }
     } catch (e) {
-      _logger.log('Error scheduling delayed notification: $e');
+      _logger.e('error scheduling delayed notification: $e');
       return false;
     }
   }
@@ -438,7 +438,7 @@ class LocalNotificationService implements NotificationService {
           );
         }
       } catch (e) {
-        _logger.log('Error clearing iOS badge: $e');
+        _logger.e('error clearing iOS badge: $e');
       }
     }
 
@@ -454,9 +454,9 @@ class LocalNotificationService implements NotificationService {
   Future<void> cancelNotification(int id) async {
     try {
       await _notifications.cancel(id);
-      _logger.log('Notification with ID $id canceled');
+      _logger.i('Notification with ID $id canceled');
     } catch (e) {
-      _logger.log('Error canceling notification: $e');
+      _logger.e('error canceling notification: $e');
     }
   }
 
@@ -464,9 +464,9 @@ class LocalNotificationService implements NotificationService {
   Future<void> cancelAllNotifications() async {
     try {
       await _notifications.cancelAll();
-      _logger.log('All notifications canceled');
+      _logger.i('All notifications canceled');
     } catch (e) {
-      _logger.log('Error canceling all notifications: $e');
+      _logger.e('error canceling all notifications: $e');
     }
   }
 

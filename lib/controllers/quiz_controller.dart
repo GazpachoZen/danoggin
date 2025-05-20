@@ -12,6 +12,7 @@ import 'package:danoggin/services/question_pack_service.dart';
 import 'package:danoggin/services/notifications/notification_manager.dart';
 import 'package:danoggin/services/check_in_scheduler.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
+import 'package:danoggin/utils/logger.dart';
 
 class QuizController {
   // State variables
@@ -88,7 +89,7 @@ class QuizController {
         }
       }
     } catch (e) {
-      print('❌ Error loading user name: $e');
+      Logger().e('Error loading user name: $e');
     }
     return "Responder";
   }
@@ -116,7 +117,7 @@ class QuizController {
       isLoading = false;
       onStateChanged();
     } catch (e) {
-      print('❌ Error loading packs: $e');
+      Logger().e('Error loading packs: $e');
     }
   }
 
@@ -172,10 +173,10 @@ class QuizController {
 
     // Log that question was loaded (helpful for debugging FCM triggers)
     if (isScheduled) {
-      print('QuizController: New question loaded via FCM trigger');
+      Logger().i('QuizController: New question loaded via FCM trigger');
       NotificationManager().log('Question loaded from FCM notification');
     } else {
-      print('QuizController: Initial question loaded');
+      Logger().i('QuizController: Initial question loaded');
     }
 
     onStateChanged();
@@ -283,9 +284,9 @@ class QuizController {
   Future<void> _updateScheduleAfterCheckIn() async {
     try {
       await CheckInScheduler.updateAfterCheckIn();
-      print('QuizController: Check-in schedule updated after completion');
+      Logger().i('QuizController: Check-in schedule updated after completion');
     } catch (e) {
-      print('QuizController: Error updating check-in schedule: $e');
+      Logger().i('QuizController: Error updating check-in schedule: $e');
       // Don't block the UI for scheduler errors
     }
   }
@@ -300,9 +301,9 @@ class QuizController {
       // Get the current user's UID from AuthService
       final uid = AuthService.currentUserId;
 
-      print(
+      Logger().i(
           "SAVE: Writing check-in data to responder_status/$uid/check_ins/${now.toIso8601String()}");
-      print(
+      Logger().i(
           "SAVE: Data: result=$result, prompt=$questionPrompt, timestamp=${now.toIso8601String()}");
 
       // First, ensure the parent document exists by creating it if needed
@@ -319,13 +320,13 @@ class QuizController {
           'userId': uid,
           'lastActivity': now.toIso8601String(),
         });
-        print("SAVE: Created parent responder_status document");
+        Logger().i("SAVE: Created parent responder_status document");
       } else {
         // Update the lastActivity timestamp in the parent document
         await responderStatusRef.update({
           'lastActivity': now.toIso8601String(),
         });
-        print("SAVE: Updated lastActivity in parent document");
+        Logger().i("SAVE: Updated lastActivity in parent document");
       }
 
       // Now create the check-in document in the subcollection with a unique ID
@@ -341,10 +342,10 @@ class QuizController {
             currentRole.name, // Keep this for backward compatibility/filtering
       });
 
-      print("SAVE: Successfully wrote check-in data!");
+      Logger().i("SAVE: Successfully wrote check-in data!");
     } catch (e, stackTrace) {
-      print("ERROR: Failed to log check-in: $e");
-      print("Stack trace: $stackTrace");
+      Logger().e("ERROR: Failed to log check-in: $e");
+      Logger().i("Stack trace: $stackTrace");
     }
   }
 
@@ -357,7 +358,7 @@ class QuizController {
   void _setupFCMMessageListener() {
     // Listen for FCM messages when app is in foreground
     FirebaseMessaging.onMessage.listen((RemoteMessage message) {
-      print('QuizController: Received FCM message in foreground');
+      Logger().i('QuizController: Received FCM message in foreground');
       NotificationManager()
           .log('QuizController: FCM message received: ${message.messageId}');
 
@@ -367,7 +368,7 @@ class QuizController {
 
       // Check if this is a check-in reminder
       if (data['type'] == 'check_in_reminder') {
-        print('QuizController: Processing check-in reminder from FCM');
+        Logger().i('QuizController: Processing check-in reminder from FCM');
 
         // If app is already showing a question, refresh to new question
         if (!isLoading && !_isInitialLoad) {
@@ -378,7 +379,7 @@ class QuizController {
 
     // Listen for when app is opened from FCM notification
     FirebaseMessaging.onMessageOpenedApp.listen((RemoteMessage message) {
-      print('QuizController: App opened from FCM notification');
+      Logger().i('QuizController: App opened from FCM notification');
       NotificationManager()
           .log('QuizController: App opened from FCM: ${message.messageId}');
 
@@ -390,12 +391,12 @@ class QuizController {
       }
     });
 
-    print('QuizController: FCM message listeners set up');
+    Logger().i('QuizController: FCM message listeners set up');
   }
 
 // Helper method to refresh question when FCM triggers it
   void _refreshQuestionFromFCM() {
-    print('QuizController: Refreshing question due to FCM trigger');
+    Logger().i('QuizController: Refreshing question due to FCM trigger');
 
     // Cancel existing response timer
     responseTimer?.cancel();
@@ -416,6 +417,6 @@ class QuizController {
     // Set new timeout
     responseTimer = Timer(responseTimeout, _handleTimeout);
 
-    print('QuizController: Question refreshed due to FCM');
+    Logger().i('QuizController: Question refreshed due to FCM');
   }
 }

@@ -1,3 +1,4 @@
+import 'package:danoggin/utils/logger.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:danoggin/screens/logs_viewer_screen.dart';
@@ -18,7 +19,7 @@ Future<void> requestNotificationPermissions() async {
 
   // For Android, there's no explicit permissions request in this version
   // The channel creation handles this automatically
-  print("Notification permission handled through channel creation");
+  Logger().i("Notification permission handled through channel creation");
 }
 
 class ObserverPage extends StatefulWidget {

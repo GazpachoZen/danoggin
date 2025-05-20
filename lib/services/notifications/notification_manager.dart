@@ -32,23 +32,23 @@ class NotificationManager {
 
   /// Initialize all notification services
   Future<void> initialize() async {
-    _logger.log('Initializing notification services');
+    _logger.i('Initializing notification services');
     try {
       // Only initialize local service initially
       await _localService.initialize();
-      _logger.log('Local notification service initialized');
+      _logger.i('Local notification service initialized');
     } catch (e) {
-      _logger.log('Error initializing local notification service: $e');
+      _logger.e('Error initializing local notification service: $e');
     }
   }
 
   Future<void> initializeFCM() async {
     try {
-      _logger.log('Initializing FCM notification service');
+      _logger.d('Initializing FCM notification service');
       await _fcmService.initialize();
-      _logger.log('FCM notification service initialized');
+      _logger.i('FCM notification service initialized');
     } catch (e) {
-      _logger.log('Error initializing FCM notification service: $e');
+      _logger.e('Error initializing FCM notification service: $e');
     }
   }
 
@@ -79,7 +79,7 @@ class NotificationManager {
     bool triggerRefresh = false,
     Map<String, dynamic>? payload,
   }) async {
-    _logger.log("useBestNotification called: title=$title, id=$id");
+    _logger.d("useBestNotification called: title=$title, id=$id");
 
     try {
       // iOS in foreground with context: Use in-app overlay notification
@@ -87,7 +87,7 @@ class NotificationManager {
           !_platformHelper.isInBackground &&
           _platformHelper.currentContext != null &&
           WidgetsBinding.instance.lifecycleState == AppLifecycleState.resumed) {
-        _logger.log("iOS foreground: Using in-app notification");
+        _logger.i("iOS foreground: Using in-app notification");
 
         await _localService.showInAppNotification(
           context: _platformHelper.currentContext!,
@@ -105,14 +105,14 @@ class NotificationManager {
             'body': body,
             'payload': payload,
           });
-          _logger.log('Emitted notification event for refresh');
+          _logger.i('Emitted notification event for refresh');
         }
 
         return true;
       }
       // All other cases: Use system notification
       else {
-        _logger.log("Using system notification");
+        _logger.i("Using system notification");
         return await _localService.showNotification(
           id: id,
           title: title,
@@ -122,7 +122,7 @@ class NotificationManager {
         );
       }
     } catch (e) {
-      _logger.log('Error in useBestNotification: $e');
+      _logger.e('Error in useBestNotification: $e');
       return false;
     }
   }
@@ -194,7 +194,7 @@ class NotificationManager {
 
   /// Log a message
   void log(String message) {
-    _logger.log(message);
+    _logger.i(message);
   }
 
   /// Clean up resources
@@ -219,7 +219,7 @@ class NotificationManager {
   Future<void> ensureBackgroundNotificationsEnabled() async {
     // This is just an alias for requestPermissions()
     await requestPermissions();
-    _logger.log('Background notifications have been configured');
+    _logger.i('Background notifications have been configured');
   }
 
   /// Request notification permissions explicitly
@@ -228,15 +228,14 @@ class NotificationManager {
   }
 
   /// Clear the iOS badge (notification count)
-  /// Clear the iOS badge (notification count)
   Future<void> clearIOSBadge() async {
     // Only clear badge on iOS
     if (!Platform.isIOS) {
-      log('Not iOS - skipping badge clear');
+      _logger.i('Not iOS - skipping badge clear');
       return;
     }
 
-    log('Clearing iOS badge');
+    _logger.i('Clearing iOS badge');
     try {
       if (_localService is LocalNotificationService) {
         // Use the local service to clear the badge
@@ -249,7 +248,7 @@ class NotificationManager {
         );
       }
     } catch (e) {
-      log('Error clearing iOS badge: $e');
+      _logger.e('Error clearing iOS badge: $e');
     }
   }
 }

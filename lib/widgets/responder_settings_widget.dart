@@ -6,6 +6,7 @@
 // licensing or permissions, contact: danoggin@blue-vistas.com
 //------------------------------------------------------------------------
 
+import 'package:danoggin/utils/logger.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -14,7 +15,6 @@ import 'package:danoggin/screens/responder_manage_observers_screen.dart';
 import 'package:danoggin/widgets/question_pack_selector_widget.dart';
 import 'package:danoggin/repositories/responder_settings_repository.dart';
 import 'package:danoggin/services/auth_service.dart';
-import 'package:flutter/services.dart';
 import 'package:danoggin/services/notifications/notification_manager.dart';
 import 'package:danoggin/services/check_in_scheduler.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -146,7 +146,7 @@ class _ResponderSettingsWidgetState extends State<ResponderSettingsWidget> {
         ),
       );
     } catch (e) {
-      print('❌ Error syncing settings to Firestore: $e');
+      Logger().e('Error syncing settings to Firestore: $e');
 
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
@@ -181,10 +181,10 @@ class _ResponderSettingsWidgetState extends State<ResponderSettingsWidget> {
         timeZone: timeZone,
       );
 
-      print(
+      Logger().i(
           'ResponderSettings: Check-in schedule updated after settings change');
     } catch (e) {
-      print('ResponderSettings: Error updating check-in schedule: $e');
+      Logger().i('ResponderSettings: Error updating check-in schedule: $e');
       // Don't re-throw since settings were saved successfully
       // Just log the error for debugging
     }

@@ -1,3 +1,4 @@
+import 'package:danoggin/utils/logger.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:danoggin/services/auth_service.dart';
@@ -60,7 +61,7 @@ class _ObserverManageRespondersScreenState extends State<ObserverManageResponder
         });
       }
     } catch (e) {
-      print('❌ Error loading responders: $e');
+      Logger().e('Error loading responders: $e');
       setState(() {
         _loadingResponders = false;
       });
@@ -139,7 +140,7 @@ class _ObserverManageRespondersScreenState extends State<ObserverManageResponder
         _message = 'You are now linked to $responderName!';
       });
     } catch (e) {
-      print('❌ Error linking to responder: $e');
+      Logger().e('Error linking to responder: $e');
       setState(() {
         _loading = false;
         _message = 'An error occurred. Please try again.';
@@ -227,7 +228,7 @@ class _ObserverManageRespondersScreenState extends State<ObserverManageResponder
         );
       }
     } catch (e) {
-      print('❌ Error unlinking responder: $e');
+      Logger().e('Error unlinking responder: $e');
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Error unlinking. Please try again.')),
