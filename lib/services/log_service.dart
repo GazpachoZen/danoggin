@@ -5,17 +5,12 @@ import 'package:url_launcher/url_launcher.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:danoggin/services/auth_service.dart';
+import 'package:danoggin/utils/logger.dart';
 import 'dart:io';
 
 /// Log levels for controlling verbosity
-enum LogLevel {
-  verbose,  // Most detailed
-  debug,
-  info,     // Default
-  warning,
-  error,
-  none      // No logging
-}
+/// Using the same LogLevel enum from Logger to avoid confusion
+// typedef LogLevel = Logger.LogLevel;
 
 /// Centralized logging utility for the Danoggin app
 class LogService {
@@ -23,12 +18,8 @@ class LogService {
   static final LogService _instance = LogService._internal();
   factory LogService() => _instance;
   
-  // Logging queue
-  final Queue<String> _logMessages = Queue<String>();
-  static const int _maxLogMessages = 200;
-  
-  // Default log level
-  LogLevel _currentLevel = LogLevel.info;
+  // Use the Logger singleton
+  final Logger _logger = Logger();
   
   // Default support email
   String _supportEmail = "support@your-domain.com"; // Replace with actual email
@@ -60,51 +51,66 @@ class LogService {
   
   /// Set the current log level
   void setLogLevel(LogLevel level) {
-    _currentLevel = level;
+    _logger.setLogLevel(level);
   }
   
   /// Get the current log level
-  LogLevel get logLevel => _currentLevel;
+  LogLevel get logLevel => _logger.logLevel;
   
-  /// Log a message with timestamp and level
-  void _logWithLevel(String message, LogLevel level) {
-    // Skip if the message level is below current level
-    if (level.index < _currentLevel.index) {
-      return;
-    }
-    
-    final timestamp = DateTime.now().toString().substring(0, 19);
-    final levelName = level.toString().split('.').last.toUpperCase();
-    final logMessage = "$timestamp [$levelName]: $message";
-    
-    print(logMessage);
-    
-    // Add to our queue with a maximum size
-    _logMessages.add(logMessage);
-    while (_logMessages.length > _maxLogMessages) {
-      _logMessages.removeFirst();
-    }
+  /// Convenience methods for different log levels
+  
+  /// Log a verbose message (most detailed)
+  void v(String message) {
+    _logger.v(message);
   }
+  
+  /// Log a debug message
+  void d(String message) {
+    _logger.d(message);
+  }
+  
+  /// Log an info message
+  void i(String message) {
+    _logger.i(message);
+  }
+  
+  /// Log a warning message
+  void w(String message) {
+    _logger.w(message);
+  }
+  
+  /// Log an error message
+  void e(String message) {
+    _logger.e(message);
+  }
+  
+  /// Generic log method (for backward compatibility, logs at INFO level)
+  void log(String message) {
+    _logger.i(message);
+  }
+  
+  /// Get all logs as a list
+  List<String> get logs => _logger.logs;
   
   /// Get logs filtered by current level
   List<String> getFilteredLogs(LogLevel filterLevel) {
     if (filterLevel == LogLevel.none) {
       return []; // No logs should be shown
     } else if (filterLevel == LogLevel.verbose) {
-      return List.from(_logMessages); // Show all logs
+      return _logger.logs; // Show all logs
     } else {
       // Filter logs based on their level
-      return _logMessages.where((log) {
+      return _logger.logs.where((log) {
         // Extract the log level from the log string
-        if (log.contains('[ERROR]')) {
+        if (log.contains("[ERROR]")) {
           return LogLevel.error.index >= filterLevel.index;
-        } else if (log.contains('[WARNING]')) {
+        } else if (log.contains("[WARNING]")) {
           return LogLevel.warning.index >= filterLevel.index;
-        } else if (log.contains('[INFO]')) {
+        } else if (log.contains("[INFO]")) {
           return LogLevel.info.index >= filterLevel.index;
-        } else if (log.contains('[DEBUG]')) {
+        } else if (log.contains("[DEBUG]")) {
           return LogLevel.debug.index >= filterLevel.index;
-        } else if (log.contains('[VERBOSE]')) {
+        } else if (log.contains("[VERBOSE]")) {
           return LogLevel.verbose.index >= filterLevel.index;
         } else {
           // Default to INFO level for logs without explicit level
@@ -114,38 +120,9 @@ class LogService {
     }
   }
   
-  /// Convenience methods for different log levels
-  void v(String message) {
-    _logWithLevel(message, LogLevel.verbose);
-  }
-  
-  void d(String message) {
-    _logWithLevel(message, LogLevel.debug);
-  }
-  
-  void i(String message) {
-    _logWithLevel(message, LogLevel.info);
-  }
-  
-  void w(String message) {
-    _logWithLevel(message, LogLevel.warning);
-  }
-  
-  void e(String message) {
-    _logWithLevel(message, LogLevel.error);
-  }
-  
-  /// Generic log method (for backward compatibility, logs at INFO level)
-  void log(String message) {
-    _logWithLevel(message, LogLevel.info);
-  }
-  
-  /// Get all logs as a list
-  List<String> get logs => List.from(_logMessages);
-  
   /// Clear all logs
   void clearLogs() {
-    _logMessages.clear();
+    _logger.clearLogs();
   }
   
   /// Format and send logs via email
@@ -171,14 +148,13 @@ class LogService {
       final emailBody = '''
 Hi Support Team,
 
-Here are my Danoggin app logs:
+[   Please use this space to tell us what went wrong    ]
+[The more detail you can provide, the better we can help]
 
+==========================================================
 $formattedContext
-
 === LOGS ===
 $formattedLogs
-
-[Add any additional information about the issue here]
 ''';
 
       // Try to launch email client
@@ -339,7 +315,6 @@ $formattedLogs
           
           // Add more user details as needed
           // (Role-specific info, timestamps, etc.)
-          // Same implementation as in the previous example
         }
       }
     } catch (e) {

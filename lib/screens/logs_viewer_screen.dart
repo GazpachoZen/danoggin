@@ -1,4 +1,4 @@
-// lib/screens/logs_viewer_screen.dart
+import 'package:danoggin/utils/logger.dart';
 import 'package:flutter/material.dart';
 import 'package:danoggin/services/log_service.dart';
 
