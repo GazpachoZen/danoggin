@@ -1,8 +1,6 @@
 // lib/screens/logs_viewer_screen.dart
-
 import 'package:flutter/material.dart';
-import 'package:danoggin/utils/logger.dart';
-import 'package:flutter/services.dart';
+import 'package:danoggin/services/log_service.dart';
 
 class LogsViewerScreen extends StatefulWidget {
   const LogsViewerScreen({Key? key}) : super(key: key);
@@ -12,20 +10,10 @@ class LogsViewerScreen extends StatefulWidget {
 }
 
 class _LogsViewerScreenState extends State<LogsViewerScreen> {
-  List<String> _allLogs = []; // All logs without filtering
-  List<String> _filteredLogs = []; // Filtered logs for display
-  LogLevel _selectedLogLevel = Logger().logLevel; // Get current log level
+  List<String> _allLogs = [];
+  List<String> _filteredLogs = [];
+  LogLevel _selectedLogLevel = LogService().logLevel;
   
-  // String representations for log levels (for nice display)
-  final Map<LogLevel, String> _logLevelNames = {
-    LogLevel.verbose: 'Verbose',
-    LogLevel.debug: 'Debug',
-    LogLevel.info: 'Info',
-    LogLevel.warning: 'Warning',
-    LogLevel.error: 'Error',
-    LogLevel.none: 'None',
-  };
-
   @override
   void initState() {
     super.initState();
@@ -34,52 +22,21 @@ class _LogsViewerScreenState extends State<LogsViewerScreen> {
 
   void _loadLogs() {
     setState(() {
-      _allLogs = Logger().logs;
-      _applyLogLevelFilter();
+      _allLogs = LogService().logs;
+      _filteredLogs = LogService().getFilteredLogs(_selectedLogLevel);
     });
-  }
-  
-  // Apply the current log level filter to all logs
-  void _applyLogLevelFilter() {
-    if (_selectedLogLevel == LogLevel.none) {
-      _filteredLogs = []; // No logs should be shown
-    } else if (_selectedLogLevel == LogLevel.verbose) {
-      _filteredLogs = List.from(_allLogs); // Show all logs
-    } else {
-      // Filter logs based on their level
-      _filteredLogs = _allLogs.where((log) {
-        // Extract the log level from the log string
-        if (log.contains('[ERROR]')) {
-          return LogLevel.error.index >= _selectedLogLevel.index;
-        } else if (log.contains('[WARNING]')) {
-          return LogLevel.warning.index >= _selectedLogLevel.index;
-        } else if (log.contains('[INFO]')) {
-          return LogLevel.info.index >= _selectedLogLevel.index;
-        } else if (log.contains('[DEBUG]')) {
-          return LogLevel.debug.index >= _selectedLogLevel.index;
-        } else if (log.contains('[VERBOSE]')) {
-          return LogLevel.verbose.index >= _selectedLogLevel.index;
-        } else {
-          // Default to INFO level for logs without explicit level
-          return LogLevel.info.index >= _selectedLogLevel.index;
-        }
-      }).toList();
-    }
   }
   
   void _changeLogLevel(LogLevel? newLevel) {
     if (newLevel != null) {
       setState(() {
         _selectedLogLevel = newLevel;
-        Logger().setLogLevel(newLevel);
+        LogService().setLogLevel(newLevel);
+        _filteredLogs = LogService().getFilteredLogs(newLevel);
         
-        // Apply filter to existing logs
-        _applyLogLevelFilter();
-        
-        // Show a confirmation message
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Log level set to ${_logLevelNames[newLevel]}'),
+            content: Text('Log level set to ${LogService().getLevelName(newLevel)}'),
             duration: Duration(seconds: 2),
           ),
         );
@@ -87,17 +44,29 @@ class _LogsViewerScreenState extends State<LogsViewerScreen> {
     }
   }
 
+  Future<void> _emailLogs() async {
+    final result = await LogService().emailLogs(context);
+    
+    if (result && mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Opening email app with logs attached'),
+          duration: Duration(seconds: 2),
+        ),
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Notification Logs'),
+        title: Container(),
         actions: [
-          // Log level dropdown in app bar
           DropdownButton<LogLevel>(
             value: _selectedLogLevel,
             dropdownColor: Theme.of(context).primaryColor,
-            underline: Container(), // Remove the default underline
+            underline: Container(),
             icon: Icon(Icons.filter_list, color: Colors.white),
             onChanged: _changeLogLevel,
             items: LogLevel.values.map<DropdownMenuItem<LogLevel>>((LogLevel level) {
@@ -106,7 +75,7 @@ class _LogsViewerScreenState extends State<LogsViewerScreen> {
                 child: Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 16.0),
                   child: Text(
-                    _logLevelNames[level] ?? level.toString().split('.').last,
+                    LogService().getLevelName(level),
                     style: TextStyle(
                       color: _selectedLogLevel == level 
                           ? Colors.white 
@@ -121,9 +90,9 @@ class _LogsViewerScreenState extends State<LogsViewerScreen> {
             }).toList(),
           ),
           IconButton(
-            icon: const Icon(Icons.copy),
-            tooltip: 'Copy All Logs',
-            onPressed: _copyLogs,
+            icon: const Icon(Icons.email),
+            tooltip: 'Email Logs',
+            onPressed: _emailLogs,
           ),
           IconButton(
             icon: const Icon(Icons.refresh),
@@ -132,7 +101,7 @@ class _LogsViewerScreenState extends State<LogsViewerScreen> {
           IconButton(
             icon: const Icon(Icons.delete),
             onPressed: () {
-              Logger().clearLogs();
+              LogService().clearLogs();
               _loadLogs();
             },
           ),
@@ -171,7 +140,6 @@ class _LogsViewerScreenState extends State<LogsViewerScreen> {
                 );
               },
             ),
-      // Add a footer to show log count
       bottomNavigationBar: Container(
         height: 24,
         color: Colors.grey[200],
@@ -183,26 +151,5 @@ class _LogsViewerScreenState extends State<LogsViewerScreen> {
         ),
       ),
     );
-  }
-
-  void _copyLogs() {
-    if (_filteredLogs.isEmpty) {
-      ScaffoldMessenger.of(context)
-          .showSnackBar(SnackBar(content: Text('No logs to copy')));
-      return;
-    }
-
-    // Join all filtered logs with newlines
-    final String allLogs = _filteredLogs.join('\n');
-
-    // Copy to clipboard
-    Clipboard.setData(ClipboardData(text: allLogs)).then((_) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Filtered logs copied to clipboard (${_filteredLogs.length} entries)'),
-          duration: Duration(seconds: 2),
-        ),
-      );
-    });
   }
 }
