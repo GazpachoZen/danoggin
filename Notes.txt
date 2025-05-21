@@ -74,23 +74,22 @@ NOTE: I already had a short conversation with Claude about this titled "Pubspec 
 ---------------------
 I'd like to be more judicious about what exactly is getting archived away with Git, especially as it pertains to what makes its way up to GitHub. 
 ---------------------
+We should have little sounds associated with answering the questions. I'm thinking one for getting it right, one for incorrect on the 1st try, and one for incorrect on the 2nd try. While we're at it, maybe even support a sound if the user missed the timeout window. This timeout one might be tricky if the app is in the background. Going along with this, we should allow turning the sounds on/off through the responder's settings page.
 ---------------------
-I'd like to understand the utility of the "Acknowledge Issue" button relative to the responder/observer relationship.
-
-Here's what I notice from testing the existing code...
-- When a responder exhibits a problem (either missing a question or not responding in the allotted time) all linked observers get a single notification. This is fine.
-- If an observer starts their app and the last responder activity indicates a problem, they may or may not get a notification depending on whether or not they had hit the "Acknowledge" button earlier.
-
-How else does the acknowledge button come into play?
+What's all the crap that comes to screen from "flutter run"?
 ---------------------
 Over the course of a log development/debug cycle some of our source files have gotten out of hand. Please look at what I've provided and make some suggestions on which ones would benefit from refactoring?
 ---------------------
 It would be nice to have a mechanism for an observer to somehow coerce a related responder's app to present a question.
 ---------------------
 The app presently uses anonymous authentication for Firebase. We should probably button that up before making this app generally available. I'm not very familiar with Firebase. What would be the necessary steps?
-================================================================================ Quick hits...
-What's all the crap that comes to screen from "flutter run"?
+---------------------
 Can we pause/cancel notifications for responder somehow?
+---------------------
+---------------------
+---------------------
+---------------------
+---------------------
 ================================================================================ LATER...
 JEI - remember to turn kDevModeEnabled back to false wherever it exists.
 ---------------------
@@ -102,7 +101,6 @@ Danoggin should auto-start when phone powers up. Please discuss how this is acco
 ---------------------
 Add license agreement for the animal images I use. Also reference/thank ZapSplat.com for the notification sound.
 ---------------------
-The app is presently force to be in portrait mode only right now. I would like it to be more polite about this. Can we modify the code such that if the user turns to phone to landscape we provide an explanation that we only operate in portrait mode? This seems more polite.
 ---------------------
 ---------------------
 ---------------------

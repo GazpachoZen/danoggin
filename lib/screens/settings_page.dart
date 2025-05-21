@@ -58,7 +58,6 @@ class _SettingsPageState extends State<SettingsPage> {
   }
 
   @override
-  @override
   Widget build(BuildContext context) {
     final isDirty = selectedRole != widget.currentRole;
 
@@ -87,6 +86,7 @@ class _SettingsPageState extends State<SettingsPage> {
           child: Padding(
             padding: const EdgeInsets.all(12.0),
             child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 // Role-specific settings
                 widget.currentRole == UserRole.responder
@@ -107,47 +107,8 @@ class _SettingsPageState extends State<SettingsPage> {
                         },
                       ),
 
-                // Role selection section (always shown last)
-                const Divider(thickness: 1.2, height: 32),
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                      horizontal: 12.0, vertical: 10),
-                  decoration: BoxDecoration(
-                    color: Colors.grey.shade100,
-                    border: Border.all(color: Colors.grey.shade300),
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const Text(
-                        'Switch Role (rarely needed)',
-                        style: TextStyle(
-                            fontSize: 15, fontWeight: FontWeight.bold),
-                      ),
-                      _buildRoleSelector(),
-                      const SizedBox(height: 4),
-                      Align(
-                        alignment: Alignment.centerRight,
-                        child: ElevatedButton.icon(
-                          icon: const Icon(Icons.check),
-                          label: const Text('Apply'),
-                          onPressed: isDirty ? _applyRoleChange : null,
-                          style: ElevatedButton.styleFrom(
-                            padding: const EdgeInsets.symmetric(
-                                horizontal: 18, vertical: 10),
-                            backgroundColor:
-                                isDirty ? Colors.deepPurple : Colors.grey,
-                            foregroundColor: Colors.white,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-
-                // Add the developer tools section
-                _buildDeveloperTools(context),
+                // Add the developer tools section - but now with role switcher included
+                _buildDeveloperTools(context, isDirty),
 
                 // Add padding at the bottom for better scrolling experience
                 SizedBox(height: 20),
@@ -175,7 +136,7 @@ class _SettingsPageState extends State<SettingsPage> {
     );
   }
 
-  Widget _buildDeveloperTools(BuildContext context) {
+  Widget _buildDeveloperTools(BuildContext context, bool isDirty) {
     // Only show in dev mode
     if (!kDevModeEnabled) {
       return const SizedBox.shrink(); // Hidden in production
@@ -185,8 +146,37 @@ class _SettingsPageState extends State<SettingsPage> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         const Divider(thickness: 1.2, height: 32),
+
+        // Add a more prominent header for the debug section
         Container(
-          padding: const EdgeInsets.all(16.0),
+          width: double.infinity,
+          padding: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 12.0),
+          decoration: BoxDecoration(
+            color: Colors.red.shade50,
+            border: Border.all(color: Colors.red.shade200),
+            borderRadius: BorderRadius.circular(4),
+          ),
+          child: Row(
+            children: [
+              Icon(Icons.developer_mode, color: Colors.red.shade700),
+              const SizedBox(width: 8),
+              Text(
+                'DEVELOPER MODE',
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.red.shade700,
+                ),
+              ),
+            ],
+          ),
+        ),
+
+        const SizedBox(height: 16),
+
+        // Move role selector here - inside the debug container
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 10),
           decoration: BoxDecoration(
             color: Colors.grey.shade100,
             border: Border.all(color: Colors.grey.shade300),
@@ -195,52 +185,62 @@ class _SettingsPageState extends State<SettingsPage> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Row(
-                children: [
-                  Icon(Icons.developer_mode, color: Colors.deepPurple),
-                  const SizedBox(width: 8),
-                  Text(
-                    'Developer Tools',
-                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+              const Text(
+                'Switch Role',
+                style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold),
+              ),
+              _buildRoleSelector(),
+              const SizedBox(height: 4),
+              Align(
+                alignment: Alignment.centerRight,
+                child: ElevatedButton.icon(
+                  icon: const Icon(Icons.check),
+                  label: const Text('Apply'),
+                  onPressed: isDirty ? _applyRoleChange : null,
+                  style: ElevatedButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 18, vertical: 10),
+                    backgroundColor: isDirty ? Colors.deepPurple : Colors.grey,
+                    foregroundColor: Colors.white,
                   ),
-                ],
-              ),
-              const SizedBox(height: 16),
-
-              // Log viewer option
-              ListTile(
-                leading: const Icon(Icons.list),
-                title: const Text('View Notification Logs'),
-                subtitle: const Text('Debug message history'),
-                onTap: () {
-                  Navigator.of(context).push(
-                    MaterialPageRoute(
-                      builder: (_) => LogsViewerScreen(),
-                    ),
-                  );
-                },
-              ),
-
-              // Notification test option - role-specific
-              ListTile(
-                leading: const Icon(Icons.notifications),
-                title: const Text('Test Notification System'),
-                subtitle: Text(widget.currentRole == UserRole.responder
-                    ? 'Test FCM pipeline (Responder)'
-                    : 'Test notification delivery (Observer)'),
-                onTap: () async {
-                  if (widget.currentRole == UserRole.responder) {
-                    // Call the responder-specific test method (imported from quiz_page.dart)
-                    await _testResponderNotifications(context);
-                  } else {
-                    // Call the observer-specific test method (using controller)
-                    await _testObserverNotifications(context);
-                  }
-                },
+                ),
               ),
             ],
           ),
         ),
+
+        // Log viewer option (existing code)
+        ListTile(
+          leading: const Icon(Icons.list),
+          title: const Text('View Notification Logs'),
+          subtitle: const Text('Debug message history'),
+          onTap: () {
+            Navigator.of(context).push(
+              MaterialPageRoute(
+                builder: (_) => LogsViewerScreen(),
+              ),
+            );
+          },
+        ),
+
+        // Notification test option (existing code)
+        ListTile(
+          leading: const Icon(Icons.notifications),
+          title: const Text('Test Notification System'),
+          subtitle: Text(widget.currentRole == UserRole.responder
+              ? 'Test FCM pipeline (Responder)'
+              : 'Test notification delivery (Observer)'),
+          onTap: () async {
+            if (widget.currentRole == UserRole.responder) {
+              // Call the responder-specific test method (imported from quiz_page.dart)
+              await _testResponderNotifications(context);
+            } else {
+              // Call the observer-specific test method (using controller)
+              await _testObserverNotifications(context);
+            }
+          },
+        ),
+
         // Add a note indicating this is development mode
         Padding(
           padding: const EdgeInsets.symmetric(vertical: 8.0),
