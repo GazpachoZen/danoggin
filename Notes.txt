@@ -64,7 +64,6 @@ iOS...
 ================================================================================
 Please review the contents in the project knowledge to the point where you understand what the Danoggin project is about and how it operates. Pay particular attention to the Foundation.txt file. Do not provide a summary. Await further instruction.
 ================================================================================
-Let's break out the notification logging system into a stand-alone functionality.
 ---------------------
 I'd like to address some font sizing issues for the iOS implementation vs how things appear on Android. As one example, I've attached a screenshot of a typical observer panel from an Android phone. Notice how nicely things lay out. I've also attached a screenshot of what an observer panel looks like on an iPhone. Notice how horribly it renders. I have a similar example for font appearance for the responder side and how things fit (or don't fit) within the buttons.
 Please discuss our options before making code suggestions. (ref my "Assorted" conversation with Claude earlier)
@@ -90,11 +89,6 @@ It would be nice to have a mechanism for an observer to somehow coerce a related
 ---------------------
 The app presently uses anonymous authentication for Firebase. We should probably button that up before making this app generally available. I'm not very familiar with Firebase. What would be the necessary steps?
 ================================================================================ Quick hits...
-Get rid of the double set of instructions for enabling notification. (and how do we know when to suggest them?)
-Need ability to email the logs back home
-Change all prints to logs
-Break logging out to its own class
-Extend logging limits (understand them first)
 What's all the crap that comes to screen from "flutter run"?
 Can we pause/cancel notifications for responder somehow?
 ================================================================================ LATER...

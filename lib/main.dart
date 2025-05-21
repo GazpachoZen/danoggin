@@ -7,6 +7,7 @@
 //------------------------------------------------------------------------
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'screens/splash_screen.dart';
 import 'package:danoggin/services/notifications/notification_manager.dart';
 import 'theme/app_theme.dart';
@@ -23,6 +24,11 @@ final Logger _logger = Logger();
 void main() async {
   // Ensure Flutter binding is initialized
   WidgetsFlutterBinding.ensureInitialized();
+
+  // Set preferred orientations to portrait only
+  await SystemChrome.setPreferredOrientations([
+    DeviceOrientation.portraitUp,
+  ]);
 
   // Run the app immediately without waiting for initializations to complete
   runApp(AppLifecycleHandler(
