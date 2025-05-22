@@ -76,7 +76,7 @@ I'd like to be more judicious about what exactly is getting archived away with G
 ---------------------
 We should have little sounds associated with answering the questions. I'm thinking one for getting it right, one for incorrect on the 1st try, and one for incorrect on the 2nd try. While we're at it, maybe even support a sound if the user missed the timeout window. This timeout one might be tricky if the app is in the background. Going along with this, we should allow turning the sounds on/off through the responder's settings page.
 ---------------------
-What's all the crap that comes to screen from "flutter run"?
+What's all the crap that comes to screen from "flutter run"? Is there anything in the attached that you find particularly troubling?
 ---------------------
 Over the course of a log development/debug cycle some of our source files have gotten out of hand. Please look at what I've provided and make some suggestions on which ones would benefit from refactoring?
 ---------------------
@@ -88,6 +88,7 @@ Can we pause/cancel notifications for responder somehow?
 ---------------------
 Seek and destroy all depricated method calls. Check logs to help find them. Specifically, check settings_page.dart
 ---------------------
+The terms "observer" and "responder" are technically accurate with respect to the what the two roles of Danoggin do, but they are somewhat clinical. We can keep using these terms internally for development, but I'd like to use different terms when presenting them to the user. The terms show to the users should be "Main user" for the responder, and "Support partner" for the observer. Where would we need to edit to make these changes in presentation?
 ---------------------
 ---------------------
 ---------------------
@@ -100,7 +101,8 @@ As a future capability, we'll eventually want the apps to notice that updates ar
 ---------------------
 Danoggin should auto-start when phone powers up. Please discuss how this is accomplished before suggesting any code changes.
 ---------------------
-Add license agreement for the animal images I use. Also reference/thank ZapSplat.com for the notification sound.
+Add license agreement for the animal images I use (https://www.flaticon.com/free-icon/jellyfish_1998689?related_id=1998689)
+Also reference/thank ZapSplat.com for the notification sound.
 ---------------------
 ---------------------
 ---------------------

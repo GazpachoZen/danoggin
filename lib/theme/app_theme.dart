@@ -23,19 +23,21 @@ class AppTheme {
         elevation: 0,
       ),
 // In lib/theme/app_theme.dart
-elevatedButtonTheme: ElevatedButtonThemeData(
-  style: ElevatedButton.styleFrom(
-    backgroundColor: AppColors.lightGray, // Changed from midBlue to lightGray
-    foregroundColor: AppColors.textDark, // Changed text color to dark for better contrast
-    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-  ),
-),
+      elevatedButtonTheme: ElevatedButtonThemeData(
+        style: ElevatedButton.styleFrom(
+          backgroundColor:
+              AppColors.lightGray, // Changed from midBlue to lightGray
+          foregroundColor: AppColors
+              .textDark, // Changed text color to dark for better contrast
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        ),
+      ),
       textButtonTheme: TextButtonThemeData(
         style: TextButton.styleFrom(
           foregroundColor: AppColors.deepBlue,
         ),
       ),
-      cardTheme: CardTheme(
+      cardTheme: CardThemeData(
         color: Colors.white,
         elevation: 2,
         shape: RoundedRectangleBorder(
