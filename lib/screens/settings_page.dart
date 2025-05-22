@@ -119,9 +119,6 @@ class _SettingsPageState extends State<SettingsPage> {
                 // Developer tools (existing code)
                 _buildDeveloperTools(context, isDirty),
 
-                // Add the developer tools section - but now with role switcher included
-                _buildDeveloperTools(context, isDirty),
-
                 // Add padding at the bottom for better scrolling experience
                 SizedBox(height: 20),
               ],
@@ -457,7 +454,7 @@ Widget _buildLegalSection() {
               Navigator.of(context).push(
                 MaterialPageRoute(
                   builder: (context) => WebViewScreen(
-                    url: 'https://blue-vistas.com/danoggin/danoggin_acknowledgments.html',
+                    url: 'https://blue-vistas.com/danoggin_acknowledgements.html',
                     title: 'Acknowledgments',
                   ),
                 ),

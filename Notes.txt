@@ -66,7 +66,12 @@ Please review the contents in the project knowledge to the point where you under
 ================================================================================
 ---------------------
 I'd like to address some font sizing issues for the iOS implementation vs how things appear on Android. As one example, I've attached a screenshot of a typical observer panel from an Android phone. Notice how nicely things lay out. I've also attached a screenshot of what an observer panel looks like on an iPhone. Notice how horribly it renders. I have a similar example for font appearance for the responder side and how things fit (or don't fit) within the buttons.
-Please discuss our options before making code suggestions. (ref my "Assorted" conversation with Claude earlier)
+
+I would like to address the issues surrounding the observer side first. We will come back to the sizing in the responder's answer buttons later.
+
+Please discuss our options before making code suggestions. 
+
+(ref my "Assorted" conversation with Claude earlier)
 ---------------------
 Please examine the pubspec.yaml file I provided you. As a rule, I prefer stability over having the latest version of things. With that in mind, am I using the best versions of the various packages to get equal functionality for Android and iOS? I sometimes feel like I'm not getting the best development options. Is there any other information you might need from my development environment to answer this question?
 
@@ -80,16 +85,16 @@ What's all the crap that comes to screen from "flutter run"? Is there anything i
 ---------------------
 Over the course of a log development/debug cycle some of our source files have gotten out of hand. Please look at what I've provided and make some suggestions on which ones would benefit from refactoring?
 ---------------------
-It would be nice to have a mechanism for an observer to somehow coerce a related responder's app to present a question.
 ---------------------
 The app presently uses anonymous authentication for Firebase. We should probably button that up before making this app generally available. I'm not very familiar with Firebase. What would be the necessary steps?
 ---------------------
-Can we pause/cancel notifications for responder somehow?
+Can we pause/cancel notifications for responder somehow? I could see the need to put a temporary halt to them once in a while.
 ---------------------
 Seek and destroy all depricated method calls. Check logs to help find them. Specifically, check settings_page.dart
 ---------------------
 The terms "observer" and "responder" are technically accurate with respect to the what the two roles of Danoggin do, but they are somewhat clinical. We can keep using these terms internally for development, but I'd like to use different terms when presenting them to the user. The terms show to the users should be "Main user" for the responder, and "Support partner" for the observer. Where would we need to edit to make these changes in presentation?
 ---------------------
+I would like to provide a beta release to both Android and iOS users shortly. Please identify things which might need to be addressed before we do this.
 ---------------------
 ---------------------
 ================================================================================ LATER...
@@ -101,8 +106,7 @@ As a future capability, we'll eventually want the apps to notice that updates ar
 ---------------------
 Danoggin should auto-start when phone powers up. Please discuss how this is accomplished before suggesting any code changes.
 ---------------------
-Add license agreement for the animal images I use (https://www.flaticon.com/free-icon/jellyfish_1998689?related_id=1998689)
-Also reference/thank ZapSplat.com for the notification sound.
+It would be nice to have a mechanism for an observer to somehow coerce a related responder's app to present a question.
 ---------------------
 ---------------------
 ---------------------
