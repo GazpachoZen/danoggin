@@ -1,4 +1,4 @@
-// lib/services/log_service.dart
+import 'package:intl/intl.dart';
 import 'dart:collection';
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -153,7 +153,7 @@ class LogService {
       + "[   Please use this space to tell us what went wrong    ]$lb"
       + "[The more detail you can provide, the better we can help]$lb$lb"
       + "==========================================================$lb"
-      + "$formattedContext$lb"
+      + "$formattedContext"
       + "=== LOGS ===$lb"
       + "$formattedLogs";
 
@@ -326,11 +326,15 @@ class LogService {
   // Helper method to launch email client
   Future<bool> _launchEmailClient(String emailBody) async {
     // Create the mailto URI
+    final now = DateTime.now();
+    final formatter = DateFormat('yyMMdd-HHmmss');
+    final String timeStamp = formatter.format(now);
+
     final emailUri = Uri(
         scheme: 'mailto',
         path: _supportEmail,
         query: _encodeQueryParameters(
-            {'subject': 'Danoggin Log Report', 'body': emailBody}));
+            {'subject': 'Danoggin Log Report ($timeStamp)', 'body': emailBody}));
 
     print("Email URI: ${emailUri.toString()}");
 
