@@ -22,7 +22,7 @@ class NotificationManager {
 
   // Flag to track services that are registered
   final Set<String> _registeredServices = {};
-  
+
   // Flag to track if permission dialog has been shown this session
   bool _hasShownPermissionDialog = false;
 
@@ -98,7 +98,7 @@ class NotificationManager {
 
     // Mark that we've shown the dialog
     _hasShownPermissionDialog = true;
-    
+
     // Check if we can directly open settings
     bool canOpenSettings = await _canLaunchNotificationSettings();
 
@@ -213,49 +213,53 @@ class NotificationManager {
     try {
       // Get platform helper
       final platformHelper = (_localService is LocalNotificationService)
-        ? (_localService as LocalNotificationService).platformHelper
-        : null;
+          ? (_localService as LocalNotificationService).platformHelper
+          : null;
 
-      // iOS in foreground with context: Use in-app overlay notification
+      // iOS in foreground: Always use in-app notification for consistency
       if (Platform.isIOS &&
-          platformHelper != null && 
-          !platformHelper.isInBackground &&
-          platformHelper.currentContext != null &&
-          WidgetsBinding.instance.lifecycleState == AppLifecycleState.resumed) {
+          platformHelper != null &&
+          !platformHelper.isInBackground) {
         _logger.i("iOS foreground: Using in-app notification");
 
-        await _localService.showInAppNotification(
-          context: platformHelper.currentContext!,
-          title: title,
-          body: body,
-          playSound: playSound,
-        );
+        // Only show in-app if we have a context
+        if (platformHelper.currentContext != null) {
+          await _localService.showInAppNotification(
+            context: platformHelper.currentContext!,
+            title: title,
+            body: body,
+            playSound: playSound,
+          );
 
-        // If refresh is needed
-        if (triggerRefresh) {
-          ((_localService as LocalNotificationService).notificationHandler)
-              .addNotificationEvent({
-            'id': id,
-            'title': title,
-            'body': body,
-            'payload': payload,
-          });
-          _logger.i('Emitted notification event for refresh');
+          // If refresh is needed
+          if (triggerRefresh) {
+            ((_localService as LocalNotificationService).notificationHandler)
+                .addNotificationEvent({
+              'id': id,
+              'title': title,
+              'body': body,
+              'payload': payload,
+            });
+            _logger.i('Emitted notification event for refresh');
+          }
+
+          return true;
+        } else {
+          _logger.w(
+              "iOS foreground: No context available, falling back to system notification");
+          // Fall through to system notification
         }
+      }
 
-        return true;
-      }
       // All other cases: Use system notification
-      else {
-        _logger.i("Using system notification");
-        return await _localService.showNotification(
-          id: id,
-          title: title,
-          body: body,
-          triggerRefresh: triggerRefresh,
-          payload: payload,
-        );
-      }
+      _logger.i("Using system notification");
+      return await _localService.showNotification(
+        id: id,
+        title: title,
+        body: body,
+        triggerRefresh: triggerRefresh,
+        payload: payload,
+      );
     } catch (e) {
       _logger.e('Error in useBestNotification: $e');
       return false;
@@ -371,14 +375,15 @@ class NotificationManager {
       _logger.e('Error clearing iOS badge: $e');
     }
   }
-  
+
   // Deprecated method - kept for backward compatibility
   // but now just redirects to our new implementation
   Future<void> showPermissionDialog(BuildContext context) async {
-    _logger.w('showPermissionDialog is deprecated. Using checkAndRequestPermissions instead.');
+    _logger.w(
+        'showPermissionDialog is deprecated. Using checkAndRequestPermissions instead.');
     await checkAndRequestPermissions(context);
   }
-  
+
   // Provide access to open notification settings directly
   Future<void> openNotificationSettings(BuildContext context) async {
     await _openNotificationSettings();

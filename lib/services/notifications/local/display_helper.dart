@@ -5,16 +5,16 @@ import 'package:danoggin/utils/logger.dart';
 /// Helper for displaying in-app notifications
 class DisplayHelper {
   final Logger _logger = Logger();
-  
+
   /// Show enhanced in-app notification
   Future<void> showEnhancedInAppNotification(
-    BuildContext context, 
-    String title, 
+    BuildContext context,
+    String title,
     String body, {
     bool playSound = true,
   }) async {
     _logger.i("Showing in-app notification: $title");
-    
+
     // Play notification sound
     if (playSound) {
       try {
@@ -24,10 +24,10 @@ class DisplayHelper {
         _logger.i("Error playing notification sound: $e");
       }
     }
-    
+
     // Define overlay entry
     late OverlayEntry entry;
-    
+
     entry = OverlayEntry(
       builder: (context) => Positioned(
         top: MediaQuery.of(context).padding.top + 10,
@@ -84,14 +84,15 @@ class DisplayHelper {
         ),
       ),
     );
-    
+
     // Insert the overlay
     Overlay.of(context).insert(entry);
-    
+
     // Remove after a delay
     Future.delayed(Duration(seconds: 8), () {
       try {
-        if (context.mounted) {
+        if (entry.mounted) {
+          // Add this check
           entry.remove();
         }
       } catch (e) {
