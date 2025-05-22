@@ -204,7 +204,7 @@ class QuizController {
       await _updateScheduleAfterCheckIn();
 
       // Cancel any outstanding check-in notifications since we've now handled the timeout
-      NotificationManager().clearIOSBadge(); // Keep this
+      await NotificationManager().clearIOSBadge();
 
       Future.delayed(Duration(seconds: 3), () {
         _timeoutActive = false;
@@ -224,7 +224,8 @@ class QuizController {
 
     responseTimer?.cancel();
 
-    NotificationManager().clearIOSBadge();
+// Clear all badges when answering any question
+    await NotificationManager().clearIOSBadge();
 
     final isCorrect = selectedAnswer == currentQuestion!.correctAnswer;
 

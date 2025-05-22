@@ -352,11 +352,9 @@ class NotificationManager {
     await _localService.requestPermissions();
   }
 
-  /// Clear the iOS badge (notification count)
+/// Clear all badges via Cloud Function (works for all platforms)
 Future<void> clearIOSBadge() async {
-  if (!Platform.isIOS) return;
-  
-  _logger.i('Clearing iOS badge via Cloud Function');
+  _logger.i('Clearing badges via Cloud Function');
   
   try {
     final uid = AuthService.currentUserId;
@@ -369,12 +367,12 @@ Future<void> clearIOSBadge() async {
     );
     
     if (response.statusCode == 200) {
-      _logger.i('Badge cleared successfully via Cloud Function');
+      _logger.i('All badges cleared successfully via Cloud Function');
     } else {
-      _logger.e('Failed to clear badge: ${response.statusCode}');
+      _logger.e('Failed to clear badges: ${response.statusCode}');
     }
   } catch (e) {
-    _logger.e('Error clearing badge: $e');
+    _logger.e('Error clearing badges: $e');
   }
 }
 
