@@ -86,12 +86,13 @@ The app presently uses anonymous authentication for Firebase. We should probably
 ---------------------
 Can we pause/cancel notifications for responder somehow?
 ---------------------
+Seek and destroy all depricated method calls. Check logs to help find them. Specifically, check settings_page.dart
 ---------------------
 ---------------------
 ---------------------
 ---------------------
 ================================================================================ LATER...
-JEI - remember to turn kDevModeEnabled back to false wherever it exists.
+Remember to turn kDevModeEnabled back to false wherever it exists.
 ---------------------
 Make a states and cities question pack. All the state capitals, etc.
 ---------------------

@@ -46,7 +46,8 @@ dependencies:
   package_info_plus: ^4.0.0
   device_info_plus: ^9.0.0
   audioplayers: ^5.0.0
-  url_launcher: ^6.1.12  # Use the latest version available
+  url_launcher: ^6.1.12
+  webview_flutter: ^4.12.0
   vibration: ^3.1.3
 
 

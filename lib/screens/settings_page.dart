@@ -1,6 +1,9 @@
+import 'package:danoggin/screens/web_view_screen.dart';
+import 'package:flutter/material.dart';
+import 'package:webview_flutter/webview_flutter.dart';
+import 'package:url_launcher/url_launcher.dart';
 import 'package:danoggin/screens/logs_viewer_screen.dart';
 import 'package:danoggin/widgets/observer_settings_widget.dart';
-import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:danoggin/models/user_role.dart';
 import 'package:danoggin/widgets/responder_settings_widget.dart';
@@ -106,6 +109,15 @@ class _SettingsPageState extends State<SettingsPage> {
                           });
                         },
                       ),
+
+                // Add a divider before the legal section
+                const Divider(thickness: 1.2, height: 32),
+
+                // Add new legal and information section
+                _buildLegalSection(),
+
+                // Developer tools (existing code)
+                _buildDeveloperTools(context, isDirty),
 
                 // Add the developer tools section - but now with role switcher included
                 _buildDeveloperTools(context, isDirty),
@@ -354,4 +366,109 @@ class _SettingsPageState extends State<SettingsPage> {
       );
     }
   }
+
+Widget _buildLegalSection() {
+  return Column(
+    crossAxisAlignment: CrossAxisAlignment.start,
+    children: [
+      // More compact header with less padding
+      Padding(
+        padding: const EdgeInsets.only(left: 12.0, bottom: 4.0),
+        child: Text(
+          'Legal & Information',
+          style: TextStyle(
+            fontSize: 15,
+            fontWeight: FontWeight.bold,
+            color: Colors.grey[700],
+          ),
+        ),
+      ),
+      
+      // Make the list tiles more compact
+      ListView(
+        shrinkWrap: true,
+        physics: NeverScrollableScrollPhysics(),
+        children: [
+          // About option
+          ListTile(
+            dense: true, // Makes the list tile more compact
+            visualDensity: VisualDensity(horizontal: 0, vertical: -2), // Further reduces height
+            leading: const Icon(Icons.info_outline, size: 20),
+            title: const Text('About Danoggin', style: TextStyle(fontSize: 14)),
+            trailing: const Icon(Icons.arrow_forward_ios, size: 14),
+            onTap: () {
+              Navigator.of(context).push(
+                MaterialPageRoute(
+                  builder: (context) => WebViewScreen(
+                    url: 'https://blue-vistas.com/danoggin_about.html',
+                    title: 'About Danoggin',
+                  ),
+                ),
+              );
+            },
+          ),
+          
+          // EULA option
+          ListTile(
+            dense: true,
+            visualDensity: VisualDensity(horizontal: 0, vertical: -2),
+            leading: const Icon(Icons.description_outlined, size: 20),
+            title: const Text('Terms of Use (EULA)', style: TextStyle(fontSize: 14)),
+            trailing: const Icon(Icons.arrow_forward_ios, size: 14),
+            onTap: () {
+              Navigator.of(context).push(
+                MaterialPageRoute(
+                  builder: (context) => WebViewScreen(
+                    url: 'https://blue-vistas.com/danoggin_eula.html',
+                    title: 'Terms of Use',
+                  ),
+                ),
+              );
+            },
+          ),
+          
+          // Privacy Policy option
+          ListTile(
+            dense: true,
+            visualDensity: VisualDensity(horizontal: 0, vertical: -2),
+            leading: const Icon(Icons.privacy_tip_outlined, size: 20),
+            title: const Text('Privacy Policy', style: TextStyle(fontSize: 14)),
+            trailing: const Icon(Icons.arrow_forward_ios, size: 14),
+            onTap: () {
+              Navigator.of(context).push(
+                MaterialPageRoute(
+                  builder: (context) => WebViewScreen(
+                    url: 'https://blue-vistas.com/danoggin_privacy.html',
+                    title: 'Privacy Policy',
+                  ),
+                ),
+              );
+            },
+          ),
+          
+          // Acknowledgments option
+          ListTile(
+            dense: true,
+            visualDensity: VisualDensity(horizontal: 0, vertical: -2),
+            leading: const Icon(Icons.attribution_outlined, size: 20),
+            title: const Text('Acknowledgments', style: TextStyle(fontSize: 14)),
+            trailing: const Icon(Icons.arrow_forward_ios, size: 14),
+            onTap: () {
+              Navigator.of(context).push(
+                MaterialPageRoute(
+                  builder: (context) => WebViewScreen(
+                    url: 'https://blue-vistas.com/danoggin/danoggin_acknowledgments.html',
+                    title: 'Acknowledgments',
+                  ),
+                ),
+              );
+            },
+          ),
+        ],
+      ),
+    ],
+  );
+}
+
+
 }
