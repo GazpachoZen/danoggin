@@ -174,11 +174,11 @@ function isWithinActiveHours(responderData: object): boolean {
     if (startTotalMinutes <= endTotalMinutes) {
       // Normal case (e.g., 08:00 to 20:00)
       return currentTotalMinutes >= startTotalMinutes &&
-             currentTotalMinutes <= endTotalMinutes;
+        currentTotalMinutes <= endTotalMinutes;
     } else {
       // Overnight case (e.g., 22:00 to 06:00)
       return currentTotalMinutes >= startTotalMinutes ||
-             currentTotalMinutes <= endTotalMinutes;
+        currentTotalMinutes <= endTotalMinutes;
     }
   } catch (error) {
     console.error("Error checking active hours:", error);
@@ -231,6 +231,25 @@ async function sendCheckInReminder(
           notification: {
             title: "Danoggin Check-In",
             body: "Time to answer a quick question!",
+          },
+          apns: { // iOS-specific configuration
+            payload: {
+              aps: {
+                sound: "default",
+                badge: 1,
+                alert: {
+                  title: "Danoggin Check-In",
+                  body: "Time to answer a quick question!",
+                },
+              },
+            },
+          },
+          android: { // Android-specific configuration
+            notification: {
+              sound: "default",
+              priority: "high",
+              channelId: "danoggin_alerts",
+            },
           },
           data: {
             type: "check_in_reminder",
@@ -538,6 +557,25 @@ async function notifyObserversOfCheckInIssue(
           notification: {
             title: title,
             body: body,
+          },
+          apns: { // iOS-specific configuration
+            payload: {
+              aps: {
+                sound: "default",
+                badge: 1,
+                alert: {
+                  title: title,
+                  body: body,
+                },
+              },
+            },
+          },
+          android: { // Android-specific configuration
+            notification: {
+              sound: "default",
+              priority: "high",
+              channelId: "danoggin_alerts",
+            },
           },
           data: {
             type: "check_in_alert",
