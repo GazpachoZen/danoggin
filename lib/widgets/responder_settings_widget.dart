@@ -379,6 +379,9 @@ class _ResponderSettingsWidgetState extends State<ResponderSettingsWidget> {
                 // Ensure token is saved to Firestore
                 await NotificationManager().initializeFCM();
 
+                // Set context for notifications
+                NotificationManager().setCurrentContext(context);
+
                 // Test the complete pipeline via Cloud Function
                 final response = await http.post(
                   Uri.parse(

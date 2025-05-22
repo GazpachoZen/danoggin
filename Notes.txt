@@ -91,11 +91,15 @@ Can create a mechanism to pause/cancel notifications for responder somehow? I co
 ---------------------
 Seek and destroy all depricated method calls. Check logs to help find them. Specifically, check settings_page.dart
 ---------------------
-The terms "observer" and "responder" are technically accurate with respect to the what the two roles of Danoggin do, but they are somewhat clinical. We can keep using these terms internally for development, but I'd like to use different terms when presenting them to the user. The terms show to the users should be "Main user" for the responder, and "Support partner" for the observer. Where would we need to edit to make these changes in presentation?
+The terms "observer" and "responder" are technically accurate with respect to the what the two roles of Danoggin do, but they are somewhat clinical. We can keep using these terms internally for development, but I'd like to use different terms when presenting them to the user. The terms show to the users should be "Main user" for the responder, and "Support partner" for the observer. Better still would be to have a central place in the code where these new labels could be defined and used throughout. This would make it easier to use other labels if we re-think this downstream. Where would we need to edit to make these changes in presentation?
 ---------------------
 I would like to provide a beta release to both Android and iOS users shortly. Please identify things which might need to be addressed before we do this.
 ---------------------
 When emailing logs, let's put a timestamp identifier in the subject line. It should be two strings separated by a dash representing the local date and time. I suggest YYMMDD-HHmmSS, where MM is of course the two digit month, and "mm" is the two digit minute.
+---------------------
+After a responder has given an answer and we've grayed off the options, we should also gray off the question itself. Please show me wht to edit.
+---------------------
+---------------------
 ---------------------
 ---------------------
 ================================================================================ LATER...
