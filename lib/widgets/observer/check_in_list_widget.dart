@@ -132,11 +132,10 @@ class CheckInListWidget extends StatelessWidget {
     return ListTile(
       dense: true,
       visualDensity: const VisualDensity(vertical: -3),
-      leading: Icon(Icons.circle, color: Colors.blue[300], size: 12),
+      leading: _getResultIcon(result),
       title: Text(prompt, style: const TextStyle(fontSize: 14)),
       subtitle:
           Text('$absolute • $relative', style: const TextStyle(fontSize: 12)),
-      trailing: _getResultIcon(result),
     );
   }
 }
