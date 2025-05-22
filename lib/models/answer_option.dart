@@ -9,6 +9,7 @@
 import 'package:flutter/material.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:auto_size_text/auto_size_text.dart';
+import 'dart:io';
 
 class AnswerOption {
   final String? text;
@@ -83,13 +84,22 @@ class AnswerOption {
   Widget _simplifiedTextRendering(String text, BoxConstraints constraints, bool disabled) {
     final textColor = disabled ? Colors.grey : Colors.black87;
     
+    // Platform-specific adjustments
+    final isIOS = Platform.isIOS;
+    final widthMultiplier = isIOS ? 0.90 : 0.95; // More conservative width on iOS
+    final fontSizeMultiplier = isIOS ? 1.1 : 1.0; // Slightly larger fonts on iOS
+    
     return LayoutBuilder(
       builder: (context, textConstraints) {
+        // Adjust available width for iOS
+        final availableWidth = textConstraints.maxWidth * widthMultiplier;
+        
         // First attempt: try fitting the text on a single line
+        final initialSingleLineSize = isIOS ? 35.0 : 32.0; // Larger starting size on iOS
         final singleLineFits = _measureTextFits(
           text, 
-          textConstraints.maxWidth * 0.95, 
-          32.0 // Initial large font size for single line
+          availableWidth, 
+          initialSingleLineSize * fontSizeMultiplier
         );
         
         if (singleLineFits) {
@@ -97,9 +107,12 @@ class AnswerOption {
           return AutoSizeText(
             text,
             textAlign: TextAlign.center,
-            style: TextStyle(fontSize: 32.0, color: textColor),
-            minFontSize: 18.0,
-            maxFontSize: 32.0,
+            style: TextStyle(
+              fontSize: initialSingleLineSize * fontSizeMultiplier, 
+              color: textColor
+            ),
+            minFontSize: isIOS ? 20.0 : 18.0, // Higher minimum on iOS
+            maxFontSize: initialSingleLineSize * fontSizeMultiplier,
             maxLines: 1,
           );
         }
@@ -111,13 +124,14 @@ class AnswerOption {
           final firstLine = text.substring(0, breakIndex).trim();
           final secondLine = text.substring(breakIndex).trim();
           
-          // Start with a large font size and reduce if needed
-          double fontSize = 28.0;
+          // Start with a larger font size on iOS and reduce if needed
+          double fontSize = isIOS ? 30.0 : 28.0;
+          final minFontSize = isIOS ? 18.0 : 16.0;
           
           // Find a font size where both lines fit
-          while (fontSize > 16.0) {
-            if (_measureTextFits(firstLine, textConstraints.maxWidth * 0.95, fontSize) &&
-                _measureTextFits(secondLine, textConstraints.maxWidth * 0.95, fontSize)) {
+          while (fontSize > minFontSize) {
+            if (_measureTextFits(firstLine, availableWidth, fontSize) &&
+                _measureTextFits(secondLine, availableWidth, fontSize)) {
               break; // Found a size that works
             }
             fontSize -= 2.0;
@@ -137,10 +151,10 @@ class AnswerOption {
                   style: TextStyle(
                     fontSize: fontSize,
                     color: textColor,
-                    height: 0.95, // Tight line height
+                    height: isIOS ? 1.0 : 0.95, // Slightly more line height on iOS
                   ),
                 ),
-                SizedBox(height: 2), // Very small gap between lines
+                SizedBox(height: isIOS ? 4 : 2), // More space between lines on iOS
                 Text(
                   secondLine,
                   textAlign: TextAlign.center,
@@ -148,7 +162,7 @@ class AnswerOption {
                   style: TextStyle(
                     fontSize: fontSize, // Same size as first line
                     color: textColor,
-                    height: 0.95,
+                    height: isIOS ? 1.0 : 0.95,
                   ),
                 ),
               ],
@@ -160,16 +174,19 @@ class AnswerOption {
         return AutoSizeText(
           text,
           textAlign: TextAlign.center,
-          style: TextStyle(fontSize: 24.0, color: textColor),
-          minFontSize: 14.0,
-          maxFontSize: 24.0,
+          style: TextStyle(
+            fontSize: isIOS ? 26.0 : 24.0, // Larger fallback size on iOS
+            color: textColor
+          ),
+          minFontSize: isIOS ? 16.0 : 14.0, // Higher minimum on iOS
+          maxFontSize: isIOS ? 26.0 : 24.0,
           maxLines: 2,
         );
       },
     );
   }
   
-  // Helper to find a natural break point in text (simplest version)
+  // Helper to find a natural break point in text (preserves your existing logic)
   int _findNaturalBreakPoint(String text) {
     // For simplicity, find approximately the middle of the text
     // and then look for the nearest space
@@ -192,7 +209,7 @@ class AnswerOption {
     return -1;
   }
   
-  // Helper to measure if text fits at a specific font size
+  // Helper to measure if text fits at a specific font size (with iOS adjustments)
   bool _measureTextFits(String text, double maxWidth, double fontSize) {
     final textSpan = TextSpan(
       text: text,
@@ -206,7 +223,10 @@ class AnswerOption {
     );
     
     textPainter.layout(maxWidth: double.infinity);
-    return textPainter.width <= maxWidth;
+    
+    // Add a small buffer for iOS to account for rendering differences
+    final buffer = Platform.isIOS ? 4.0 : 0.0;
+    return textPainter.width <= (maxWidth - buffer);
   }
 
   // Helper method to determine which image source to use
