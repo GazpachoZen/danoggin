@@ -113,6 +113,7 @@ Danoggin should auto-start when phone powers up. Please discuss how this is acco
 ---------------------
 It would be nice to have a mechanism for an observer to somehow coerce a related responder's app to present a question.
 ---------------------
+We'll eventually need a way to purge the database of users that have ghosted the app. 
 ---------------------
 ---------------------
 ---------------------

@@ -315,7 +315,7 @@ class _QuizPageState extends State<QuizPage> with WidgetsBindingObserver {
 
   AppBar _buildAppBar() {
     return AppBar(
-      title: Text('Danoggin: $_userName'),
+      title: Text(_userName),
       actions: [
         // Dev mode refresh button (if enabled)
         if (kDevModeEnabled)
