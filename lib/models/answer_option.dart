@@ -10,6 +10,7 @@ import 'package:flutter/material.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:auto_size_text/auto_size_text.dart';
 import 'dart:io';
+import 'dart:math';
 
 class AnswerOption {
   final String? text;
@@ -96,74 +97,146 @@ class AnswerOption {
     );
   }
 
-  // Simplified text rendering with improved line breaking and sizing
-  // Updated _simplifiedTextRendering method for lib/models/answer_option.dart
-// Replace your current _simplifiedTextRendering method with this one
+// Find a natural break point (space) near the middle of the text
+  int _findBreakNearMiddle(String text) {
+    // Look for spaces in the string
+    final spaceIndices = <int>[];
+    for (int i = 0; i < text.length; i++) {
+      if (text[i] == ' ') {
+        spaceIndices.add(i);
+      }
+    }
+
+    // If no spaces found, can't break naturally
+    if (spaceIndices.isEmpty) {
+      return -1;
+    }
+
+    // Find the middle of the text
+    final middle = text.length / 2;
+
+    // Find the space closest to the middle
+    int closestSpaceIndex = spaceIndices[0];
+    double minDistance = (spaceIndices[0] - middle).abs();
+
+    for (int i = 1; i < spaceIndices.length; i++) {
+      final distance = (spaceIndices[i] - middle).abs();
+      if (distance < minDistance) {
+        minDistance = distance;
+        closestSpaceIndex = spaceIndices[i];
+      }
+    }
+
+    return closestSpaceIndex;
+  }
+
+// Generalized text rendering solution for any multi-word string
+// This approach is based on actual text width measurement, not character count
 
   Widget _simplifiedTextRendering(
       String text, BoxConstraints constraints, bool disabled) {
     final textColor = disabled ? Colors.grey : Colors.black87;
 
-    // Platform-specific adjustments
-    final isIOS = Platform.isIOS;
-
     return LayoutBuilder(
       builder: (context, textConstraints) {
-        final availableWidth = textConstraints.maxWidth *
-            0.92; // Slightly reduced width for padding
-        final availableHeight =
-            textConstraints.maxHeight * 0.85; // Allow some vertical padding
+        final availableWidth = textConstraints.maxWidth * 0.92;
 
-        // First check if we should attempt to break the text for better display
-        final breakIndex = _findNaturalBreakPoint(text);
-        final shouldBreak =
-            breakIndex > 0 && text.length > 10; // Only break longer text
+        // Start with an optimal target font size
+        final singleLineFontSize = 26.0;
 
-        if (shouldBreak) {
-          final firstLine = text.substring(0, breakIndex).trim();
-          final secondLine = text.substring(breakIndex).trim();
+        // First check if the entire text fits on a single line
+        final textWidth = _measureTextWidth(text, singleLineFontSize);
+        final fitsOnSingleLine = textWidth <= availableWidth;
 
-          return Container(
-            width: availableWidth,
-            height: availableHeight,
-            child: AutoSizeText(
-              '$firstLine\n$secondLine',
+        if (fitsOnSingleLine) {
+          // If it fits on one line, use that with the optimal font size
+          return Center(
+            child: Text(
+              text,
               textAlign: TextAlign.center,
               style: TextStyle(
-                fontSize: isIOS
-                    ? 22.0
-                    : 20.0, // Start with slightly larger font on iOS
+                fontSize: singleLineFontSize,
                 color: textColor,
-                height: 1.1, // Tighter line height for two lines
+                fontWeight: FontWeight.w500,
               ),
-              maxLines: 2,
-              minFontSize: isIOS ? 12.0 : 10.0,
-              stepGranularity: 0.5, // Finer steps for better sizing
-              overflow: TextOverflow.ellipsis,
             ),
           );
         }
 
-        // For text that doesn't need breaking or is too short to benefit from breaking
-        return Container(
-          width: availableWidth,
-          height: availableHeight,
-          child: AutoSizeText(
-            text,
+        // Text doesn't fit on a single line - try to find a natural break point
+        final breakIndex = _findBreakNearMiddle(text);
+
+        // If we can't find a good break point, use AutoSizeText for a single line
+        if (breakIndex <= 0) {
+          return Center(
+            child: AutoSizeText(
+              text,
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                fontSize: singleLineFontSize,
+                color: textColor,
+                fontWeight: FontWeight.w500,
+              ),
+              minFontSize: 14.0,
+              maxLines: 1,
+              stepGranularity: 0.5,
+            ),
+          );
+        }
+
+        // Break the text at the found position
+        final firstLine = text.substring(0, breakIndex).trim();
+        final secondLine = text.substring(breakIndex).trim();
+
+        // Measure both lines to determine which needs more space
+        final firstLineWidth = _measureTextWidth(firstLine, singleLineFontSize);
+        final secondLineWidth =
+            _measureTextWidth(secondLine, singleLineFontSize);
+
+        // Determine the scaling factor needed to make the wider line fit
+        final maxLineWidth = max(firstLineWidth, secondLineWidth);
+        final scaleFactor = availableWidth / maxLineWidth;
+
+        // Calculate the font size that will fit both lines
+        // Start with the single line size and scale down as needed
+        final twoLineFontSize =
+            min(singleLineFontSize * scaleFactor, singleLineFontSize);
+
+        // Use the calculated font size for both lines
+        return Center(
+          child: Text(
+            '$firstLine\n$secondLine',
             textAlign: TextAlign.center,
             style: TextStyle(
-              fontSize: isIOS ? 26.0 : 24.0, // Larger initial font size
+              fontSize: twoLineFontSize,
               color: textColor,
+              fontWeight: FontWeight.w500,
+              height: 1.05, // Tighter line height for two lines
             ),
-            maxLines:
-                text.length > 12 ? 2 : 1, // Allow long text to use 2 lines
-            minFontSize: isIOS ? 12.0 : 10.0,
-            stepGranularity: 0.5,
-            overflow: TextOverflow.ellipsis,
           ),
         );
       },
     );
+  }
+
+// Helper method to measure text width
+  double _measureTextWidth(String text, double fontSize) {
+    final textSpan = TextSpan(
+      text: text,
+      style: TextStyle(
+        fontSize: fontSize,
+        fontWeight: FontWeight.w500, // Match the weight used in rendering
+      ),
+    );
+
+    final textPainter = TextPainter(
+      text: textSpan,
+      textDirection: TextDirection.ltr,
+      maxLines: 1,
+    );
+
+    textPainter.layout();
+    return textPainter.width;
   }
 
 // Improved natural break point finder
