@@ -14,11 +14,11 @@ import 'dart:io';
 class AnswerOption {
   final String? text;
   final String? imagePath;
-  final String? imageUrl; 
+  final String? imageUrl;
 
   const AnswerOption({
-    this.text, 
-    this.imagePath, 
+    this.text,
+    this.imagePath,
     this.imageUrl,
   });
 
@@ -42,22 +42,38 @@ class AnswerOption {
     return LayoutBuilder(
       builder: (context, constraints) {
         final hasImage = imagePath != null || imageUrl != null;
-        
+
         // If we have an image, we'll use it and ignore text
         if (hasImage) {
           Widget imageWidget = Container(
             height: constraints.maxHeight * 0.8,
             child: _buildImage(),
           );
-          
+
           // Apply grayscale filter when disabled
           if (disabled) {
             imageWidget = ColorFiltered(
               colorFilter: ColorFilter.matrix([
-                0.2126, 0.7152, 0.0722, 0, 0,
-                0.2126, 0.7152, 0.0722, 0, 0,
-                0.2126, 0.7152, 0.0722, 0, 0,
-                0,      0,      0,      1, 0,
+                0.2126,
+                0.7152,
+                0.0722,
+                0,
+                0,
+                0.2126,
+                0.7152,
+                0.0722,
+                0,
+                0,
+                0.2126,
+                0.7152,
+                0.0722,
+                0,
+                0,
+                0,
+                0,
+                0,
+                1,
+                0,
               ]), // Grayscale matrix
               child: Opacity(
                 opacity: 0.5, // Also reduce opacity for disabled state
@@ -65,10 +81,10 @@ class AnswerOption {
               ),
             );
           }
-          
+
           return imageWidget;
         }
-        
+
         // Only use text if there's no image
         return Padding(
           padding: const EdgeInsets.all(8.0),
@@ -79,151 +95,123 @@ class AnswerOption {
       },
     );
   }
-  
+
   // Simplified text rendering with improved line breaking and sizing
-  Widget _simplifiedTextRendering(String text, BoxConstraints constraints, bool disabled) {
+  // Updated _simplifiedTextRendering method for lib/models/answer_option.dart
+// Replace your current _simplifiedTextRendering method with this one
+
+  Widget _simplifiedTextRendering(
+      String text, BoxConstraints constraints, bool disabled) {
     final textColor = disabled ? Colors.grey : Colors.black87;
-    
+
     // Platform-specific adjustments
     final isIOS = Platform.isIOS;
-    final widthMultiplier = isIOS ? 0.90 : 0.95; // More conservative width on iOS
-    final fontSizeMultiplier = isIOS ? 1.1 : 1.0; // Slightly larger fonts on iOS
-    
+
     return LayoutBuilder(
       builder: (context, textConstraints) {
-        // Adjust available width for iOS
-        final availableWidth = textConstraints.maxWidth * widthMultiplier;
-        
-        // First attempt: try fitting the text on a single line
-        final initialSingleLineSize = isIOS ? 35.0 : 32.0; // Larger starting size on iOS
-        final singleLineFits = _measureTextFits(
-          text, 
-          availableWidth, 
-          initialSingleLineSize * fontSizeMultiplier
-        );
-        
-        if (singleLineFits) {
-          // If it fits on one line, use AutoSizeText with a larger font
-          return AutoSizeText(
+        final availableWidth = textConstraints.maxWidth *
+            0.92; // Slightly reduced width for padding
+        final availableHeight =
+            textConstraints.maxHeight * 0.85; // Allow some vertical padding
+
+        // First check if we should attempt to break the text for better display
+        final breakIndex = _findNaturalBreakPoint(text);
+        final shouldBreak =
+            breakIndex > 0 && text.length > 10; // Only break longer text
+
+        if (shouldBreak) {
+          final firstLine = text.substring(0, breakIndex).trim();
+          final secondLine = text.substring(breakIndex).trim();
+
+          return Container(
+            width: availableWidth,
+            height: availableHeight,
+            child: AutoSizeText(
+              '$firstLine\n$secondLine',
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                fontSize: isIOS
+                    ? 22.0
+                    : 20.0, // Start with slightly larger font on iOS
+                color: textColor,
+                height: 1.1, // Tighter line height for two lines
+              ),
+              maxLines: 2,
+              minFontSize: isIOS ? 12.0 : 10.0,
+              stepGranularity: 0.5, // Finer steps for better sizing
+              overflow: TextOverflow.ellipsis,
+            ),
+          );
+        }
+
+        // For text that doesn't need breaking or is too short to benefit from breaking
+        return Container(
+          width: availableWidth,
+          height: availableHeight,
+          child: AutoSizeText(
             text,
             textAlign: TextAlign.center,
             style: TextStyle(
-              fontSize: initialSingleLineSize * fontSizeMultiplier, 
-              color: textColor
+              fontSize: isIOS ? 26.0 : 24.0, // Larger initial font size
+              color: textColor,
             ),
-            minFontSize: isIOS ? 20.0 : 18.0, // Higher minimum on iOS
-            maxFontSize: initialSingleLineSize * fontSizeMultiplier,
-            maxLines: 1,
-          );
-        }
-        
-        // If single line doesn't fit, try to find a natural break point
-        final breakIndex = _findNaturalBreakPoint(text);
-        
-        if (breakIndex > 0) {
-          final firstLine = text.substring(0, breakIndex).trim();
-          final secondLine = text.substring(breakIndex).trim();
-          
-          // Start with a larger font size on iOS and reduce if needed
-          double fontSize = isIOS ? 30.0 : 28.0;
-          final minFontSize = isIOS ? 18.0 : 16.0;
-          
-          // Find a font size where both lines fit
-          while (fontSize > minFontSize) {
-            if (_measureTextFits(firstLine, availableWidth, fontSize) &&
-                _measureTextFits(secondLine, availableWidth, fontSize)) {
-              break; // Found a size that works
-            }
-            fontSize -= 2.0;
-          }
-          
-          // Return the two-line layout with consistent font size
-          return Container(
-            height: constraints.maxHeight,
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text(
-                  firstLine,
-                  textAlign: TextAlign.center,
-                  overflow: TextOverflow.ellipsis,
-                  style: TextStyle(
-                    fontSize: fontSize,
-                    color: textColor,
-                    height: isIOS ? 1.0 : 0.95, // Slightly more line height on iOS
-                  ),
-                ),
-                SizedBox(height: isIOS ? 4 : 2), // More space between lines on iOS
-                Text(
-                  secondLine,
-                  textAlign: TextAlign.center,
-                  overflow: TextOverflow.ellipsis,
-                  style: TextStyle(
-                    fontSize: fontSize, // Same size as first line
-                    color: textColor,
-                    height: isIOS ? 1.0 : 0.95,
-                  ),
-                ),
-              ],
-            ),
-          );
-        }
-        
-        // Fallback: use AutoSizeText to handle any case
-        return AutoSizeText(
-          text,
-          textAlign: TextAlign.center,
-          style: TextStyle(
-            fontSize: isIOS ? 26.0 : 24.0, // Larger fallback size on iOS
-            color: textColor
+            maxLines:
+                text.length > 12 ? 2 : 1, // Allow long text to use 2 lines
+            minFontSize: isIOS ? 12.0 : 10.0,
+            stepGranularity: 0.5,
+            overflow: TextOverflow.ellipsis,
           ),
-          minFontSize: isIOS ? 16.0 : 14.0, // Higher minimum on iOS
-          maxFontSize: isIOS ? 26.0 : 24.0,
-          maxLines: 2,
         );
       },
     );
   }
-  
-  // Helper to find a natural break point in text (preserves your existing logic)
+
+// Improved natural break point finder
   int _findNaturalBreakPoint(String text) {
     // For simplicity, find approximately the middle of the text
-    // and then look for the nearest space
     final middle = text.length ~/ 2;
-    
+
+    // Minimum length for first segment to ensure good breaks
+    final minFirstSegmentLength = text.length > 12 ? 4 : 2;
+
     // Look for space character near the middle (search outward)
     for (int offset = 0; offset < middle; offset++) {
       // Check after the middle
-      if (middle + offset < text.length && text[middle + offset] == ' ') {
-        return middle + offset;
+      final afterIndex = middle + offset;
+      if (afterIndex < text.length &&
+          text[afterIndex] == ' ' &&
+          afterIndex >= minFirstSegmentLength) {
+        return afterIndex;
       }
-      
+
       // Check before the middle
-      if (middle - offset >= 0 && text[middle - offset] == ' ') {
-        return middle - offset;
+      final beforeIndex = middle - offset;
+      if (beforeIndex >= minFirstSegmentLength &&
+          beforeIndex < text.length &&
+          text[beforeIndex] == ' ') {
+        return beforeIndex;
       }
     }
-    
+
     // No good break point found
     return -1;
   }
-  
+
   // Helper to measure if text fits at a specific font size (with iOS adjustments)
   bool _measureTextFits(String text, double maxWidth, double fontSize) {
     final textSpan = TextSpan(
       text: text,
       style: TextStyle(fontSize: fontSize),
     );
-    
+
     final textPainter = TextPainter(
       text: textSpan,
       textDirection: TextDirection.ltr,
       textAlign: TextAlign.center,
     );
-    
+
     textPainter.layout(maxWidth: double.infinity);
-    
+
     // Add a small buffer for iOS to account for rendering differences
     final buffer = Platform.isIOS ? 4.0 : 0.0;
     return textPainter.width <= (maxWidth - buffer);
@@ -247,7 +235,7 @@ class AnswerOption {
       return Icon(Icons.image_not_supported);
     }
   }
-  
+
   @override
   String toString() => text ?? '[Image Answer]';
 }
