@@ -11,14 +11,22 @@ import 'package:danoggin/models/question.dart';
 
 class QuestionDisplay extends StatelessWidget {
   final Question question;
+  final bool isDisabled;
 
   const QuestionDisplay({
     Key? key,
     required this.question,
+    this.isDisabled = false,
   }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
-    return Text(question.prompt, style: TextStyle(fontSize: 24));
+    return Text(
+      question.prompt, 
+      style: TextStyle(
+        fontSize: 24,
+        color: isDisabled ? Colors.grey[600] : Colors.black87,
+      ),
+    );
   }
 }

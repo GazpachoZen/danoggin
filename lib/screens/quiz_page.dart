@@ -271,7 +271,10 @@ class _QuizPageState extends State<QuizPage> with WidgetsBindingObserver {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            QuestionDisplay(question: _controller.currentQuestion!),
+            QuestionDisplay(
+              question: _controller.currentQuestion!,
+              isDisabled: _controller.uiDisabled,
+            ),
             SizedBox(height: 24),
             AnswerGrid(
               choices: _controller.displayedChoices,
