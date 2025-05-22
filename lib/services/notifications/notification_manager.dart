@@ -1,13 +1,14 @@
+import 'package:http/http.dart' as http;
+import 'dart:convert';
+import 'package:danoggin/services/auth_service.dart';
 import 'dart:io';
 import 'package:flutter/material.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'base/notification_service.dart';
 import 'local/local_notification_service.dart';
 import 'local/platform_helper.dart';
 import 'fcm/fcm_notification_service.dart';
 import 'package:danoggin/utils/logger.dart';
-import 'fcm/fcm_helper.dart';
 
 /// Central manager for all notification functionality
 class NotificationManager {
@@ -352,29 +353,30 @@ class NotificationManager {
   }
 
   /// Clear the iOS badge (notification count)
-  Future<void> clearIOSBadge() async {
-    // Only clear badge on iOS
-    if (!Platform.isIOS) {
-      _logger.i('Not iOS - skipping badge clear');
-      return;
+Future<void> clearIOSBadge() async {
+  if (!Platform.isIOS) return;
+  
+  _logger.i('Clearing iOS badge via Cloud Function');
+  
+  try {
+    final uid = AuthService.currentUserId;
+    
+    // Call the Cloud Function to clear badge
+    final response = await http.post(
+      Uri.parse('https://us-central1-danoggin-d0478.cloudfunctions.net/clearUserBadge'),
+      headers: {'Content-Type': 'application/json'},
+      body: json.encode({'userId': uid}),
+    );
+    
+    if (response.statusCode == 200) {
+      _logger.i('Badge cleared successfully via Cloud Function');
+    } else {
+      _logger.e('Failed to clear badge: ${response.statusCode}');
     }
-
-    _logger.i('Clearing iOS badge');
-    try {
-      if (_localService is LocalNotificationService) {
-        // Use the local service to clear the badge
-        await _localService.showNotification(
-          id: 0,
-          title: '',
-          body: '',
-          triggerRefresh: false,
-          payload: {'clearBadgeOnly': 'true'},
-        );
-      }
-    } catch (e) {
-      _logger.e('Error clearing iOS badge: $e');
-    }
+  } catch (e) {
+    _logger.e('Error clearing badge: $e');
   }
+}
 
   // Deprecated method - kept for backward compatibility
   // but now just redirects to our new implementation

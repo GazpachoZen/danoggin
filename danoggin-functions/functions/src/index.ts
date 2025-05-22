@@ -42,11 +42,104 @@ export const testFCM = onRequest(async (req, res) => {
         body: (message as string) ||
           "Test notification from Cloud Functions",
       },
+      apns: {  // iOS-specific configuration
+        payload: {
+          aps: {
+            sound: "default",
+            badge: 1,
+            alert: {
+              title: "Danoggin Test",
+              body: (message as string) ||
+                "Test notification from Cloud Functions"
+            }
+          }
+        }
+      },
+      android: {  // Android-specific configuration
+        notification: {
+          sound: "default",
+          priority: "high",
+          channelId: "danoggin_alerts"
+        }
+      },
     });
 
     res.status(200).send(`Notification sent successfully: ${result}`);
   } catch (error) {
     console.error("Error sending notification:", error);
+    res.status(500).send(`Error: ${error}`);
+  }
+});
+
+/**
+ * HTTP Cloud Function to clear badges for a user
+ */
+export const clearUserBadge = onRequest(async (req, res) => {
+  res.set("Access-Control-Allow-Origin", "*");
+  res.set("Access-Control-Allow-Methods", "POST, OPTIONS");
+  res.set("Access-Control-Allow-Headers", "Content-Type");
+
+  if (req.method === "OPTIONS") {
+    res.status(204).send("");
+    return;
+  }
+
+  const {userId} = req.body;
+
+  if (!userId) {
+    res.status(400).send("Missing userId parameter");
+    return;
+  }
+
+  try {
+    // Get user's FCM tokens
+    const userDoc = await admin.firestore().collection('users').doc(userId).get();
+    
+    if (!userDoc.exists) {
+      res.status(404).send("User not found");
+      return;
+    }
+
+    const userData = userDoc.data();
+    const fcmTokens = userData?.fcmTokens || [];
+    
+    // Send badge-clearing notification to all user's devices
+    const promises = fcmTokens.map(async (tokenData: any) => {
+      if (typeof tokenData === "object" && tokenData.token) {
+        try {
+          await admin.messaging().send({
+            token: tokenData.token,
+            apns: {
+              payload: {
+                aps: {
+                  badge: 0,  // Clear the badge
+                  "content-available": 1  // Silent notification
+                }
+              }
+            },
+            android: {
+              data: {
+                badgeCount: "0"
+              }
+            }
+          });
+        } catch (error) {
+          console.log(`Failed to clear badge for token: ${error}`);
+        }
+      }
+    });
+
+    await Promise.all(promises);
+
+    // Update Firestore badge count
+    await admin.firestore().collection('users').doc(userId).update({
+      badgeCount: 0,
+      lastBadgeUpdate: admin.firestore.FieldValue.serverTimestamp(),
+    });
+
+    res.status(200).send("Badge cleared successfully");
+  } catch (error) {
+    console.error("Error clearing badge:", error);
     res.status(500).send(`Error: ${error}`);
   }
 });
@@ -174,11 +267,11 @@ function isWithinActiveHours(responderData: object): boolean {
     if (startTotalMinutes <= endTotalMinutes) {
       // Normal case (e.g., 08:00 to 20:00)
       return currentTotalMinutes >= startTotalMinutes &&
-        currentTotalMinutes <= endTotalMinutes;
+             currentTotalMinutes <= endTotalMinutes;
     } else {
       // Overnight case (e.g., 22:00 to 06:00)
       return currentTotalMinutes >= startTotalMinutes ||
-        currentTotalMinutes <= endTotalMinutes;
+             currentTotalMinutes <= endTotalMinutes;
     }
   } catch (error) {
     console.error("Error checking active hours:", error);
@@ -221,6 +314,17 @@ async function sendCheckInReminder(
       `for ${responderName}`
     );
 
+    // Get current badge count for responder
+    const userDoc = await admin.firestore().collection('users').doc(responderId).get();
+    const currentBadge = userDoc.data()?.badgeCount || 0;
+    const newBadgeCount = currentBadge + 1;
+
+    // Update badge count in Firestore
+    await admin.firestore().collection('users').doc(responderId).update({
+      badgeCount: newBadgeCount,
+      lastBadgeUpdate: admin.firestore.FieldValue.serverTimestamp(),
+    });
+
     // Send notification to each token individually
     let successCount = 0;
     let failureCount = 0;
@@ -232,24 +336,24 @@ async function sendCheckInReminder(
             title: "Danoggin Check-In",
             body: "Time to answer a quick question!",
           },
-          apns: { // iOS-specific configuration
+          apns: {  // iOS-specific configuration
             payload: {
               aps: {
                 sound: "default",
-                badge: 1,
+                badge: newBadgeCount,
                 alert: {
                   title: "Danoggin Check-In",
-                  body: "Time to answer a quick question!",
-                },
-              },
-            },
+                  body: "Time to answer a quick question!"
+                }
+              }
+            }
           },
-          android: { // Android-specific configuration
+          android: {  // Android-specific configuration
             notification: {
               sound: "default",
               priority: "high",
-              channelId: "danoggin_alerts",
-            },
+              channelId: "danoggin_alerts"
+            }
           },
           data: {
             type: "check_in_reminder",
@@ -488,6 +592,7 @@ async function notifyObserversOfCheckInIssue(
     // Get FCM tokens for all observers
     const allTokens: string[] = [];
     const invalidTokens: { [userId: string]: string[] } = {};
+    const observerBadgeUpdates: { [userId: string]: number } = {};
 
     for (const observerId of observerIds) {
       const observerDoc = await admin.firestore()
@@ -495,6 +600,11 @@ async function notifyObserversOfCheckInIssue(
 
       if (observerDoc.exists) {
         const observerData = observerDoc.data();
+
+        // Get current badge count and increment
+        const currentBadge = observerData?.badgeCount || 0;
+        const newBadgeCount = currentBadge + 1;
+        observerBadgeUpdates[observerId] = newBadgeCount;
 
         // Extract tokens from the new fcmTokens array structure
         const fcmTokens = observerData?.fcmTokens || [];
@@ -546,6 +656,16 @@ async function notifyObserversOfCheckInIssue(
     const title = `Danoggin Alert: ${result} check-in`;
     const body = `${responderName} ${result} a check-in at ${timeStr}`;
 
+    // Update badge counts for all observers first
+    const badgeUpdatePromises = Object.entries(observerBadgeUpdates).map(([observerId, badgeCount]) =>
+      admin.firestore().collection('users').doc(observerId).update({
+        badgeCount: badgeCount,
+        lastBadgeUpdate: admin.firestore.FieldValue.serverTimestamp(),
+      })
+    );
+    
+    await Promise.all(badgeUpdatePromises);
+
     // Send individual notifications instead of using sendMulticast
     let successCount = 0;
     let failureCount = 0;
@@ -553,29 +673,46 @@ async function notifyObserversOfCheckInIssue(
 
     for (const token of allTokens) {
       try {
+        // Find which observer this token belongs to for badge count
+        let badgeCount = 1; // Default
+        for (const [observerId, count] of Object.entries(observerBadgeUpdates)) {
+          const observerDoc = await admin.firestore().collection('users').doc(observerId).get();
+          const observerData = observerDoc.data();
+          const fcmTokens = observerData?.fcmTokens || [];
+          
+          const hasToken = fcmTokens.some((tokenData: any) => 
+            typeof tokenData === "object" && tokenData.token === token
+          );
+          
+          if (hasToken) {
+            badgeCount = count;
+            break;
+          }
+        }
+
         await admin.messaging().send({
           notification: {
             title: title,
             body: body,
           },
-          apns: { // iOS-specific configuration
+          apns: {  // iOS-specific configuration
             payload: {
               aps: {
                 sound: "default",
-                badge: 1,
+                badge: badgeCount,
                 alert: {
                   title: title,
-                  body: body,
-                },
-              },
-            },
+                  body: body
+                }
+              }
+            }
           },
-          android: { // Android-specific configuration
+          android: {  // Android-specific configuration
             notification: {
               sound: "default",
               priority: "high",
-              channelId: "danoggin_alerts",
-            },
+              channelId: "danoggin_alerts"
+            }
           },
           data: {
             type: "check_in_alert",
