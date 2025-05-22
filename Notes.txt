@@ -85,10 +85,11 @@ What's all the crap that comes to screen from "flutter run"? Is there anything i
 ---------------------
 Over the course of a log development/debug cycle some of our source files have gotten out of hand. Please look at what I've provided and make some suggestions on which ones would benefit from refactoring?
 ---------------------
+On the observer's page, rather than showing text for how a responder answered a question, let's use little icons. I'd like a green check mark for a correct answer, a gray "X" for the first incorrect answer, a red "X" for an incorrect answer. I'll let you decide on an appropriate icon for when a responder doesn't answer a question in the correct window, of if they've not provided an answer in the long term. These should be distinct from each-other.
 ---------------------
 The app presently uses anonymous authentication for Firebase. We should probably button that up before making this app generally available. I'm not very familiar with Firebase. What would be the necessary steps?
 ---------------------
-Can we pause/cancel notifications for responder somehow? I could see the need to put a temporary halt to them once in a while.
+Can we pause/cancel notifications for responder somehow? I could see the need to temporarily halt them once in a while.
 ---------------------
 Seek and destroy all depricated method calls. Check logs to help find them. Specifically, check settings_page.dart
 ---------------------

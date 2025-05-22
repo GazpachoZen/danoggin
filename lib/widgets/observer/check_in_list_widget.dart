@@ -25,7 +25,7 @@ class CheckInListWidget extends StatelessWidget {
         child: Text(
           'No responders linked yet. Add a responder to monitor.',
           style: const TextStyle(
-            fontSize: 44.0,  // Increased from default
+            fontSize: 44.0, // Increased from default
             color: Colors.black87,
           ),
           textAlign: TextAlign.center,
@@ -78,13 +78,12 @@ class CheckInListWidget extends StatelessWidget {
               Padding(
                 padding: const EdgeInsets.only(bottom: 12.0),
                 child: ElevatedButton.icon(
-                  icon: const Icon(Icons.check),
-                  label: const Text('Acknowledge Issue'),
-                  onPressed: () {
-                    onAcknowledge(latestKey);
-                    NotificationManager().clearIOSBadge();
-                  }
-                ),
+                    icon: const Icon(Icons.check),
+                    label: const Text('Acknowledge Issue'),
+                    onPressed: () {
+                      onAcknowledge(latestKey);
+                      NotificationManager().clearIOSBadge();
+                    }),
               ),
             Expanded(
               child: ListView.builder(
@@ -113,22 +112,31 @@ class CheckInListWidget extends StatelessWidget {
         : 'Unknown time';
     final relative = timestamp != null ? timeago.format(timestamp) : '';
 
-    final color = switch (result) {
-      'correct' => Colors.green,
-      'incorrect' => Colors.red,
-      'missed' => Colors.orange,
-      _ => Colors.grey,
-    };
+    Widget _getResultIcon(String result) {
+      switch (result) {
+        case 'correct':
+          return Icon(Icons.check_circle, color: Colors.green, size: 18);
+        case 'incorrect_first_attempt':
+          return Icon(Icons.cancel, color: Colors.grey, size: 18);
+        case 'incorrect':
+          return Icon(Icons.cancel, color: Colors.red, size: 18);
+        case 'missed':
+          return Icon(Icons.schedule, color: Colors.orange, size: 18);
+        case 'missed_retry':
+          return Icon(Icons.timer_off, color: Colors.red[700], size: 18);
+        default:
+          return Icon(Icons.help_outline, color: Colors.grey, size: 18);
+      }
+    }
 
     return ListTile(
       dense: true,
       visualDensity: const VisualDensity(vertical: -3),
-      leading: Icon(Icons.circle, color: color, size: 12),
+      leading: Icon(Icons.circle, color: Colors.blue[300], size: 12),
       title: Text(prompt, style: const TextStyle(fontSize: 14)),
       subtitle:
           Text('$absolute • $relative', style: const TextStyle(fontSize: 12)),
-      trailing: Text(result.toUpperCase(),
-          style: TextStyle(color: color, fontSize: 13)),
+      trailing: _getResultIcon(result),
     );
   }
 }
