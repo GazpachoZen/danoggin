@@ -30,8 +30,10 @@ Pat:	iPhone, iOS 18				pobrien57@gmail.com
 Teresa:	iPhone, iOS 18.4			tessjob60@gmail.com 
 Sean:	Pixel 9 Pro XL, Android 15	obrienseanpat@gmail.com
 
-GIT - associating with cloud repository
-	git remote remove origin
+GIT stuff...
+	git remote remove origin (associating with cloud repository)
+	git tag say-something-nice-and-unique
+	git log --oneline
 	
 Bitbucket
 	Gazpacho / bluevista@gmail.com
@@ -51,13 +53,20 @@ Android...
 	Make sure it's set to "Danoggin Android" at the top
 	Drag and drop the release version
 	Use the available links to send a notice out to Sean and me
-iOS...
+iOS for testing...
 	Push to GitHub
 	Start a build here... https://codemagic.io/apps
 	Download the *.apk
 	Go here and click the upload app (tray widget) on right... https://dashboard.diawi.com/apps
 	Drag the downloaded *.apk to the popped up window.
 	On completion, have iOS follow the provided link and then install
+iOS for beta with TestFlight...
+	In the codemagic workflow editor for Danoggin, scroll down to the Distribution section
+		Make sure "iOS code signing" is enabled and that we're using "App store" for provisioning profile
+		Under "App store connect" we should have 3 things checked, a key in place, and O'Briens selected for a beta group
+	Do a build on CodeMagic
+	https://appstoreconnect.apple.com/teams/075ba76f-1dd1-4739-80b5-1a44e4cc8a5c/apps/6745490439/testflight/ios
+	
 
 ================================================================================
 ================================================================================
