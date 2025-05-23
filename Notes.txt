@@ -65,21 +65,11 @@ iOS...
 Please review the contents in the project knowledge to the point where you understand what the Danoggin project is about and how it operates. Pay particular attention to the Foundation.txt file. Do not provide a summary. Await further instruction.
 ================================================================================
 ---------------------
-I'd like to address some font sizing issues for the iOS implementation vs how things appear on Android. As one example, I've attached a screenshot of a typical observer panel from an Android phone. Notice how nicely things lay out. I've also attached a screenshot of what an observer panel looks like on an iPhone. Notice how horribly it renders. I have a similar example for font appearance for the responder side and how things fit (or don't fit) within the buttons.
-
-Let's address the issues surrounding the observer side first. We will come back to the sizing in the responder's answer buttons later.
-
-Please discuss our options before making code suggestions. 
-
-(ref my "Assorted" conversation with Claude earlier)
 ---------------------
 Please examine the pubspec.yaml file I provided you. As a rule, I prefer stability over having the latest version of things. With that in mind, am I using the best versions of the various packages to get equal functionality for Android and iOS? I sometimes feel like I'm not getting the best development options. Is there any other information you might need from my development environment to answer this question?
-
-NOTE: I already had a short conversation with Claude about this titled "Pubspec and rev discussion".
 ---------------------
 I'd like to be more judicious about what exactly is getting archived away with Git, especially as it pertains to what makes its way up to GitHub. 
 ---------------------
-We should have little sounds associated with answering the questions. I'm thinking one for getting it right, one for incorrect on the 1st try, and one for incorrect on the 2nd try. While we're at it, maybe even support a sound if the user missed the timeout window. This timeout one might be tricky if the app is in the background. Going along with this, we should allow turning the sounds on/off through the responder's settings page.
 ---------------------
 What's all the crap that comes to screen from "flutter run"? Is there anything in the attached that you find particularly troubling?
 ---------------------
@@ -91,7 +81,6 @@ Can create a mechanism to pause/cancel notifications for responder somehow? I co
 ---------------------
 Seek and destroy all depricated method calls. Check logs to help find them. Specifically, check settings_page.dart
 ---------------------
-The terms "observer" and "responder" are technically accurate with respect to the what the two roles of Danoggin do, but they are somewhat clinical. We can keep using these terms internally for development, but I'd like to use different terms when presenting them to the user. The terms show to the users should be "Main user" for the responder, and "Support partner" for the observer. Better still would be to have a central place in the code where these new labels could be defined and used throughout. This would make it easier to use other labels if we re-think this downstream. Where would we need to edit to make these changes in presentation?
 ---------------------
 I would like to provide a beta release to both Android and iOS users shortly. Please identify things which might need to be addressed before we do this.
 ---------------------

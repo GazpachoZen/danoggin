@@ -135,7 +135,7 @@ class _QuizPageState extends State<QuizPage> with WidgetsBindingObserver {
       // On Android, we can try to directly open the app's notification settings
       else if (Platform.isAndroid) {
         final Uri settingsUrl = Uri.parse(
-            'package:${const String.fromEnvironment('PACKAGE_NAME', defaultValue: 'com.example.danoggin')}');
+            'package:${const String.fromEnvironment('PACKAGE_NAME', defaultValue: 'com.bluevistasolutions.danoggin')}');
         launchUrl(settingsUrl);
       }
       // If direct launch fails or on other platforms, just log the attempt
