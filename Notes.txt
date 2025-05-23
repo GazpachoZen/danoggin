@@ -55,7 +55,7 @@ iOS...
 	Push to GitHub
 	Start a build here... https://codemagic.io/apps
 	Download the *.apk
-	Go here and clikc the upload app (tray widget) on right... https://dashboard.diawi.com/apps
+	Go here and click the upload app (tray widget) on right... https://dashboard.diawi.com/apps
 	Drag the downloaded *.apk to the popped up window.
 	On completion, have iOS follow the provided link and then install
 
@@ -95,9 +95,7 @@ The terms "observer" and "responder" are technically accurate with respect to th
 ---------------------
 I would like to provide a beta release to both Android and iOS users shortly. Please identify things which might need to be addressed before we do this.
 ---------------------
-When emailing logs, let's put a timestamp identifier in the subject line. It should be two strings separated by a dash representing the local date and time. I suggest YYMMDD-HHmmSS, where MM is of course the two digit month, and "mm" is the two digit minute.
 ---------------------
-After a responder has given an answer and we've grayed off the options, we should also gray off the question itself. Please show me wht to edit.
 ---------------------
 ---------------------
 ---------------------

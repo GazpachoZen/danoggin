@@ -136,7 +136,7 @@ class _SettingsPageState extends State<SettingsPage> {
           dense: true,
           contentPadding: EdgeInsets.zero,
           visualDensity: const VisualDensity(vertical: -4),
-          title: Text(role.name[0].toUpperCase() + role.name.substring(1)),
+          title: Text(role.displayLabel),
           value: role,
           groupValue: selectedRole,
           onChanged: (value) => setState(() => selectedRole = value!),

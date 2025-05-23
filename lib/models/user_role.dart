@@ -38,4 +38,34 @@ extension UserRoleExtension on UserRole {
       orElse: () => UserRole.responder, // or null, if you'd rather crash safely
     );
   }
+
+  /// Get the user-facing display label for this role
+  String get displayLabel {
+    switch (this) {
+      case UserRole.responder:
+        return 'Main user';
+      case UserRole.observer:
+        return 'Support partner';
+    }
+  }
+
+  /// Get the plural form of the user-facing display label
+  String get displayLabelPlural {
+    switch (this) {
+      case UserRole.responder:
+        return 'Main users';
+      case UserRole.observer:
+        return 'Support partners';
+    }
+  }
+
+  /// Get a brief description of what this role does
+  String get description {
+    switch (this) {
+      case UserRole.responder:
+        return 'Receives check-in reminders and answers questions';
+      case UserRole.observer:
+        return 'Monitors main user activity and receives alerts';
+    }
+  }
 }

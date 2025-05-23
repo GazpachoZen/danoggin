@@ -115,7 +115,7 @@ class _ObserverPageState extends State<ObserverPage> {
   // Build the app bar
   AppBar _buildAppBar() {
     return AppBar(
-      title: const Text('Observer Dashboard'),
+      title: Text('${UserRole.observer.displayLabel} Dashboard'),
       actions: [
         IconButton(
           icon: const Icon(Icons.settings),

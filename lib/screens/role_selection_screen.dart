@@ -22,9 +22,8 @@ class _RoleSelectionScreenState extends State<RoleSelectionScreen> {
     if (selectedRole == null || name.isEmpty) return;
 
     final uid = AuthService.currentUserId;
-    final inviteCode = selectedRole == UserRole.responder
-        ? _generateInviteCode()
-        : null;
+    final inviteCode =
+        selectedRole == UserRole.responder ? _generateInviteCode() : null;
 
     await UserRepository.createUserProfile(
       uid: uid,
@@ -45,7 +44,8 @@ class _RoleSelectionScreenState extends State<RoleSelectionScreen> {
   String _generateInviteCode() {
     const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
     final rand = Random.secure();
-    return List.generate(6, (index) => chars[rand.nextInt(chars.length)]).join();
+    return List.generate(6, (index) => chars[rand.nextInt(chars.length)])
+        .join();
   }
 
   @override
@@ -60,7 +60,8 @@ class _RoleSelectionScreenState extends State<RoleSelectionScreen> {
           padding: const EdgeInsets.all(24.0),
           child: Column(
             children: [
-              const Text('Please enter your name:', style: TextStyle(fontSize: 18)),
+              const Text('Please enter your name:',
+                  style: TextStyle(fontSize: 18)),
               const SizedBox(height: 8),
               TextField(
                 controller: nameController,
@@ -72,13 +73,13 @@ class _RoleSelectionScreenState extends State<RoleSelectionScreen> {
               const SizedBox(height: 24),
               const Text('Choose your role:', style: TextStyle(fontSize: 18)),
               RadioListTile<UserRole>(
-                title: const Text('Responder'),
+                title: Text(UserRole.responder.displayLabel),
                 value: UserRole.responder,
                 groupValue: selectedRole,
                 onChanged: (value) => setState(() => selectedRole = value),
               ),
               RadioListTile<UserRole>(
-                title: const Text('Observer'),
+                title: Text(UserRole.observer.displayLabel),
                 value: UserRole.observer,
                 groupValue: selectedRole,
                 onChanged: (value) => setState(() => selectedRole = value),
@@ -89,7 +90,8 @@ class _RoleSelectionScreenState extends State<RoleSelectionScreen> {
                 label: const Text('Continue'),
                 onPressed: _applyRole,
                 style: ElevatedButton.styleFrom(
-                  padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
                 ),
               ),
             ],
