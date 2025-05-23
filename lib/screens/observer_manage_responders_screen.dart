@@ -1,3 +1,4 @@
+import 'package:danoggin/models/user_role.dart';
 import 'package:danoggin/utils/logger.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -251,7 +252,7 @@ class _ObserverManageRespondersScreenState extends State<ObserverManageResponder
       },
       child: Scaffold(
         appBar: AppBar(
-          title: const Text('Manage Responders'),
+          title: Text('Manage ${UserRole.responder.displayLabelPlural}'),
           // Add a custom back button that returns our result
           leading: IconButton(
             icon: Icon(Icons.arrow_back),
@@ -329,7 +330,7 @@ class _ObserverManageRespondersScreenState extends State<ObserverManageResponder
       return Padding(
         padding: const EdgeInsets.symmetric(vertical: 24.0),
         child: Center(
-          child: Text('No responders linked yet.',
+          child: Text('No ${UserRole.observer.displayLabelPlural} linked yet.',
             style: TextStyle(fontStyle: FontStyle.italic, color: Colors.grey[600])),
         ),
       );

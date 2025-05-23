@@ -6,6 +6,7 @@
 // distribution of this file, via any medium, is strictly prohibited. For
 // licensing or permissions, contact: danoggin@blue-vistas.com
 //------------------------------------------------------------------------
+import 'package:danoggin/models/user_role.dart';
 import 'package:danoggin/utils/logger.dart';
 import 'package:flutter/material.dart';
 import 'package:danoggin/screens/observer_manage_responders_screen.dart';
@@ -139,7 +140,7 @@ class _ObserverSettingsWidgetState extends State<ObserverSettingsWidget> {
         // Manage responders section
         ListTile(
           leading: const Icon(Icons.people),
-          title: const Text('Manage Responders'),
+          title: Text('Manage ${UserRole.responder.displayLabelPlural}'),
           subtitle: const Text('Add or remove people you monitor'),
           trailing: const Icon(Icons.arrow_forward_ios, size: 16),
           onTap: () async {

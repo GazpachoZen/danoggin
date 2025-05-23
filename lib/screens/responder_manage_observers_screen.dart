@@ -1,3 +1,4 @@
+import 'package:danoggin/models/user_role.dart';
 import 'package:danoggin/utils/logger.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -262,7 +263,7 @@ class _ResponderManageObserversScreenState extends State<ResponderManageObserver
           Padding(
             padding: const EdgeInsets.symmetric(vertical: 16.0),
             child: Text(
-              'Removing an observer will prevent them from monitoring your check-ins. They will need your invite code to reconnect.',
+              'Removing a ${UserRole.observer.displayLabel} will prevent them from monitoring your check-ins. They will need your invite code to reconnect.',
               style: TextStyle(color: Colors.grey[600], fontSize: 13),
             ),
           ),

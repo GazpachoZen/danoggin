@@ -6,6 +6,7 @@
 // licensing or permissions, contact: danoggin@blue-vistas.com
 //------------------------------------------------------------------------
 
+import 'package:danoggin/models/user_role.dart';
 import 'package:danoggin/services/sound_service.dart';
 import 'package:danoggin/utils/logger.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
@@ -492,7 +493,7 @@ Padding(
           ListTile(
             leading: const Icon(Icons.people),
             title: const Text('Who is observing me'),
-            subtitle: const Text('See and manage observers'),
+            subtitle: Text('See and manage ${UserRole.observer.displayLabelPlural}'),
             trailing: const Icon(Icons.arrow_forward_ios, size: 16),
             onTap: () async {
               // Navigate to manage observers screen and await result

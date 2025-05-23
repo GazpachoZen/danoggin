@@ -1,3 +1,4 @@
+import 'package:danoggin/models/user_role.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:intl/intl.dart';
@@ -23,7 +24,7 @@ class CheckInListWidget extends StatelessWidget {
     if (responderMap.isEmpty) {
       return Center(
         child: Text(
-          'No responders linked yet. Add a responder to monitor.',
+          'No ${UserRole.responder.displayLabelPlural} linked yet. Add somebody to monitor.',
           style: const TextStyle(
             fontSize: 44.0, // Increased from default
             color: Colors.black87,

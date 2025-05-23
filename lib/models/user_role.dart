@@ -43,9 +43,9 @@ extension UserRoleExtension on UserRole {
   String get displayLabel {
     switch (this) {
       case UserRole.responder:
-        return 'Main user';
+        return 'Main User';
       case UserRole.observer:
-        return 'Support partner';
+        return 'Support Partner';
     }
   }
 
@@ -53,9 +53,9 @@ extension UserRoleExtension on UserRole {
   String get displayLabelPlural {
     switch (this) {
       case UserRole.responder:
-        return 'Main users';
+        return 'Main Users';
       case UserRole.observer:
-        return 'Support partners';
+        return 'Support Partners';
     }
   }
 
