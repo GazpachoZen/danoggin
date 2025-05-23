@@ -327,9 +327,8 @@ class LogService {
         final messaging = FirebaseMessaging.instance;
         final token = await messaging.getToken();
         if (token != null) {
-          userInfo['FCM Token'] = token;
           userInfo['FCM Token Length'] = token.length.toString();
-          userInfo['FCM Token Preview'] = token;
+          userInfo['FCM Token'] = token;
         } else {
           userInfo['FCM Token'] = 'No token available';
         }
