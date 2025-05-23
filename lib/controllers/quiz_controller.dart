@@ -1,3 +1,4 @@
+import 'package:danoggin/services/sound_service.dart';
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -26,7 +27,7 @@ class QuizController {
   AnswerOption? selectedAnswer;
   String? feedback;
   List<QuestionPack> subscribedPacks = [];
-
+  final SoundService _soundService = SoundService();
   final _notificationManager = NotificationManager();
 
   // Operational settings
@@ -60,7 +61,7 @@ class QuizController {
   Future<void> initialize() async {
     // Set up notification listener
     _setupFCMMessageListener();
-
+    await _soundService.initialize();
     // Load question packs and initialize
     await loadPackFromFirestore();
   }
@@ -192,6 +193,7 @@ class QuizController {
           ? '⏰ You missed the second chance.'
           : '⏰ You missed the question.';
       uiDisabled = true; // Disable UI after timeout
+      await _soundService.playTimeoutSound();
       onStateChanged();
 
       // Log the missed check-in
@@ -224,7 +226,7 @@ class QuizController {
 
     responseTimer?.cancel();
 
-// Clear all badges when answering any question
+    // Clear all badges when answering any question
     await NotificationManager().clearIOSBadge();
 
     final isCorrect = selectedAnswer == currentQuestion!.correctAnswer;
@@ -233,6 +235,10 @@ class QuizController {
       // Correct answer case
       feedback = '✅ Correct!';
       uiDisabled = true; // Disable UI after correct answer
+
+      // Play correct sound
+      await _soundService.playCorrectSound();
+
       onStateChanged();
 
       await logCheckIn(
@@ -253,6 +259,10 @@ class QuizController {
         feedback = '❌ Incorrect. Try again.';
         selectedAnswer = null;
         isRetryAttempt = true;
+
+        // Play first incorrect sound
+        await _soundService.playIncorrectFirstSound();
+
         onStateChanged();
 
         // Log the first incorrect attempt
@@ -267,6 +277,10 @@ class QuizController {
         // Second incorrect attempt - disable UI
         feedback = '❌ Incorrect';
         uiDisabled = true;
+
+        // Play final incorrect sound
+        await _soundService.playIncorrectFinalSound();
+
         onStateChanged();
 
         // Log the final incorrect result

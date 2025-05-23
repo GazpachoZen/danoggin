@@ -6,6 +6,7 @@
 // licensing or permissions, contact: danoggin@blue-vistas.com
 //------------------------------------------------------------------------
 
+import 'package:danoggin/services/sound_service.dart';
 import 'package:danoggin/utils/logger.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
@@ -40,6 +41,8 @@ class _ResponderSettingsWidgetState extends State<ResponderSettingsWidget> {
   TimeOfDay endHour = const TimeOfDay(hour: 20, minute: 0);
   double alertFrequencyMinutes = 5;
   double timeoutMinutes = 1;
+  bool soundsEnabled = true;
+  final SoundService _soundService = SoundService();
 
   // Constants for constraints
   final double maxTimeoutMinutes = 15.0;
@@ -48,6 +51,7 @@ class _ResponderSettingsWidgetState extends State<ResponderSettingsWidget> {
   void initState() {
     super.initState();
     _loadPrefs();
+      _loadSoundPreference(); // Add this line
   }
 
   Future<void> _loadPrefs() async {
@@ -72,6 +76,13 @@ class _ResponderSettingsWidgetState extends State<ResponderSettingsWidget> {
       if (savedTimeout != null) {
         timeoutMinutes = _constrainTimeout(savedTimeout);
       }
+    });
+  }
+
+  Future<void> _loadSoundPreference() async {
+    await _soundService.initialize();
+    setState(() {
+      soundsEnabled = _soundService.soundsEnabled;
     });
   }
 
@@ -111,53 +122,55 @@ class _ResponderSettingsWidgetState extends State<ResponderSettingsWidget> {
     return local.format(context); // Uses device locale and AM/PM
   }
 
-  Future<void> _savePrefs() async {
-    final prefs = await SharedPreferences.getInstance();
+Future<void> _savePrefs() async {
+  final prefs = await SharedPreferences.getInstance();
 
-    // Ensure timeout conforms to constraints before saving
-    timeoutMinutes = _constrainTimeout(timeoutMinutes);
+  // Ensure timeout conforms to constraints before saving
+  timeoutMinutes = _constrainTimeout(timeoutMinutes);
 
-    // Format the hours for storage
-    final startHourStr = _formatTimeOfDay(startHour);
-    final endHourStr = _formatTimeOfDay(endHour);
+  // Format the hours for storage
+  final startHourStr = _formatTimeOfDay(startHour);
+  final endHourStr = _formatTimeOfDay(endHour);
 
-    // Save locally to SharedPreferences
-    await prefs.setString('startHour', startHourStr);
-    await prefs.setString('endHour', endHourStr);
-    await prefs.setDouble('alertFrequency', alertFrequencyMinutes);
-    await prefs.setDouble('timeoutDuration', timeoutMinutes);
+  // Save locally to SharedPreferences
+  await prefs.setString('startHour', startHourStr);
+  await prefs.setString('endHour', endHourStr);
+  await prefs.setDouble('alertFrequency', alertFrequencyMinutes);
+  await prefs.setDouble('timeoutDuration', timeoutMinutes);
+  
+  // Save sound preference
+  await _soundService.setSoundsEnabled(soundsEnabled);
 
-    // Sync to Firestore for observer visibility
-    try {
-      final uid = AuthService.currentUserId;
-      await ResponderSettingsRepository.saveActiveHours(
-        uid: uid,
-        startHour: startHourStr,
-        endHour: endHourStr,
-      );
+  // Sync to Firestore for observer visibility
+  try {
+    final uid = AuthService.currentUserId;
+    await ResponderSettingsRepository.saveActiveHours(
+      uid: uid,
+      startHour: startHourStr,
+      endHour: endHourStr,
+    );
 
-      // Update the check-in schedule based on new settings
-      await _updateCheckInSchedule();
+    // Update the check-in schedule based on new settings
+    await _updateCheckInSchedule();
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Settings saved successfully'),
-          duration: Duration(seconds: 2),
-        ),
-      );
-    } catch (e) {
-      Logger().e('Error syncing settings to Firestore: $e');
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text('Settings saved successfully'),
+        duration: Duration(seconds: 2),
+      ),
+    );
+  } catch (e) {
+    Logger().e('Error syncing settings to Firestore: $e');
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Error saving cloud settings: $e'),
-          backgroundColor: Colors.red,
-          duration: Duration(seconds: 3),
-        ),
-      );
-    }
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text('Error saving cloud settings: $e'),
+        backgroundColor: Colors.red,
+        duration: Duration(seconds: 3),
+      ),
+    );
   }
-
+}
   /// Update the check-in schedule after user changes settings
   Future<void> _updateCheckInSchedule() async {
     try {
@@ -306,6 +319,41 @@ class _ResponderSettingsWidgetState extends State<ResponderSettingsWidget> {
                   fontStyle: FontStyle.italic),
             ),
           ),
+
+const SizedBox(height: 16),
+Row(
+  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+  children: [
+    Text(
+      'Question feedback sounds',
+      style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+    ),
+    Switch(
+      value: soundsEnabled,
+      onChanged: (value) {
+        setState(() {
+          soundsEnabled = value;
+        });
+        // Play a test sound when enabling
+        if (value) {
+          _soundService.playCorrectSound();
+        }
+      },
+    ),
+  ],
+),
+Padding(
+  padding: const EdgeInsets.only(bottom: 16.0),
+  child: Text(
+    'Play sounds when answering questions (correct, incorrect, timeout)',
+    style: TextStyle(
+      fontSize: 12,
+      color: Colors.grey[600],
+      fontStyle: FontStyle.italic,
+    ),
+  ),
+),
+          
           const SizedBox(height: 16),
           Center(
             child: ElevatedButton(
