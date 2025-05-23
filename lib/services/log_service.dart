@@ -1,5 +1,6 @@
+import 'package:firebase_messaging/firebase_messaging.dart';
+import 'package:firebase_core/firebase_core.dart';
 import 'package:intl/intl.dart';
-import 'dart:collection';
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -149,13 +150,13 @@ class LogService {
       final formattedContext = _formatContextInfoForEmail(contextInfo);
 
       // Create email body with context information
-      final emailBody = "Hi Support Team,$lb$lb"
-      + "[   Please use this space to tell us what went wrong    ]$lb"
-      + "[The more detail you can provide, the better we can help]$lb$lb"
-      + "==========================================================$lb"
-      + "$formattedContext"
-      + "=== LOGS ===$lb"
-      + "$formattedLogs";
+      final emailBody = "Hi Support Team,$lb$lb" +
+          "[   Please use this space to tell us what went wrong    ]$lb" +
+          "[The more detail you can provide, the better we can help]$lb$lb" +
+          "==========================================================$lb" +
+          "$formattedContext" +
+          "=== LOGS ===$lb" +
+          "$formattedLogs";
 
       // Try to launch email client
       bool launched = await _launchEmailClient(emailBody);
@@ -320,6 +321,25 @@ class LogService {
       userInfo['Error'] = e.toString();
     }
 
+    try {
+      // Get FCM token if available
+      if (Firebase.apps.isNotEmpty) {
+        final messaging = FirebaseMessaging.instance;
+        final token = await messaging.getToken();
+        if (token != null) {
+          userInfo['FCM Token'] = token;
+          userInfo['FCM Token Length'] = token.length.toString();
+          userInfo['FCM Token Preview'] = token;
+        } else {
+          userInfo['FCM Token'] = 'No token available';
+        }
+      } else {
+        userInfo['FCM Token'] = 'Firebase not initialized';
+      }
+    } catch (e) {
+      userInfo['FCM Token Error'] = e.toString();
+    }
+
     return userInfo;
   }
 
@@ -333,8 +353,10 @@ class LogService {
     final emailUri = Uri(
         scheme: 'mailto',
         path: _supportEmail,
-        query: _encodeQueryParameters(
-            {'subject': 'Danoggin Log Report ($timeStamp)', 'body': emailBody}));
+        query: _encodeQueryParameters({
+          'subject': 'Danoggin Log Report ($timeStamp)',
+          'body': emailBody
+        }));
 
     print("Email URI: ${emailUri.toString()}");
 
