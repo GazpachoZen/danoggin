@@ -19,7 +19,7 @@ class Logger {
   
   // Logging queue
   final Queue<String> _logMessages = Queue<String>();
-  static const int _maxLogMessages = 200;
+  static const int _maxLogMessages = 500;
   
   // Default log level
   LogLevel _currentLevel = LogLevel.info;
