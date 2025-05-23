@@ -70,7 +70,7 @@ class NotificationService {
       // Main notification channel
       await androidPlugin
           .createNotificationChannel(const AndroidNotificationChannel(
-        'danoggin_channel',
+        'danoggin_alerts',
         'Danoggin Notifications',
         description: 'Regular check-in reminders',
         importance: Importance.high,
@@ -106,7 +106,7 @@ class NotificationService {
         scheduledTime,
         const NotificationDetails(
           android: AndroidNotificationDetails(
-            'danoggin_channel',
+            'danoggin_alerts',
             'Danoggin Notifications',
             channelDescription: 'Used for awareness prompts',
             importance: Importance.max,
@@ -141,7 +141,7 @@ class NotificationService {
     try {
       const AndroidNotificationDetails androidDetails =
           AndroidNotificationDetails(
-        'danoggin_channel',
+        'danoggin_alerts',
         'Danoggin Alerts',
         channelDescription: 'Periodic awareness check-ins',
         importance: Importance.high,
