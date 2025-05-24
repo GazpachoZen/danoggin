@@ -2,7 +2,6 @@ import 'package:danoggin/utils/logger.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'question.dart';
 import 'dart:async';
-import 'package:flutter/foundation.dart';
 
 class QuestionPack {
   final String id;

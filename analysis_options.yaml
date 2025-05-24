@@ -26,3 +26,17 @@ linter:
 
 # Additional information about this file can be found at
 # https://dart.dev/guides/language/analysis-options
+
+analyzer:
+  errors:
+    # Treat deprecated usage as errors (more visible)
+    # deprecated_member_use: error
+    deprecated_member_use_from_same_package: error
+    
+    # Suppress info-level rules you don't want
+    todo: ignore
+    avoid_print: ignore
+    
+  exclude:
+    - "**/*.g.dart"
+    - "**/*.freezed.dart"

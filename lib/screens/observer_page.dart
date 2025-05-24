@@ -1,7 +1,6 @@
 import 'package:danoggin/utils/logger.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
-import 'package:danoggin/screens/logs_viewer_screen.dart';
 import 'package:danoggin/services/notifications/notification_manager.dart';
 import 'package:danoggin/models/user_role.dart';
 import 'package:danoggin/screens/settings_page.dart';

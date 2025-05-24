@@ -1,9 +1,4 @@
-import 'package:url_launcher/url_launcher.dart';
-import 'dart:io';
-import 'package:danoggin/utils/logger.dart';
 import 'dart:async';
-import 'package:http/http.dart' as http;
-import 'dart:convert';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -16,7 +11,6 @@ import 'package:danoggin/widgets/quiz/answer_grid.dart';
 import 'package:danoggin/widgets/quiz/feedback_display.dart';
 import 'package:danoggin/utils/back_button_handler.dart';
 import 'package:danoggin/theme/app_colors.dart';
-import 'package:danoggin/screens/logs_viewer_screen.dart';
 
 // Add this near the top of the file, after imports
 const bool kDevModeEnabled = true; // Set to false for production
@@ -122,108 +116,6 @@ class _QuizPageState extends State<QuizPage> with WidgetsBindingObserver {
     // Use the centralized method from NotificationManager
     // This will show one dialog if needed and handle all permission logic
     await NotificationManager().checkAndRequestPermissions(context);
-  }
-
-// Add this new method to directly open settings without showing another dialog
-  void _directlyOpenNotificationSettings() {
-    try {
-      // On iOS, we can try to directly open the app's notification settings
-      if (Platform.isIOS) {
-        final Uri settingsUrl = Uri.parse('app-settings:notification');
-        launchUrl(settingsUrl);
-      }
-      // On Android, we can try to directly open the app's notification settings
-      else if (Platform.isAndroid) {
-        final Uri settingsUrl = Uri.parse(
-            'package:${const String.fromEnvironment('PACKAGE_NAME', defaultValue: 'com.bluevistasolutions.danoggin')}');
-        launchUrl(settingsUrl);
-      }
-      // If direct launch fails or on other platforms, just log the attempt
-      else {
-        Logger()
-            .i('Cannot directly open notification settings on this platform');
-      }
-    } catch (e) {
-      Logger().e('Error opening notification settings: $e');
-    }
-  }
-
-  Future<void> _testNotifications() async {
-    try {
-      // Set the current context for notifications
-      NotificationManager().setCurrentContext(context);
-
-      // Show loading indicator
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Testing FCM notification pipeline...'),
-          duration: Duration(seconds: 3),
-        ),
-      );
-
-      // First ensure we have a valid FCM token
-      final token = await FirebaseMessaging.instance.getToken();
-
-      if (token == null) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Failed to get FCM token'),
-            backgroundColor: Colors.red,
-          ),
-        );
-        return;
-      }
-
-      // Test the full FCM pipeline by calling our Cloud Function
-      final response = await http.post(
-        Uri.parse(
-            'https://us-central1-danoggin-d0478.cloudfunctions.net/testFCM'),
-        headers: {'Content-Type': 'application/json'},
-        body: json.encode({
-          'token': token,
-          'message':
-              'Test notification from responder app - FCM pipeline working!',
-        }),
-      );
-
-      if (response.statusCode == 200) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-                'FCM test notification sent successfully!\nCheck your notification tray.'),
-            backgroundColor: Colors.green,
-            duration: Duration(seconds: 4),
-          ),
-        );
-
-        // Log success for debugging
-        NotificationManager()
-            .log('FCM test notification sent via Cloud Function');
-      } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Failed to send test notification: ${response.body}'),
-            backgroundColor: Colors.red,
-            duration: Duration(seconds: 4),
-          ),
-        );
-
-        // Log failure for debugging
-        NotificationManager()
-            .log('FCM test failed: ${response.statusCode} - ${response.body}');
-      }
-    } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Error testing FCM: $e'),
-          backgroundColor: Colors.red,
-          duration: Duration(seconds: 4),
-        ),
-      );
-
-      // Log error for debugging
-      NotificationManager().log('FCM test error: $e');
-    }
   }
 
   @override

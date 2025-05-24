@@ -18,7 +18,6 @@ class PlatformHelper {
   // State tracking
   bool _appInBackground = false;
   BuildContext? _currentContext;
-  bool _permissionDialogShown = false;
   
   PlatformHelper(this._notifications);
 

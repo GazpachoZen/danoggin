@@ -58,14 +58,6 @@ class NotificationManager {
     }
   }
 
-  Future<void> _initFCM() async {
-    if (!_registeredServices.contains('fcm')) {
-      _fcmService = FCMNotificationService();
-      _registeredServices.add('fcm');
-      await _fcmService.initialize();
-    }
-  }
-
   /// Check if notifications are enabled
   Future<bool> areNotificationsEnabled() async {
     return await _localService.areNotificationsEnabled();

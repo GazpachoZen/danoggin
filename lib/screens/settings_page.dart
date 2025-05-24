@@ -1,7 +1,6 @@
+import 'package:danoggin/screens/about_screen.dart';
 import 'package:danoggin/screens/web_view_screen.dart';
 import 'package:flutter/material.dart';
-import 'package:webview_flutter/webview_flutter.dart';
-import 'package:url_launcher/url_launcher.dart';
 import 'package:danoggin/screens/logs_viewer_screen.dart';
 import 'package:danoggin/widgets/observer_settings_widget.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -386,20 +385,17 @@ Widget _buildLegalSection() {
         shrinkWrap: true,
         physics: NeverScrollableScrollPhysics(),
         children: [
-          // About option
+          // About option - now navigates to local About screen
           ListTile(
-            dense: true, // Makes the list tile more compact
-            visualDensity: VisualDensity(horizontal: 0, vertical: -2), // Further reduces height
+            dense: true,
+            visualDensity: VisualDensity(horizontal: 0, vertical: -2),
             leading: const Icon(Icons.info_outline, size: 20),
             title: const Text('About Danoggin', style: TextStyle(fontSize: 14)),
             trailing: const Icon(Icons.arrow_forward_ios, size: 14),
             onTap: () {
               Navigator.of(context).push(
                 MaterialPageRoute(
-                  builder: (context) => WebViewScreen(
-                    url: 'https://blue-vistas.com/danoggin_about.html',
-                    title: 'About Danoggin',
-                  ),
+                  builder: (context) => AboutScreen(),
                 ),
               );
             },

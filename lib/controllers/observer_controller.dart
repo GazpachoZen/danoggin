@@ -1,9 +1,7 @@
 import 'dart:async';
-import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:intl/intl.dart';
 import 'package:danoggin/services/auth_service.dart';
 import 'package:danoggin/services/notifications/notification_manager.dart';
 import 'package:danoggin/repositories/responder_settings_repository.dart';
@@ -147,21 +145,17 @@ class ObserverController {
         final data = doc.data();
         final result = data['result'] as String;
         final timestamp = DateTime.tryParse(data['timestamp'] as String);
-        final docId = doc.id;
 
         // Skip if we can't parse the timestamp
         if (timestamp == null) return;
 
         final now = DateTime.now();
         final checkInAge = now.difference(timestamp);
-        final mostRecentTimeStr =
-            DateFormat('M/d h:mma').format(timestamp).toLowerCase();
 
         Logger().i(
             'Real-time update: responder=$responderName, result=$result, age=${checkInAge.inMinutes}m');
 
         // Create a unique identifier for this check-in
-        final checkInKey = "$responderUid:$docId";
       }, onError: (error) {
         Logger().e('Error in check-in listener for $responderName: $error');
       });
@@ -213,21 +207,6 @@ class ObserverController {
     try {
       // Set the current context for smart notifications
       NotificationManager().setCurrentContext(context);
-
-      // Try to check if notifications are enabled
-      bool enabled = true;
-      try {
-        enabled = await NotificationManager().areNotificationsEnabled();
-      } catch (e) {
-        Logger().e('Error checking notification permissions: $e');
-        // If we can't check, assume they're enabled
-      }
-
-      // if (!enabled) {
-      //   // Show manual instructions if notifications are disabled
-      //   NotificationManager().openNotificationSettings(context);
-      //   return;
-      // }
 
       // Use platform-aware notification test method
       await NotificationManager().useBestNotification(

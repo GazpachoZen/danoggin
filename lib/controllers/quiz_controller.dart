@@ -28,7 +28,6 @@ class QuizController {
   String? feedback;
   List<QuestionPack> subscribedPacks = [];
   final SoundService _soundService = SoundService();
-  final _notificationManager = NotificationManager();
 
   // Operational settings
   TimeOfDay? startHour;
@@ -138,17 +137,6 @@ class QuizController {
       startHour = const TimeOfDay(hour: 8, minute: 0);
       endHour = const TimeOfDay(hour: 20, minute: 0);
     }
-  }
-
-  bool _isWithinActiveHours() {
-    if (startHour == null || endHour == null) return true;
-
-    final now = TimeOfDay.now();
-    final nowMinutes = now.hour * 60 + now.minute;
-    final startMinutes = startHour!.hour * 60 + startHour!.minute;
-    final endMinutes = endHour!.hour * 60 + endHour!.minute;
-
-    return nowMinutes >= startMinutes && nowMinutes <= endMinutes;
   }
 
   void loadRandomQuestion({bool isScheduled = false}) {
@@ -368,7 +356,6 @@ class QuizController {
     return questionManager.getPacksProgress();
   }
 
-  // Add method to set up notification listener
 // Add method to set up FCM message listener instead of notification listener
   void _setupFCMMessageListener() {
     // Listen for FCM messages when app is in foreground
@@ -378,7 +365,6 @@ class QuizController {
           .log('QuizController: FCM message received: ${message.messageId}');
 
       // Extract message details
-      final notification = message.notification;
       final data = message.data;
 
       // Check if this is a check-in reminder

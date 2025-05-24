@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:danoggin/services/auth_service.dart';
-import 'package:danoggin/utils/timezone_helper.dart';
 
 /// Service for calculating and managing responder check-in schedules
 class CheckInScheduler {

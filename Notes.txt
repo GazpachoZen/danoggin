@@ -70,9 +70,9 @@ iOS for beta with TestFlight...
 
 ================================================================================
 ================================================================================
-================================================================================
+================================================================================ Getting started...
 Please review the contents in the project knowledge to the point where you understand what the Danoggin project is about and how it operates. Pay particular attention to the Foundation.txt file. Do not provide a summary. Await further instruction.
-================================================================================
+================================================================================ 
 ---------------------
 ---------------------
 Please examine the pubspec.yaml file I provided you. As a rule, I prefer stability over having the latest version of things. With that in mind, am I using the best versions of the various packages to get equal functionality for Android and iOS? I sometimes feel like I'm not getting the best development options. Is there any other information you might need from my development environment to answer this question?
@@ -80,15 +80,16 @@ Please examine the pubspec.yaml file I provided you. As a rule, I prefer stabili
 I'd like to be more judicious about what exactly is getting archived away with Git, especially as it pertains to what makes its way up to GitHub. 
 ---------------------
 ---------------------
-What's all the crap that comes to screen from "flutter run"? Is there anything in the attached that you find particularly troubling?
 ---------------------
 Over the course of a log development/debug cycle some of our source files have gotten out of hand. Please look at what I've provided and make some suggestions on which ones would benefit from refactoring?
 ---------------------
 The app presently uses anonymous authentication for Firebase. We should probably button that up before making this app generally available. I'm not very familiar with Firebase. What would be the necessary steps?
 ---------------------
-Can create a mechanism to pause/cancel notifications for responder somehow? I could see the need to temporarily halt them once in a while. It should probably be near the top of the responder's settings page.
+Can we create a mechanism to pause/cancel notifications for responder somehow? I could see the need to temporarily halt them once in a while. It should probably be near the top of the responder's settings page.
 ---------------------
-Seek and destroy all depricated method calls. Check logs to help find them. Specifically, check settings_page.dart
+Seek and destroy all deprecated method calls. Check logs to help find them. Specifically, check settings_page.dart
+Note: Some input files use or override a deprecated API.
+Note: Recompile with -Xlint:deprecation for details.
 ---------------------
 ---------------------
 I would like to provide a beta release to both Android and iOS users shortly. Please identify things which might need to be addressed before we do this.
@@ -96,7 +97,11 @@ I would like to provide a beta release to both Android and iOS users shortly. Pl
 ---------------------
 ---------------------
 ---------------------
+================================================================================ Do these periodically...
+Attached is the output from "flutter run"? Is there anything here you find troubling?
 ---------------------
+In analysis_options.yaml (TOP of folder tree) uncomment the line below to find all the deprecated crap we're using.
+	    # deprecated_member_use: error
 ---------------------
 ================================================================================ LATER...
 Remember to turn kDevModeEnabled back to false wherever it exists.
