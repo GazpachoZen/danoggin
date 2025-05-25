@@ -108,7 +108,7 @@ class AnswerOption {
     final isIOS = Platform.isIOS;
 
     // Conservative safety margin (slightly more conservative for iOS)
-    final safetyMargin = isIOS ? 0.85 : 0.80;
+    final safetyMargin = isIOS ? 0.75 : 0.80;
     final availableWidth = constraints.maxWidth * safetyMargin;
     
     // Base font size
