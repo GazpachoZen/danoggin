@@ -6,12 +6,14 @@
 // licensing or permissions, contact: ivory@blue-vistas.com
 //------------------------------------------------------------------------
 
-import 'dart:math' show max, min;
+import 'dart:math' show max;
 import 'dart:io' show Platform;
 import 'package:flutter/material.dart';
-import 'package:auto_size_text/auto_size_text.dart';
 import 'package:danoggin/utils/logger.dart';
 import 'package:cached_network_image/cached_network_image.dart';
+
+// Debug flag for text rendering logs
+const bool _debugTextRendering = true;
 
 class AnswerOption {
   final String? text;
@@ -91,14 +93,133 @@ class AnswerOption {
         return Padding(
           padding: const EdgeInsets.all(8.0),
           child: Center(
-            child: _simplifiedTextRendering(text ?? '', constraints, disabled),
+            child: _unifiedTextRendering(text ?? '', constraints, disabled),
           ),
         );
       },
     );
   }
 
-// Find a natural break point (space) near the middle of the text
+  /// Unified text rendering approach for both iOS and Android
+  Widget _unifiedTextRendering(
+      String text, BoxConstraints constraints, bool disabled) {
+    final textColor = disabled ? Colors.grey : Colors.black87;
+    final logger = Logger();
+    final isIOS = Platform.isIOS;
+
+    // Conservative safety margin (slightly more conservative for iOS)
+    final safetyMargin = isIOS ? 0.85 : 0.80;
+    final availableWidth = constraints.maxWidth * safetyMargin;
+    
+    // Base font size
+    const baseFontSize = 26.0;
+
+    if (_debugTextRendering) {
+      logger.i('Rendering text: "$text" on ${isIOS ? "iOS" : "Android"}');
+      logger.i('Available width: $availableWidth');
+    }
+
+    // Step 1: Check if text fits on single line at base font size
+    final textWidth = _measureTextWidth(text, baseFontSize);
+    final fitsOnSingleLine = textWidth <= availableWidth;
+
+    if (_debugTextRendering) {
+      logger.i('Text width at ${baseFontSize}px: $textWidth, fits on single line: $fitsOnSingleLine');
+    }
+
+    if (fitsOnSingleLine) {
+      // Text fits on single line - use base font size
+      if (_debugTextRendering) {
+        logger.i('Using single line rendering with font size: $baseFontSize');
+      }
+      
+      return Text(
+        text,
+        textAlign: TextAlign.center,
+        style: TextStyle(
+          fontSize: baseFontSize,
+          color: textColor,
+          fontWeight: FontWeight.w500,
+        ),
+      );
+    }
+
+    // Step 2: Text doesn't fit on single line - check for logical break point
+    final breakIndex = _findBreakNearMiddle(text);
+
+    if (_debugTextRendering) {
+      logger.i('Break index found: $breakIndex');
+    }
+
+    if (breakIndex <= 0) {
+      // No logical break point - scale down for single line
+      final scaleFactor = availableWidth / textWidth;
+      final scaledFontSize = baseFontSize * scaleFactor;
+      
+      if (_debugTextRendering) {
+        logger.i('No break point found, scaling to font size: $scaledFontSize (scale factor: $scaleFactor)');
+      }
+
+      return Text(
+        text,
+        textAlign: TextAlign.center,
+        style: TextStyle(
+          fontSize: scaledFontSize,
+          color: textColor,
+          fontWeight: FontWeight.w500,
+        ),
+      );
+    }
+
+    // Step 3: Break text and determine sizing
+    final firstLine = text.substring(0, breakIndex).trim();
+    final secondLine = text.substring(breakIndex).trim();
+
+    if (_debugTextRendering) {
+      logger.i('Split text into: "$firstLine" and "$secondLine"');
+    }
+
+    // Measure both lines at base font size
+    final firstLineWidth = _measureTextWidth(firstLine, baseFontSize);
+    final secondLineWidth = _measureTextWidth(secondLine, baseFontSize);
+    final widerLineWidth = max(firstLineWidth, secondLineWidth);
+
+    if (_debugTextRendering) {
+      logger.i('First line width: $firstLineWidth, Second line width: $secondLineWidth');
+      logger.i('Wider line width: $widerLineWidth');
+    }
+
+    // Determine final font size
+    double finalFontSize;
+    if (widerLineWidth <= availableWidth) {
+      // Wider line fits - use base font size
+      finalFontSize = baseFontSize;
+      if (_debugTextRendering) {
+        logger.i('Wider line fits, using base font size: $finalFontSize');
+      }
+    } else {
+      // Wider line doesn't fit - scale down
+      final scaleFactor = availableWidth / widerLineWidth;
+      finalFontSize = baseFontSize * scaleFactor;
+      if (_debugTextRendering) {
+        logger.i('Wider line doesn\'t fit, scaling to font size: $finalFontSize (scale factor: $scaleFactor)');
+      }
+    }
+
+    // Render two-line text
+    return Text(
+      '$firstLine\n$secondLine',
+      textAlign: TextAlign.center,
+      style: TextStyle(
+        fontSize: finalFontSize,
+        color: textColor,
+        fontWeight: FontWeight.w500,
+        height: 1.05, // Tighter line height for two lines
+      ),
+    );
+  }
+
+  // Find a natural break point (space) near the middle of the text
   int _findBreakNearMiddle(String text) {
     // Look for spaces in the string
     final spaceIndices = <int>[];
@@ -131,176 +252,7 @@ class AnswerOption {
     return closestSpaceIndex;
   }
 
-// Generalized text rendering solution for any multi-word string
-// This approach is based on actual text width measurement, not character count
-
-  Widget _simplifiedTextRendering(
-      String text, BoxConstraints constraints, bool disabled) {
-    final textColor = disabled ? Colors.grey : Colors.black87;
-    final logger = Logger();
-    final isIOS = Platform.isIOS;
-
-    // Add an iOS-specific safety margin
-    final safetyMargin = isIOS ? 0.85 : 0.92; // More conservative for iOS
-
-    // Log the platform and text
-    logger.i('Rendering text: "$text" on ${isIOS ? "iOS" : "Android"}');
-
-    return LayoutBuilder(
-      builder: (context, textConstraints) {
-        final availableWidth = textConstraints.maxWidth * safetyMargin;
-        logger.i('Available width: $availableWidth');
-
-        // Use a standard font size
-        final singleLineFontSize = 26.0;
-
-        // Check if text fits on single line with more conservative width for iOS
-        final textWidth = _measureTextWidth(text, singleLineFontSize);
-        final fitsOnSingleLine = textWidth <= availableWidth;
-
-        logger.i(
-            'Text width at ${singleLineFontSize}px: $textWidth, fits on single line: $fitsOnSingleLine');
-
-        if (fitsOnSingleLine) {
-          // If it fits on one line, still use AutoSizeText on iOS for safety
-          if (isIOS) {
-            logger.i(
-                'iOS: Using single line AutoSizeText with font size: $singleLineFontSize');
-            return Center(
-              child: Container(
-                width: textConstraints.maxWidth * 0.9, // Fixed container width
-                child: AutoSizeText(
-                  text,
-                  textAlign: TextAlign.center,
-                  style: TextStyle(
-                    fontSize: singleLineFontSize,
-                    color: textColor,
-                    fontWeight: FontWeight.w500,
-                  ),
-                  minFontSize: 16.0,
-                  maxLines: 1,
-                  overflow: TextOverflow.visible,
-                ),
-              ),
-            );
-          } else {
-            // Android stays the same
-            logger.i(
-                'Using single line rendering with font size: $singleLineFontSize');
-            return Center(
-              child: Text(
-                text,
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                  fontSize: singleLineFontSize,
-                  color: textColor,
-                  fontWeight: FontWeight.w500,
-                ),
-              ),
-            );
-          }
-        }
-
-        // For text that doesn't fit on a single line
-        final breakIndex = _findBreakNearMiddle(text);
-        logger.i('Break index found: $breakIndex');
-
-        // If we can't find a good break point, use AutoSizeText
-        if (breakIndex <= 0) {
-          logger.i('No good break point found, using AutoSizeText');
-
-          return Center(
-            child: Container(
-              width: textConstraints.maxWidth * 0.9, // Fixed container width
-              child: AutoSizeText(
-                text,
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                  fontSize: singleLineFontSize,
-                  color: textColor,
-                  fontWeight: FontWeight.w500,
-                ),
-                minFontSize: isIOS ? 14.0 : 14.0,
-                maxLines: 2, // Allow 2 lines for long text
-                stepGranularity: 0.5,
-                overflow: TextOverflow.visible,
-              ),
-            ),
-          );
-        }
-
-        // Break the text at the found position
-        final firstLine = text.substring(0, breakIndex).trim();
-        final secondLine = text.substring(breakIndex).trim();
-
-        logger.i('Split text into: "$firstLine" and "$secondLine"');
-
-        // Measure both lines with a more conservative available width for iOS
-        final firstLineWidth = _measureTextWidth(firstLine, singleLineFontSize);
-        final secondLineWidth =
-            _measureTextWidth(secondLine, singleLineFontSize);
-
-        logger.i(
-            'First line width: $firstLineWidth, Second line width: $secondLineWidth');
-
-        // Determine the scaling factor needed to make the wider line fit
-        final maxLineWidth = max(firstLineWidth, secondLineWidth);
-        final scaleFactor = availableWidth / maxLineWidth;
-
-        // Calculate the font size that will fit both lines
-        // Be slightly more conservative on iOS
-        final twoLineFontSize = min(
-            singleLineFontSize * (isIOS ? scaleFactor * 0.95 : scaleFactor),
-            singleLineFontSize);
-
-        logger.i(
-            'Calculated two-line font size: $twoLineFontSize (scale factor: $scaleFactor)');
-
-        // For iOS, we'll use a fixed-width container with RichText
-        if (isIOS) {
-          logger.i(
-              'iOS: Using RichText with explicit line break in fixed container');
-          return Center(
-            child: Container(
-              width: textConstraints.maxWidth * 0.9, // Fixed container width
-              child: RichText(
-                textAlign: TextAlign.center,
-                text: TextSpan(
-                  style: TextStyle(
-                    fontSize: twoLineFontSize,
-                    color: textColor,
-                    fontWeight: FontWeight.w500,
-                    height: 1.05,
-                  ),
-                  children: [
-                    TextSpan(text: firstLine),
-                    TextSpan(text: '\n'),
-                    TextSpan(text: secondLine),
-                  ],
-                ),
-              ),
-            ),
-          );
-        } else {
-          // Android behavior unchanged
-          return Center(
-            child: Text(
-              '$firstLine\n$secondLine',
-              textAlign: TextAlign.center,
-              style: TextStyle(
-                fontSize: twoLineFontSize,
-                color: textColor,
-                fontWeight: FontWeight.w500,
-                height: 1.05, // Tighter line height for two lines
-              ),
-            ),
-          );
-        }
-      },
-    );
-  }
-
-// Helper method to measure text width
+  // Helper method to measure text width
   double _measureTextWidth(String text, double fontSize) {
     final textSpan = TextSpan(
       text: text,

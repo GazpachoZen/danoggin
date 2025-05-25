@@ -72,6 +72,10 @@ iOS for beta with TestFlight...
 ================================================================================
 ================================================================================ Getting started...
 Please review the contents in the project knowledge to the point where you understand what the Danoggin project is about and how it operates. Pay particular attention to the Foundation.txt file. Do not provide a summary. Await further instruction.
+---------------------
+* Start with a basic font size and determine if the width of the resultant single-line widget will fit the available space. If it does, then we're done.
+* If the text does not have a logical breaking point, then do math to decide on the font size necessary to make it fit.
+* If the text does have a logical breaking point (as determined by a space closest to the center of the multi-word string), the break this into two separate strings. Determine the width of each string if it were rendered at the nominal font size and use only the wider of the two. If this will fit in the available space, then we're done. If it does not fit, then use math to determine what font size would be appropriate and use this size for both text widgets.
 ================================================================================ 
 ---------------------
 ---------------------
