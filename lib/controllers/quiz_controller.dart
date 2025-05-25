@@ -162,10 +162,10 @@ class QuizController {
 
     // Log that question was loaded (helpful for debugging FCM triggers)
     if (isScheduled) {
-      Logger().i('QuizController: New question loaded via FCM trigger');
+      Logger().i('QuizController: New question loaded via FCM trigger ($currentQuestion)');
       NotificationManager().log('Question loaded from FCM notification');
     } else {
-      Logger().i('QuizController: Initial question loaded');
+      Logger().i('QuizController: Initial question loaded ($currentQuestion)');
     }
 
     onStateChanged();

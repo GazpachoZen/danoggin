@@ -108,7 +108,7 @@ class AnswerOption {
     final isIOS = Platform.isIOS;
 
     // Conservative safety margin (slightly more conservative for iOS)
-    final safetyMargin = isIOS ? 0.75 : 0.80;
+    final safetyMargin = isIOS ? 0.70 : 0.80;
     final availableWidth = constraints.maxWidth * safetyMargin;
     
     // Base font size
@@ -116,7 +116,7 @@ class AnswerOption {
 
     if (_debugTextRendering) {
       logger.i('Rendering text: "$text" on ${isIOS ? "iOS" : "Android"}');
-      logger.i('Available width: $availableWidth');
+      logger.i('Available width: $availableWidth ($safetyMargin * $constraints.maxWidth)');
     }
 
     // Step 1: Check if text fits on single line at base font size
