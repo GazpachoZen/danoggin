@@ -1,8 +1,10 @@
 # Danoggin Release Notes
 
-## [0.1.0 build 27] 2025-05-24
+## [0.1.0 build 28] 2025-05-24
 ### Changes
-- Re-thought the "about" page and added this changelog
+- The "about" page now generated locally
+- Added this changelog to above
+- Changes to how font sizes are calculated for check-in answers
 
 ## [0.1.0] 2025-05-23
 ### Added

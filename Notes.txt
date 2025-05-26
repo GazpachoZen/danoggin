@@ -107,10 +107,13 @@ Attached is the output from "flutter run"? Is there anything here you find troub
 In analysis_options.yaml (TOP of folder tree) uncomment the line below to find all the deprecated crap we're using.
 	    # deprecated_member_use: error
 ---------------------
+================================================================================ Question packs...
+Make a states and cities question pack. All the state capitals, etc.
+Major cities in all 50 states. Maybe 2-3 cites per state, if warranted.
+Colored words, where we have words presented as graphics, but in colors other than what they say.
+Colored shapes (red-triangle, blue square) incorrect answers will always include a similar shape, and a similar color
 ================================================================================ LATER...
 Remember to turn kDevModeEnabled back to false wherever it exists.
----------------------
-Make a states and cities question pack. All the state capitals, etc.
 ---------------------
 As a future capability, we'll eventually want the apps to notice that updates are available.
 ---------------------
@@ -120,6 +123,7 @@ It would be nice to have a mechanism for an observer to somehow coerce a related
 ---------------------
 We'll eventually need a way to purge the database of users that have ghosted the app. 
 ---------------------
+We should have a fremium capability for main-user/support-partner teams to make their own question packs
 ---------------------
 ---------------------
 ---------------------
