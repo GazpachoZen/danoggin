@@ -105,9 +105,9 @@ flutter_launcher_icons:
   android: "launcher_icon"
   ios: true
   image_path: "assets/images/danoggin_icon.png"
-  #adaptive_icon_foreground: "assets/images/danoggin_icon.png"
-  adaptive_icon_background: "#3DA6CB" # Optional - for Android adaptive icons
+  adaptive_icon_background: "#8ED1E9"
   remove_alpha_ios: true
+  ios_background_color: "#8ED1E9"
 
 flutter_native_splash:
   color: "#8ED1E9"  # This is the skyBlue color from your app colors
