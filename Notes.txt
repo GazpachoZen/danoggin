@@ -95,6 +95,7 @@ Seek and destroy all deprecated method calls. Check logs to help find them. Spec
 Note: Some input files use or override a deprecated API.
 Note: Recompile with -Xlint:deprecation for details.
 ---------------------
+I notice that the icon for the app has a white circle around the main graphic. How would I make that a different color?
 ---------------------
 I would like to provide a beta release to both Android and iOS users shortly. Please identify things which might need to be addressed before we do this.
 ---------------------
@@ -125,6 +126,15 @@ We'll eventually need a way to purge the database of users that have ghosted the
 ---------------------
 We should have a fremium capability for main-user/support-partner teams to make their own question packs
 ---------------------
+In the anasysis_options.yaml file, start selectively commenting off some of the errors we're currently ignoring and decide if they are things we really want to worry about.
+	analyzer:
+	  errors:
+		# deprecated_member_use: error <<<========= Big one to chase some day soon!
+		prefer_const_constructors: ignore
+		prefer_adjacent_string_concatenation: ignore
+		use_super_parameters: ignore
+		use_build_context_synchronously: ignore
+		library_private_types_in_public_api: ignore
 ---------------------
 ---------------------
 ================================================================================

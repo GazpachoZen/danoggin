@@ -31,7 +31,11 @@ analyzer:
   errors:
     # Treat deprecated usage as errors (more visible)
     # deprecated_member_use: error
-    deprecated_member_use_from_same_package: error
+    prefer_const_constructors: ignore
+    prefer_adjacent_string_concatenation: ignore
+    use_super_parameters: ignore
+    use_build_context_synchronously: ignore
+    library_private_types_in_public_api: ignore
     
     # Suppress info-level rules you don't want
     todo: ignore
