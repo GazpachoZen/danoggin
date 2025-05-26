@@ -40,8 +40,6 @@ class CheckInListWidget extends StatelessWidget {
       );
     }
 
-    final responderName = responderMap[selectedResponderUid] ?? 'Unknown';
-
     return StreamBuilder<QuerySnapshot>(
       stream: FirebaseFirestore.instance
           .collection('responder_status')
@@ -113,7 +111,7 @@ class CheckInListWidget extends StatelessWidget {
         : 'Unknown time';
     final relative = timestamp != null ? timeago.format(timestamp) : '';
 
-    Widget _getResultIcon(String result) {
+    Widget getResultIcon(String result) {
       switch (result) {
         case 'correct':
           return Icon(Icons.check_circle, color: Colors.green, size: 18);
@@ -133,7 +131,7 @@ class CheckInListWidget extends StatelessWidget {
     return ListTile(
       dense: true,
       visualDensity: const VisualDensity(vertical: -3),
-      leading: _getResultIcon(result),
+      leading: getResultIcon(result),
       title: Text(prompt, style: const TextStyle(fontSize: 14)),
       subtitle:
           Text('$absolute • $relative', style: const TextStyle(fontSize: 12)),
