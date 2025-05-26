@@ -9,12 +9,11 @@ class AppTheme {
       colorScheme: ColorScheme.light(
         primary: AppColors.deepBlue,
         secondary: AppColors.coral,
-        background: AppColors.offWhite,
-        surface: Colors.white,
+        surface: AppColors.offWhite,        // Replaces 'background'
+        surfaceContainerHighest: Colors.white,  // Additional surface variant
         onPrimary: AppColors.offWhite,
         onSecondary: AppColors.textDark,
-        onBackground: AppColors.textDark,
-        onSurface: AppColors.textDark,
+        onSurface: AppColors.textDark,      // Replaces 'onBackground'
       ),
       scaffoldBackgroundColor: AppColors.offWhite,
       appBarTheme: const AppBarTheme(

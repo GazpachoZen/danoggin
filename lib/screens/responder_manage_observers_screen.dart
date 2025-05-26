@@ -8,10 +8,12 @@ class ResponderManageObserversScreen extends StatefulWidget {
   const ResponderManageObserversScreen({super.key});
 
   @override
-  State<ResponderManageObserversScreen> createState() => _ResponderManageObserversScreenState();
+  State<ResponderManageObserversScreen> createState() =>
+      _ResponderManageObserversScreenState();
 }
 
-class _ResponderManageObserversScreenState extends State<ResponderManageObserversScreen> {
+class _ResponderManageObserversScreenState
+    extends State<ResponderManageObserversScreen> {
   bool _loading = false;
   Map<String, String> _observers = {};
   bool _loadingObservers = true;
@@ -43,12 +45,13 @@ class _ResponderManageObserversScreenState extends State<ResponderManageObserver
           .collection('users')
           .doc(responderUid)
           .get();
-      
+
       final userData = responderDoc.data();
       if (userData != null && userData.containsKey('linkedObservers')) {
-        final linkedObservers = userData['linkedObservers'] as Map<String, dynamic>;
+        final linkedObservers =
+            userData['linkedObservers'] as Map<String, dynamic>;
         final observers = Map<String, String>.from(linkedObservers);
-        
+
         setState(() {
           _observers = observers;
           _loadingObservers = false;
@@ -69,23 +72,25 @@ class _ResponderManageObserversScreenState extends State<ResponderManageObserver
 
   Future<void> _removeObserver(String observerUid, String observerName) async {
     final confirmed = await showDialog<bool>(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: Text('Remove $observerName?'),
-        content: Text('$observerName will no longer be able to monitor your check-ins. They will need your invite code to reconnect later.'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(false),
-            child: const Text('Cancel'),
+          context: context,
+          builder: (context) => AlertDialog(
+            title: Text('Remove $observerName?'),
+            content: Text(
+                '$observerName will no longer be able to monitor your check-ins. They will need your invite code to reconnect later.'),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.of(context).pop(false),
+                child: const Text('Cancel'),
+              ),
+              ElevatedButton(
+                onPressed: () => Navigator.of(context).pop(true),
+                style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
+                child: const Text('Remove'),
+              ),
+            ],
           ),
-          ElevatedButton(
-            onPressed: () => Navigator.of(context).pop(true),
-            style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
-            child: const Text('Remove'),
-          ),
-        ],
-      ),
-    ) ?? false;
+        ) ??
+        false;
 
     if (!confirmed) return;
 
@@ -95,38 +100,38 @@ class _ResponderManageObserversScreenState extends State<ResponderManageObserver
 
     try {
       final responderUid = AuthService.currentUserId;
-      
+
       // Get current responder data
       final responderDoc = await FirebaseFirestore.instance
           .collection('users')
           .doc(responderUid)
           .get();
-      
+
       final linkedObserversData = Map<String, dynamic>.from(
           responderDoc.data()?['linkedObservers'] as Map<String, dynamic>);
-      
+
       // Remove observer from responder's list
       linkedObserversData.remove(observerUid);
-      
+
       // Update responder document
       await FirebaseFirestore.instance
           .collection('users')
           .doc(responderUid)
           .update({'linkedObservers': linkedObserversData});
-      
+
       // Get observer's data
       final observerDoc = await FirebaseFirestore.instance
           .collection('users')
           .doc(observerUid)
           .get();
-      
+
       if (observerDoc.exists) {
         final observingData = Map<String, dynamic>.from(
             observerDoc.data()?['observing'] as Map<String, dynamic>);
-        
+
         // Remove responder from observer's list
         observingData.remove(responderUid);
-        
+
         // Update observer document
         await FirebaseFirestore.instance
             .collection('users')
@@ -139,7 +144,7 @@ class _ResponderManageObserversScreenState extends State<ResponderManageObserver
 
       // Reload the list
       await _loadCurrentObservers();
-      
+
       // Show confirmation
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -162,11 +167,12 @@ class _ResponderManageObserversScreenState extends State<ResponderManageObserver
 
   @override
   Widget build(BuildContext context) {
-    return WillPopScope(
-      // Handle back button to ensure we return our result
-      onWillPop: () async {
-        Navigator.of(context).pop(_relationshipsChanged);
-        return false; // We handled the pop ourselves
+    return PopScope(
+      canPop: false,
+      onPopInvokedWithResult: (bool didPop, dynamic result) {
+        if (!didPop) {
+          Navigator.of(context).pop(_relationshipsChanged);
+        }
       },
       child: Scaffold(
         appBar: AppBar(
@@ -179,9 +185,9 @@ class _ResponderManageObserversScreenState extends State<ResponderManageObserver
             },
           ),
         ),
-        body: _loading ? 
-          Center(child: CircularProgressIndicator()) :
-          _buildContent(),
+        body: _loading
+            ? Center(child: CircularProgressIndicator())
+            : _buildContent(),
       ),
     );
   }
@@ -230,7 +236,8 @@ class _ResponderManageObserversScreenState extends State<ResponderManageObserver
           SizedBox(height: 16),
           Text(
             '${_observers.length} ${_observers.length == 1 ? 'person' : 'people'} monitoring you',
-            style: TextStyle(color: Colors.grey[600], fontStyle: FontStyle.italic),
+            style:
+                TextStyle(color: Colors.grey[600], fontStyle: FontStyle.italic),
           ),
           SizedBox(height: 8),
           Expanded(
@@ -242,17 +249,20 @@ class _ResponderManageObserversScreenState extends State<ResponderManageObserver
                 itemBuilder: (context, index) {
                   final observerUid = _observers.keys.elementAt(index);
                   final observerName = _observers[observerUid]!;
-                  
+
                   return ListTile(
                     leading: CircleAvatar(
                       backgroundColor: Colors.deepPurple[100],
-                      child: Icon(Icons.person_outline, color: Colors.deepPurple[800]),
+                      child: Icon(Icons.person_outline,
+                          color: Colors.deepPurple[800]),
                     ),
                     title: Text(observerName),
                     subtitle: Text('Tap to remove'),
                     trailing: IconButton(
-                      icon: Icon(Icons.remove_circle_outline, color: Colors.red),
-                      onPressed: () => _removeObserver(observerUid, observerName),
+                      icon:
+                          Icon(Icons.remove_circle_outline, color: Colors.red),
+                      onPressed: () =>
+                          _removeObserver(observerUid, observerName),
                     ),
                     onTap: () => _removeObserver(observerUid, observerName),
                   );

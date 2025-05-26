@@ -121,9 +121,17 @@ class _QuizPageState extends State<QuizPage> with WidgetsBindingObserver {
   @override
   Widget build(BuildContext context) {
     // Handle back button press with WillPopScope
-    return WillPopScope(
-      onWillPop: () =>
-          _backButtonHandler.handleBackPress(context, _controller.currentRole),
+    return PopScope(
+      canPop: false,
+      onPopInvokedWithResult: (bool didPop, dynamic result) async {
+        if (!didPop) {
+          final shouldPop = await _backButtonHandler.handleBackPress(
+              context, _controller.currentRole);
+          if (shouldPop) {
+            Navigator.of(context).pop();
+          }
+        }
+      },
       child: _controller.isLoading || _controller.currentQuestion == null
           ? _buildLoadingScreen()
           : _buildMainScreen(),

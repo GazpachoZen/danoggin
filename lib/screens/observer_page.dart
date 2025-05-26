@@ -44,16 +44,16 @@ class _ObserverPageState extends State<ObserverPage> {
       if (mounted) setState(() {});
     });
 
-  // Request notification permissions
-  requestNotificationPermissions();
+    // Request notification permissions
+    requestNotificationPermissions();
 
-  // Initialize the controller
-  _controller.initialize();
+    // Initialize the controller
+    _controller.initialize();
 
-  _setupForegroundNotifications();
-  
-  // Add this line to check notification permissions
-  _checkNotificationPermissions();
+    _setupForegroundNotifications();
+
+    // Add this line to check notification permissions
+    _checkNotificationPermissions();
   }
 
   void _setupForegroundNotifications() {
@@ -101,9 +101,17 @@ class _ObserverPageState extends State<ObserverPage> {
   @override
   Widget build(BuildContext context) {
     // Add WillPopScope to handle back button press
-    return WillPopScope(
-      onWillPop: () =>
-          _backButtonHandler.handleBackPress(context, UserRole.observer),
+    return PopScope(
+      canPop: false,
+      onPopInvokedWithResult: (bool didPop, dynamic result) async {
+        if (!didPop) {
+          final shouldPop = await _backButtonHandler.handleBackPress(
+              context, UserRole.observer);
+          if (shouldPop) {
+            Navigator.of(context).pop();
+          }
+        }
+      },
       child: Scaffold(
         appBar: _buildAppBar(),
         body: _buildBody(),

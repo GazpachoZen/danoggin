@@ -154,9 +154,9 @@ class LogService {
           "[   Please use this space to tell us what went wrong    ]$lb" +
           "[The more detail you can provide, the better we can help]$lb$lb" +
           "==========================================================$lb" +
-          "$formattedContext" +
+          formattedContext +
           "=== LOGS ===$lb" +
-          "$formattedLogs";
+          formattedLogs;
 
       // Try to launch email client
       bool launched = await _launchEmailClient(emailBody);

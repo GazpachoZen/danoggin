@@ -1,3 +1,8 @@
+import 'package:danoggin/utils/logger.dart';
+import 'package:danoggin/services/auth_service.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:danoggin/screens/role_selection_screen.dart';
 import 'package:danoggin/screens/about_screen.dart';
 import 'package:danoggin/screens/web_view_screen.dart';
 import 'package:flutter/material.dart';
@@ -63,14 +68,12 @@ class _SettingsPageState extends State<SettingsPage> {
   Widget build(BuildContext context) {
     final isDirty = selectedRole != widget.currentRole;
 
-    return WillPopScope(
-      onWillPop: () async {
-        // Signal back to parent page if relationships have changed
-        if (_relationshipsChanged) {
+    return PopScope(
+      canPop: !_relationshipsChanged,
+      onPopInvokedWithResult: (bool didPop, dynamic result) {
+        if (!didPop && _relationshipsChanged) {
           Navigator.of(context).pop(true);
-          return false; // We handled the navigation
         }
-        return true; // Allow normal back behavior
       },
       child: Scaffold(
         appBar: AppBar(
@@ -249,6 +252,13 @@ class _SettingsPageState extends State<SettingsPage> {
           },
         ),
 
+        ListTile(
+          leading: const Icon(Icons.refresh, color: Colors.red),
+          title: const Text('Reset App Data'),
+          subtitle: const Text('Clear all data and start fresh (destructive!)'),
+          onTap: () => _showResetConfirmation(context),
+        ),
+
         // Add a note indicating this is development mode
         Padding(
           padding: const EdgeInsets.symmetric(vertical: 8.0),
@@ -363,105 +373,268 @@ class _SettingsPageState extends State<SettingsPage> {
     }
   }
 
-Widget _buildLegalSection() {
-  return Column(
-    crossAxisAlignment: CrossAxisAlignment.start,
-    children: [
-      // More compact header with less padding
-      Padding(
-        padding: const EdgeInsets.only(left: 12.0, bottom: 4.0),
-        child: Text(
-          'Legal & Information',
-          style: TextStyle(
-            fontSize: 15,
-            fontWeight: FontWeight.bold,
-            color: Colors.grey[700],
+  Widget _buildLegalSection() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        // More compact header with less padding
+        Padding(
+          padding: const EdgeInsets.only(left: 12.0, bottom: 4.0),
+          child: Text(
+            'Legal & Information',
+            style: TextStyle(
+              fontSize: 15,
+              fontWeight: FontWeight.bold,
+              color: Colors.grey[700],
+            ),
           ),
         ),
-      ),
-      
-      // Make the list tiles more compact
-      ListView(
-        shrinkWrap: true,
-        physics: NeverScrollableScrollPhysics(),
-        children: [
-          // About option - now navigates to local About screen
-          ListTile(
-            dense: true,
-            visualDensity: VisualDensity(horizontal: 0, vertical: -2),
-            leading: const Icon(Icons.info_outline, size: 20),
-            title: const Text('About Danoggin', style: TextStyle(fontSize: 14)),
-            trailing: const Icon(Icons.arrow_forward_ios, size: 14),
-            onTap: () {
-              Navigator.of(context).push(
-                MaterialPageRoute(
-                  builder: (context) => AboutScreen(),
-                ),
-              );
-            },
-          ),
-          
-          // EULA option
-          ListTile(
-            dense: true,
-            visualDensity: VisualDensity(horizontal: 0, vertical: -2),
-            leading: const Icon(Icons.description_outlined, size: 20),
-            title: const Text('Terms of Use (EULA)', style: TextStyle(fontSize: 14)),
-            trailing: const Icon(Icons.arrow_forward_ios, size: 14),
-            onTap: () {
-              Navigator.of(context).push(
-                MaterialPageRoute(
-                  builder: (context) => WebViewScreen(
-                    url: 'https://blue-vistas.com/danoggin_eula.html',
-                    title: 'Terms of Use',
-                  ),
-                ),
-              );
-            },
-          ),
-          
-          // Privacy Policy option
-          ListTile(
-            dense: true,
-            visualDensity: VisualDensity(horizontal: 0, vertical: -2),
-            leading: const Icon(Icons.privacy_tip_outlined, size: 20),
-            title: const Text('Privacy Policy', style: TextStyle(fontSize: 14)),
-            trailing: const Icon(Icons.arrow_forward_ios, size: 14),
-            onTap: () {
-              Navigator.of(context).push(
-                MaterialPageRoute(
-                  builder: (context) => WebViewScreen(
-                    url: 'https://blue-vistas.com/danoggin_privacy.html',
-                    title: 'Privacy Policy',
-                  ),
-                ),
-              );
-            },
-          ),
-          
-          // Acknowledgments option
-          ListTile(
-            dense: true,
-            visualDensity: VisualDensity(horizontal: 0, vertical: -2),
-            leading: const Icon(Icons.attribution_outlined, size: 20),
-            title: const Text('Acknowledgments', style: TextStyle(fontSize: 14)),
-            trailing: const Icon(Icons.arrow_forward_ios, size: 14),
-            onTap: () {
-              Navigator.of(context).push(
-                MaterialPageRoute(
-                  builder: (context) => WebViewScreen(
-                    url: 'https://blue-vistas.com/danoggin_acknowledgements.html',
-                    title: 'Acknowledgments',
-                  ),
-                ),
-              );
-            },
-          ),
-        ],
-      ),
-    ],
-  );
-}
 
+        // Make the list tiles more compact
+        ListView(
+          shrinkWrap: true,
+          physics: NeverScrollableScrollPhysics(),
+          children: [
+            // About option - now navigates to local About screen
+            ListTile(
+              dense: true,
+              visualDensity: VisualDensity(horizontal: 0, vertical: -2),
+              leading: const Icon(Icons.info_outline, size: 20),
+              title:
+                  const Text('About Danoggin', style: TextStyle(fontSize: 14)),
+              trailing: const Icon(Icons.arrow_forward_ios, size: 14),
+              onTap: () {
+                Navigator.of(context).push(
+                  MaterialPageRoute(
+                    builder: (context) => AboutScreen(),
+                  ),
+                );
+              },
+            ),
 
+            // EULA option
+            ListTile(
+              dense: true,
+              visualDensity: VisualDensity(horizontal: 0, vertical: -2),
+              leading: const Icon(Icons.description_outlined, size: 20),
+              title: const Text('Terms of Use (EULA)',
+                  style: TextStyle(fontSize: 14)),
+              trailing: const Icon(Icons.arrow_forward_ios, size: 14),
+              onTap: () {
+                Navigator.of(context).push(
+                  MaterialPageRoute(
+                    builder: (context) => WebViewScreen(
+                      url: 'https://blue-vistas.com/danoggin_eula.html',
+                      title: 'Terms of Use',
+                    ),
+                  ),
+                );
+              },
+            ),
+
+            // Privacy Policy option
+            ListTile(
+              dense: true,
+              visualDensity: VisualDensity(horizontal: 0, vertical: -2),
+              leading: const Icon(Icons.privacy_tip_outlined, size: 20),
+              title:
+                  const Text('Privacy Policy', style: TextStyle(fontSize: 14)),
+              trailing: const Icon(Icons.arrow_forward_ios, size: 14),
+              onTap: () {
+                Navigator.of(context).push(
+                  MaterialPageRoute(
+                    builder: (context) => WebViewScreen(
+                      url: 'https://blue-vistas.com/danoggin_privacy.html',
+                      title: 'Privacy Policy',
+                    ),
+                  ),
+                );
+              },
+            ),
+
+            // Acknowledgments option
+            ListTile(
+              dense: true,
+              visualDensity: VisualDensity(horizontal: 0, vertical: -2),
+              leading: const Icon(Icons.attribution_outlined, size: 20),
+              title:
+                  const Text('Acknowledgments', style: TextStyle(fontSize: 14)),
+              trailing: const Icon(Icons.arrow_forward_ios, size: 14),
+              onTap: () {
+                Navigator.of(context).push(
+                  MaterialPageRoute(
+                    builder: (context) => WebViewScreen(
+                      url:
+                          'https://blue-vistas.com/danoggin_acknowledgements.html',
+                      title: 'Acknowledgments',
+                    ),
+                  ),
+                );
+              },
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+
+  Future<void> _showResetConfirmation(BuildContext context) async {
+    final confirmed = await showDialog<bool>(
+          context: context,
+          builder: (context) => AlertDialog(
+            title: Text('Reset App Data?'),
+            content: Text(
+              'This will:\n'
+              '• Sign out current user\n'
+              '• Clear all local settings\n'
+              '• Create fresh anonymous user\n'
+              '• Restart app\n\n'
+              'This action cannot be undone!',
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(context, false),
+                child: Text('Cancel'),
+              ),
+              ElevatedButton(
+                onPressed: () => Navigator.pop(context, true),
+                style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
+                child: Text('Reset Everything'),
+              ),
+            ],
+          ),
+        ) ??
+        false;
+
+    if (confirmed) {
+      await _performAppReset();
+    }
+  }
+
+  Future<void> _performAppReset() async {
+    try {
+      // Show loading indicator
+      showDialog(
+        context: context,
+        barrierDismissible: false,
+        builder: (context) => AlertDialog(
+          content: Row(
+            children: [
+              CircularProgressIndicator(),
+              SizedBox(width: 16),
+              Text('Resetting app data...'),
+            ],
+          ),
+        ),
+      );
+
+      // Get current user ID before we sign out
+      final currentUserId = AuthService.currentUserId;
+
+      // 1. Clean up Firestore relationships
+      await _cleanupFirestoreRelationships(currentUserId);
+
+      // 2. Clear SharedPreferences
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.clear();
+
+      // 3. Sign out current Firebase user
+      await FirebaseAuth.instance.signOut();
+
+      // 4. Clear notification manager logs
+      NotificationManager().clearLogs();
+
+      // 5. Cancel any pending notifications
+      await NotificationManager().cancelAllNotifications();
+
+      // 6. Create fresh anonymous user
+      await FirebaseAuth.instance.signInAnonymously();
+
+      // Close loading dialog
+      if (mounted) {
+        Navigator.of(context).pop();
+      }
+
+      // 7. Navigate to role selection (fresh start)
+      if (mounted) {
+        Navigator.of(context).pushAndRemoveUntil(
+          MaterialPageRoute(builder: (_) => RoleSelectionScreen()),
+          (route) => false, // Remove all previous routes
+        );
+      }
+    } catch (e) {
+      // Close loading dialog if it's open
+      if (mounted) {
+        Navigator.of(context).pop();
+      }
+
+      // Show error
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error resetting app: $e'),
+            backgroundColor: Colors.red,
+            duration: Duration(seconds: 3),
+          ),
+        );
+      }
+    }
+  }
+
+  Future<void> _cleanupFirestoreRelationships(String userId) async {
+    try {
+      // Get the user's document to see what relationships exist
+      final userDoc = await FirebaseFirestore.instance
+          .collection('users')
+          .doc(userId)
+          .get();
+
+      if (!userDoc.exists) return;
+
+      final userData = userDoc.data() as Map<String, dynamic>;
+
+      // Clean up if this user is a responder (has linkedObservers)
+      if (userData.containsKey('linkedObservers')) {
+        final linkedObservers =
+            userData['linkedObservers'] as Map<String, dynamic>;
+
+        for (final observerId in linkedObservers.keys) {
+          // Remove this responder from each observer's 'observing' list
+          await FirebaseFirestore.instance
+              .collection('users')
+              .doc(observerId)
+              .update({
+            'observing.$userId': FieldValue.delete(),
+          });
+        }
+      }
+
+      // Clean up if this user is an observer (has observing)
+      if (userData.containsKey('observing')) {
+        final observing = userData['observing'] as Map<String, dynamic>;
+
+        for (final responderId in observing.keys) {
+          // Remove this observer from each responder's 'linkedObservers' list
+          await FirebaseFirestore.instance
+              .collection('users')
+              .doc(responderId)
+              .update({
+            'linkedObservers.$userId': FieldValue.delete(),
+          });
+        }
+      }
+
+      // Delete the user's document entirely
+      await FirebaseFirestore.instance.collection('users').doc(userId).delete();
+
+      // Also clean up any responder_status data
+      await FirebaseFirestore.instance
+          .collection('responder_status')
+          .doc(userId)
+          .delete();
+    } catch (e) {
+      Logger().e('Error cleaning up Firestore relationships: $e');
+      // Don't rethrow - we want the reset to continue even if cleanup fails
+    }
+  }
 }
