@@ -138,7 +138,7 @@ class _SettingsPageState extends State<SettingsPage> {
           dense: true,
           contentPadding: EdgeInsets.zero,
           visualDensity: const VisualDensity(vertical: -4),
-          title: Text(role.displayLabel),
+          title: Text(role.displayLabel, style: TextStyle(color: Colors.deepOrange)),
           value: role,
           groupValue: selectedRole,
           onChanged: (value) => setState(() => selectedRole = value!),
@@ -198,7 +198,7 @@ class _SettingsPageState extends State<SettingsPage> {
             children: [
               const Text(
                 'Switch Role',
-                style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold),
+                style: TextStyle(fontSize: 15, color: Colors.deepOrange, fontWeight: FontWeight.bold),
               ),
               _buildRoleSelector(),
               const SizedBox(height: 4),
@@ -206,7 +206,7 @@ class _SettingsPageState extends State<SettingsPage> {
                 alignment: Alignment.centerRight,
                 child: ElevatedButton.icon(
                   icon: const Icon(Icons.check),
-                  label: const Text('Apply'),
+                  label: const Text('Apply', style: TextStyle(color: Colors.deepOrange)),
                   onPressed: isDirty ? _applyRoleChange : null,
                   style: ElevatedButton.styleFrom(
                     padding: const EdgeInsets.symmetric(
@@ -223,8 +223,8 @@ class _SettingsPageState extends State<SettingsPage> {
         // Log viewer option (existing code)
         ListTile(
           leading: const Icon(Icons.list),
-          title: const Text('View Notification Logs'),
-          subtitle: const Text('Debug message history'),
+          title: const Text('View Notification Logs', style: TextStyle(color: Colors.deepOrange)),
+          subtitle: const Text('Debug message history', style: TextStyle(color: Colors.deepOrange)),
           onTap: () {
             Navigator.of(context).push(
               MaterialPageRoute(
@@ -237,10 +237,12 @@ class _SettingsPageState extends State<SettingsPage> {
         // Notification test option (existing code)
         ListTile(
           leading: const Icon(Icons.notifications),
-          title: const Text('Test Notification System'),
+          title: const Text('Test Notification System', 
+            style: TextStyle(color: Colors.deepOrange)),
           subtitle: Text(widget.currentRole == UserRole.responder
               ? 'Test FCM pipeline (Responder)'
-              : 'Test notification delivery (Observer)'),
+              : 'Test notification delivery (Observer)', 
+              style: TextStyle(color: Colors.deepOrange)),
           onTap: () async {
             if (widget.currentRole == UserRole.responder) {
               // Call the responder-specific test method (imported from quiz_page.dart)
@@ -254,8 +256,8 @@ class _SettingsPageState extends State<SettingsPage> {
 
         ListTile(
           leading: const Icon(Icons.refresh, color: Colors.red),
-          title: const Text('Reset App Data'),
-          subtitle: const Text('Clear all data and start fresh (destructive!)'),
+          title: const Text('Reset App Data', style: TextStyle(color: Colors.red)),
+          subtitle: const Text('Clear all data and start fresh (destructive!)', style: TextStyle(color: Colors.red)),
           onTap: () => _showResetConfirmation(context),
         ),
 
