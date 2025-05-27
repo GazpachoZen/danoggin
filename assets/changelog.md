@@ -1,10 +1,14 @@
 # Danoggin Release Notes
 
-## [0.1.0 build 28] 2025-05-24
+## [0.1.0 build 28] 2025-05-26
 ### Changes
 - The "about" page now generated locally
 - Added this changelog to above
 - Changes to how font sizes are calculated for check-in answers
+- Added debug button to perform full app reset
+### Internal
+- Assorted code optimizations and better linting
+- Complete refactor of cloud functionality
 
 ## [0.1.0] 2025-05-23
 ### Added
