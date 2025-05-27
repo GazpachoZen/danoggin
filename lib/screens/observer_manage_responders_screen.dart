@@ -252,6 +252,7 @@ class _ObserverManageRespondersScreenState
 
   @override
   Widget build(BuildContext context) {
+    String responderLabel = UserRole.responder.displayLabel;
     return PopScope(
       canPop: false,
       onPopInvokedWithResult: (bool didPop, dynamic result) {
@@ -309,7 +310,7 @@ class _ObserverManageRespondersScreenState
                       child: ElevatedButton.icon(
                         onPressed: _loading ? null : _linkToResponder,
                         icon: Icon(Icons.link),
-                        label: const Text('Link to Responder'),
+                        label: Text('Link to $responderLabel'),
                       ),
                     ),
                     if (_message != null) ...[
