@@ -1,5 +1,6 @@
 import * as admin from "firebase-admin";
 import {removeTokenFromUser} from "../services/tokenCleanupService";
+import {logTokenFailureForAnalytics, logTokenSuccess} from "./tokenHealthService";
 
 /**
  * Send FCM check-in reminder to a responder
@@ -81,11 +82,21 @@ export async function sendCheckInReminder(
           token: token,
         });
         successCount++;
+        await logTokenSuccess(responderId, 'check_in_reminder');
       } catch (error) {
         failureCount++;
         console.log(
           `Failed to send to token ${token.substring(0, 10)}...: ${error}`
         );
+        
+        // Log for analytics
+        await logTokenFailureForAnalytics(
+          responderId, 
+          token, 
+          error, 
+          'check_in_reminder'
+        );
+        
         // Remove invalid tokens
         await removeTokenFromUser(responderId, token);
       }
@@ -333,6 +344,29 @@ export async function notifyObserversOfCheckInIssue(
         });
         successCount++;
         console.log(`Successfully sent to token ${token.substring(0, 10)}...`);
+
+        // Log successful notification for analytics
+        // Find the observer ID for this token
+        let observerId = '';
+        for (const [id, _count] of Object.entries(observerBadgeUpdates)) {
+          const observerDoc = await admin.firestore().collection('users').doc(id).get();
+          const observerData = observerDoc.data();
+          const fcmTokens = observerData?.fcmTokens || [];
+          
+          const hasToken = fcmTokens.some((tokenData: any) => 
+            typeof tokenData === "object" && tokenData.token === token
+          );
+          
+          if (hasToken) {
+            observerId = id;
+            break;
+          }
+        }
+        
+        if (observerId) {
+          await logTokenSuccess(observerId, 'observer_alert');
+        }
+
       } catch (error) {
         failureCount++;
         failedTokens.push(token);

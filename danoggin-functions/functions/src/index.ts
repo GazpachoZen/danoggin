@@ -11,6 +11,7 @@ import {clearUserBadge} from "./http/clearUserBadge";
 
 // Scheduled Functions
 import {sendScheduledCheckInReminders} from "./scheduled/checkInReminders";
+import {cleanupInvalidTokens} from "./scheduled/tokenCleanup";
 
 // Firestore Triggers
 import {processCheckInResult} from "./triggers/checkInProcessor";
@@ -20,5 +21,6 @@ export {
   testFCM,
   clearUserBadge,
   sendScheduledCheckInReminders,
+  cleanupInvalidTokens,
   processCheckInResult,
 };

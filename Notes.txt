@@ -96,6 +96,7 @@ I notice that the icon for the app has a white circle around the main graphic. H
 ---------------------
 I would like to provide a beta release to both Android and iOS users shortly. Please identify things which might need to be addressed before we do this.
 ---------------------
+I need to check that the Sunday 2AM running of cleanupInvalidTokens method is happening and working as we'd like.
 ---------------------
 ---------------------
 ---------------------
