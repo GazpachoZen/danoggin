@@ -13,7 +13,7 @@ import 'package:danoggin/utils/logger.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 
 // Debug flag for text rendering logs
-const bool _debugTextRendering = true;
+const bool _debugTextRendering = false;
 
 class AnswerOption {
   final String? text;
