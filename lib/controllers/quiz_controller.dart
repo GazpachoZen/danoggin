@@ -47,7 +47,7 @@ class QuizController {
   // Flags
   bool _timeoutActive = false;
   bool _isInitialLoad = true;
-  
+
   // Track question loading time for staleness detection
   DateTime? _questionLoadedAt;
 
@@ -80,8 +80,9 @@ class QuizController {
 
   // Check if app should refresh question when coming to foreground
   Future<void> handleAppForeground() async {
-    Logger().i('QuizController: App came to foreground, checking for stale question');
-    
+    Logger().i(
+        'QuizController: App came to foreground, checking for stale question');
+
     // Skip if still in initial loading
     if (isLoading || _isInitialLoad) {
       Logger().i('QuizController: Skipping foreground check - still loading');
@@ -91,27 +92,96 @@ class QuizController {
     // Check if there are pending check-in notifications by looking at scheduled time
     try {
       final nextCheckInTime = await CheckInScheduler.getNextCheckInTime();
+      final now = DateTime.now();
+
+      Logger().i('QuizController: Current time: ${now.toIso8601String()}');
+      Logger().i(
+          'QuizController: Next check-in time: ${nextCheckInTime?.toIso8601String() ?? "null"}');
+      Logger().i(
+          'QuizController: Question loaded at: ${_questionLoadedAt?.toIso8601String() ?? "null"}');
+      Logger().i(
+          'QuizController: Timeout duration: ${responseTimeout.inMinutes} minutes');
+
       if (nextCheckInTime != null) {
-        final now = DateTime.now();
         final timeoutMinutes = responseTimeout.inMinutes;
-        
-        // Check if we're within a check-in window (past due time but within timeout)
+
+        // Check multiple scenarios that should trigger a refresh
         final dueTime = nextCheckInTime;
-        final expireTime = nextCheckInTime.add(Duration(minutes: timeoutMinutes));
-        
+        final expireTime =
+            nextCheckInTime.add(Duration(minutes: timeoutMinutes));
+
+        Logger().i('QuizController: Due time: ${dueTime.toIso8601String()}');
+        Logger()
+            .i('QuizController: Expire time: ${expireTime.toIso8601String()}');
+
+        bool shouldRefresh = false;
+        String refreshReason = '';
+
         if (now.isAfter(dueTime) && now.isBefore(expireTime)) {
-          // We're in an active check-in window
-          Logger().i('QuizController: Active check-in window detected on foreground');
-          
+          // Scenario 1: We're in an active check-in window
+          Logger().i(
+              'QuizController: Active check-in window detected on foreground');
+
           // Check if current question is stale (loaded before the due time)
-          if (_questionLoadedAt != null && _questionLoadedAt!.isBefore(dueTime)) {
-            Logger().i('QuizController: Current question is stale, refreshing');
-            await _refreshQuestionWithFeedback('Check-in refreshed');
+          if (_questionLoadedAt != null &&
+              _questionLoadedAt!.isBefore(dueTime)) {
+            shouldRefresh = true;
+            refreshReason = 'Question is stale for current check-in window';
+          } else {
+            Logger().i(
+                'QuizController: Question was loaded after due time, no refresh needed');
+          }
+        } else if (now.isAfter(expireTime)) {
+          // Scenario 2: We're past the expiration time, need a new check-in period
+          Logger().i(
+              'QuizController: Past check-in expiration, should have new question');
+
+          // If the current question was loaded before the expired check-in period
+          if (_questionLoadedAt != null &&
+              _questionLoadedAt!.isBefore(dueTime)) {
+            shouldRefresh = true;
+            refreshReason = 'New check-in period available';
+          } else {
+            Logger().i(
+                'QuizController: Question was loaded after due time, no refresh needed');
+          }
+        } else {
+          // Scenario 3: We're before the due time
+          Logger()
+              .i('QuizController: Before check-in due time, no refresh needed');
+          if (_questionLoadedAt != null) {
+            final questionAge = now.difference(_questionLoadedAt!);
+            final intervalDuration = Duration(minutes: alertInterval.inMinutes);
+
+            Logger().i(
+                'QuizController: Question age: ${questionAge.inMinutes} minutes');
+            Logger().i(
+                'QuizController: Check-in interval: ${intervalDuration.inMinutes} minutes');
+
+            if (questionAge > intervalDuration) {
+              shouldRefresh = true;
+              refreshReason =
+                  'Question is too old, missed check-in periods detected';
+              Logger().i(
+                  'QuizController: Question is older than one interval, refreshing');
+            }
           }
         }
+
+        if (shouldRefresh) {
+          Logger().i(
+              'QuizController: Refreshing question on foreground - $refreshReason');
+          await _refreshQuestionWithFeedback('New check-in ready');
+        } else {
+          Logger().i(
+              'QuizController: No refresh needed - current question is up to date');
+        }
+      } else {
+        Logger().i('QuizController: No scheduled check-in time found');
       }
     } catch (e) {
-      Logger().e('QuizController: Error checking for stale question on foreground: $e');
+      Logger().e(
+          'QuizController: Error checking for stale question on foreground: $e');
     }
   }
 
@@ -429,7 +499,8 @@ class QuizController {
 
       // Check if this is a check-in reminder
       if (data['type'] == 'check_in_reminder') {
-        Logger().i('QuizController: Processing check-in reminder from FCM while in foreground');
+        Logger().i(
+            'QuizController: Processing check-in reminder from FCM while in foreground');
         _refreshQuestionFromFCM();
       }
     });
@@ -475,10 +546,10 @@ class QuizController {
     uiDisabled = false;
     isRetryAttempt = false;
     previousIncorrectAnswer = null;
-    
+
     // Track when this question was loaded
     _questionLoadedAt = DateTime.now();
-    
+
     // Show brief feedback if provided
     if (feedbackMessage != null) {
       feedback = feedbackMessage;
@@ -490,12 +561,13 @@ class QuizController {
     } else {
       feedback = null;
     }
-    
+
     onStateChanged();
 
     // Set new timeout
     responseTimer = Timer(responseTimeout, _handleTimeout);
 
-    Logger().i('QuizController: Question refreshed with feedback: $feedbackMessage');
+    Logger().i(
+        'QuizController: Question refreshed with feedback: $feedbackMessage');
   }
 }
