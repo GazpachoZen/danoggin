@@ -45,6 +45,10 @@ GitHub
 	git push -u origin master
 
 -------------------- Releases
+CHECK LIST!!!!
+	Make sure we've bumped up the version number.
+	Edit the changelog.md to match - watch for the date.
+	
 Android...
 	flutter build apk --release
 	build/app/outputs/flutter-apk/app-release.apk

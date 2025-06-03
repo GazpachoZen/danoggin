@@ -161,9 +161,11 @@ class QuizController {
     }
 
     // Log that question was loaded (helpful for debugging FCM triggers)
-    String theQuestion = currentQuestion ==null ? "[Null]" : currentQuestion!.prompt;
+    String theQuestion =
+        currentQuestion == null ? "[Null]" : currentQuestion!.prompt;
     if (isScheduled) {
-      Logger().i('QuizController: New question loaded via FCM trigger ($theQuestion)');
+      Logger().i(
+          'QuizController: New question loaded via FCM trigger ($theQuestion)');
       NotificationManager().log('Question loaded from FCM notification');
     } else {
       Logger().i('QuizController: Initial question loaded ($theQuestion)');
@@ -211,7 +213,12 @@ class QuizController {
   }
 
   Future<void> submitAnswer() async {
-    if (selectedAnswer == null) return;
+    if (selectedAnswer == null || uiDisabled)
+      return; // Prevent double submission
+
+    // Immediately disable UI to prevent double-taps
+    uiDisabled = true;
+    onStateChanged(); // Update UI immediately
 
     responseTimer?.cancel();
 
@@ -223,7 +230,7 @@ class QuizController {
     if (isCorrect) {
       // Correct answer case
       feedback = '✅ Correct!';
-      uiDisabled = true; // Disable UI after correct answer
+      // uiDisabled already set above
 
       // Play correct sound
       await _soundService.playCorrectSound();
@@ -248,6 +255,7 @@ class QuizController {
         feedback = '❌ Incorrect. Try again.';
         selectedAnswer = null;
         isRetryAttempt = true;
+        uiDisabled = false; // Re-enable UI for retry
 
         // Play first incorrect sound
         await _soundService.playIncorrectFirstSound();
@@ -263,9 +271,9 @@ class QuizController {
         // Restart the timer for the second attempt
         responseTimer = Timer(responseTimeout, _handleTimeout);
       } else {
-        // Second incorrect attempt - disable UI
+        // Second incorrect attempt - keep UI disabled
         feedback = '❌ Incorrect';
-        uiDisabled = true;
+        // uiDisabled remains true
 
         // Play final incorrect sound
         await _soundService.playIncorrectFinalSound();
