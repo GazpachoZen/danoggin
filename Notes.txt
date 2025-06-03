@@ -76,6 +76,8 @@ iOS for beta with TestFlight...
 ================================================================================
 ================================================================================ Getting started...
 Please review the contents in the project knowledge to the point where you understand what the Danoggin project is about and how it operates. Pay particular attention to the Foundation.txt file. Do not provide a summary. Await further instruction.
+
+I welcome modifications that might require multiple steps, understanding that these are sometimes warranted. When that happens, I prefer that you show them to me one file at a time. I do NOT want a blitz of file modifications to be shown as a single output from you. 
 ================================================================================ 
 ---------------------
 Badges. >:-(

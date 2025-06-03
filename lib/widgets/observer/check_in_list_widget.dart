@@ -4,6 +4,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:intl/intl.dart';
 import 'package:timeago/timeago.dart' as timeago;
 import 'package:danoggin/services/notifications/notification_manager.dart';
+import 'package:danoggin/utils/logger.dart';
 
 class CheckInListWidget extends StatelessWidget {
   final Map<String, String> responderMap;
@@ -79,9 +80,22 @@ class CheckInListWidget extends StatelessWidget {
                 child: ElevatedButton.icon(
                     icon: const Icon(Icons.check),
                     label: const Text('Acknowledge Issue'),
-                    onPressed: () {
-                      onAcknowledge(latestKey);
-                      NotificationManager().clearIOSBadge();
+                    onPressed: () async {
+                      try {
+                        Logger().i('Observer: Acknowledging issue - clearing all badges and notifications');
+                        
+                        // Clear all badges and notifications when acknowledging
+                        await _clearAllNotifications();
+                        
+                        // Then call the acknowledgment callback
+                        onAcknowledge(latestKey);
+                        
+                        Logger().i('Observer: Issue acknowledged and notifications cleared');
+                      } catch (e) {
+                        Logger().e('Observer: Error during acknowledgment: $e');
+                        // Still proceed with acknowledgment even if clearing fails
+                        onAcknowledge(latestKey);
+                      }
                     }),
               ),
             Expanded(
@@ -98,6 +112,18 @@ class CheckInListWidget extends StatelessWidget {
         );
       },
     );
+  }
+
+  /// Clear all badges and notifications for observers
+  Future<void> _clearAllNotifications() async {
+    try {
+      await NotificationManager().clearIOSBadge();
+      await NotificationManager().cancelAllNotifications();
+      Logger().i('CheckInListWidget: Cleared all badges and notifications');
+    } catch (e) {
+      Logger().e('CheckInListWidget: Error clearing notifications: $e');
+      rethrow; // Let caller handle the error
+    }
   }
 
   Widget _buildCheckInTile(String id, Map<String, dynamic> data) {

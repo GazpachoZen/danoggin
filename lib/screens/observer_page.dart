@@ -28,7 +28,7 @@ class ObserverPage extends StatefulWidget {
   State<ObserverPage> createState() => _ObserverPageState();
 }
 
-class _ObserverPageState extends State<ObserverPage> {
+class _ObserverPageState extends State<ObserverPage> with WidgetsBindingObserver {
   // Controller for managing business logic
   late ObserverController _controller;
 
@@ -38,6 +38,9 @@ class _ObserverPageState extends State<ObserverPage> {
   @override
   void initState() {
     super.initState();
+    
+    // Add this widget as a lifecycle observer
+    WidgetsBinding.instance.addObserver(this);
 
     // Initialize the controller with state change callback
     _controller = ObserverController(onStateChanged: () {
@@ -56,10 +59,48 @@ class _ObserverPageState extends State<ObserverPage> {
     _checkNotificationPermissions();
   }
 
+  @override
+  void dispose() {
+    // Remove lifecycle observer
+    WidgetsBinding.instance.removeObserver(this);
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    super.didChangeAppLifecycleState(state);
+    
+    if (state == AppLifecycleState.resumed) {
+      Logger().i('ObserverPage: App came to foreground');
+      _handleAppForeground();
+    }
+  }
+
+  /// Handle app coming to foreground for observers
+  Future<void> _handleAppForeground() async {
+    try {
+      Logger().i('ObserverPage: Handling foreground state');
+      
+      // For observers, we might want to refresh data or clear stale notifications
+      // but we don't need to refresh questions like responders do
+      
+      // Reload responder data to get fresh information
+      await _controller.loadResponders();
+      
+      // Check for any pending inactivity notifications that might need clearing
+      // This ensures the observer sees the most current state
+      
+      Logger().i('ObserverPage: Foreground handling complete');
+    } catch (e) {
+      Logger().e('ObserverPage: Error handling foreground: $e');
+    }
+  }
+
   void _setupForegroundNotifications() {
     FirebaseMessaging.onMessage.listen((RemoteMessage message) {
       // Use the logging system for iOS debugging
-      NotificationManager().log('=== FCM FOREGROUND MESSAGE RECEIVED ===');
+      NotificationManager().log('=== FCM FOREGROUND MESSAGE RECEIVED (Observer) ===');
       NotificationManager().log('Message ID: ${message.messageId}');
       NotificationManager().log('Title: ${message.notification?.title}');
       NotificationManager().log('Body: ${message.notification?.body}');
@@ -67,7 +108,7 @@ class _ObserverPageState extends State<ObserverPage> {
           .log('Has notification payload: ${message.notification != null}');
       NotificationManager().log(
           'App in foreground: ${WidgetsBinding.instance.lifecycleState == AppLifecycleState.resumed}');
-      NotificationManager().log('=== END FCM DEBUG ===');
+      NotificationManager().log('=== END FCM DEBUG (Observer) ===');
 
       if (message.notification != null) {
         NotificationManager().log('Attempting to show system notification...');
@@ -87,15 +128,16 @@ class _ObserverPageState extends State<ObserverPage> {
       } else {
         NotificationManager().log('No notification payload found');
       }
+
+      // Check if this is an alert notification that should refresh observer data
+      final data = message.data;
+      if (data['type'] == 'check_in_alert' || data['type'] == 'inactivity_alert') {
+        Logger().i('ObserverPage: Received alert notification, refreshing data');
+        _controller.loadResponders();
+      }
     });
 
-    NotificationManager().log('FCM foreground listener set up successfully');
-  }
-
-  @override
-  void dispose() {
-    _controller.dispose();
-    super.dispose();
+    NotificationManager().log('FCM foreground listener set up successfully (Observer)');
   }
 
   @override

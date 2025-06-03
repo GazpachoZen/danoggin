@@ -94,8 +94,16 @@ class _QuizPageState extends State<QuizPage> with WidgetsBindingObserver {
 
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
-    if (state == AppLifecycleState.resumed && !_controller.isLoading) {
-      setState(() {});
+    super.didChangeAppLifecycleState(state);
+    
+    if (state == AppLifecycleState.resumed) {
+      // App came to foreground - check for stale questions
+      _controller.handleAppForeground();
+      
+      // Update state if not loading (existing behavior)
+      if (!_controller.isLoading) {
+        setState(() {});
+      }
     }
   }
 

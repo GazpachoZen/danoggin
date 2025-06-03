@@ -47,6 +47,9 @@ class QuizController {
   // Flags
   bool _timeoutActive = false;
   bool _isInitialLoad = true;
+  
+  // Track question loading time for staleness detection
+  DateTime? _questionLoadedAt;
 
   // Callback to notify parent of state changes
   final VoidCallback onStateChanged;
@@ -73,6 +76,43 @@ class QuizController {
   void updateRole(UserRole role) {
     currentRole = role;
     onStateChanged();
+  }
+
+  // Check if app should refresh question when coming to foreground
+  Future<void> handleAppForeground() async {
+    Logger().i('QuizController: App came to foreground, checking for stale question');
+    
+    // Skip if still in initial loading
+    if (isLoading || _isInitialLoad) {
+      Logger().i('QuizController: Skipping foreground check - still loading');
+      return;
+    }
+
+    // Check if there are pending check-in notifications by looking at scheduled time
+    try {
+      final nextCheckInTime = await CheckInScheduler.getNextCheckInTime();
+      if (nextCheckInTime != null) {
+        final now = DateTime.now();
+        final timeoutMinutes = responseTimeout.inMinutes;
+        
+        // Check if we're within a check-in window (past due time but within timeout)
+        final dueTime = nextCheckInTime;
+        final expireTime = nextCheckInTime.add(Duration(minutes: timeoutMinutes));
+        
+        if (now.isAfter(dueTime) && now.isBefore(expireTime)) {
+          // We're in an active check-in window
+          Logger().i('QuizController: Active check-in window detected on foreground');
+          
+          // Check if current question is stale (loaded before the due time)
+          if (_questionLoadedAt != null && _questionLoadedAt!.isBefore(dueTime)) {
+            Logger().i('QuizController: Current question is stale, refreshing');
+            await _refreshQuestionWithFeedback('Check-in refreshed');
+          }
+        }
+      }
+    } catch (e) {
+      Logger().e('QuizController: Error checking for stale question on foreground: $e');
+    }
   }
 
   // Methods to handle loading data
@@ -146,6 +186,9 @@ class QuizController {
     selectedAnswer = null;
     feedback = null;
 
+    // Track when this question was loaded
+    _questionLoadedAt = DateTime.now();
+
     // Reset state for new question
     uiDisabled = false;
     isRetryAttempt = false;
@@ -196,8 +239,8 @@ class QuizController {
       // Update the check-in schedule after missed check-in
       await _updateScheduleAfterCheckIn();
 
-      // Cancel any outstanding check-in notifications since we've now handled the timeout
-      await NotificationManager().clearIOSBadge();
+      // Clear all badges and notifications on timeout
+      await _clearAllNotifications();
 
       Future.delayed(Duration(seconds: 3), () {
         _timeoutActive = false;
@@ -222,8 +265,8 @@ class QuizController {
 
     responseTimer?.cancel();
 
-    // Clear all badges when answering any question
-    await NotificationManager().clearIOSBadge();
+    // ALWAYS clear badges and notifications when submitting any answer
+    await _clearAllNotifications();
 
     final isCorrect = selectedAnswer == currentQuestion!.correctAnswer;
 
@@ -244,9 +287,6 @@ class QuizController {
 
       // Update the check-in schedule after successful check-in
       await _updateScheduleAfterCheckIn();
-
-      // Also cancel any missed check-in notifications on successful answer
-      await NotificationManager().cancelNotification(2);
     } else {
       // Incorrect answer case
       if (!isRetryAttempt) {
@@ -289,6 +329,17 @@ class QuizController {
         // Update the check-in schedule after failed check-in
         await _updateScheduleAfterCheckIn();
       }
+    }
+  }
+
+  /// Clear all badges and notifications
+  Future<void> _clearAllNotifications() async {
+    try {
+      await NotificationManager().clearIOSBadge();
+      await NotificationManager().cancelAllNotifications();
+      Logger().i('QuizController: Cleared all badges and notifications');
+    } catch (e) {
+      Logger().e('QuizController: Error clearing notifications: $e');
     }
   }
 
@@ -365,7 +416,7 @@ class QuizController {
     return questionManager.getPacksProgress();
   }
 
-// Add method to set up FCM message listener instead of notification listener
+  // Set up FCM message listener for proactive refresh
   void _setupFCMMessageListener() {
     // Listen for FCM messages when app is in foreground
     FirebaseMessaging.onMessage.listen((RemoteMessage message) {
@@ -378,12 +429,8 @@ class QuizController {
 
       // Check if this is a check-in reminder
       if (data['type'] == 'check_in_reminder') {
-        Logger().i('QuizController: Processing check-in reminder from FCM');
-
-        // If app is already showing a question, refresh to new question
-        if (!isLoading && !_isInitialLoad) {
-          _refreshQuestionFromFCM();
-        }
+        Logger().i('QuizController: Processing check-in reminder from FCM while in foreground');
+        _refreshQuestionFromFCM();
       }
     });
 
@@ -404,29 +451,51 @@ class QuizController {
     Logger().i('QuizController: FCM message listeners set up');
   }
 
-// Helper method to refresh question when FCM triggers it
+  // Helper method to refresh question when FCM triggers it
   void _refreshQuestionFromFCM() {
     Logger().i('QuizController: Refreshing question due to FCM trigger');
+    _refreshQuestionWithFeedback('New check-in loaded');
+  }
 
+  // Unified method to refresh question with optional feedback
+  Future<void> _refreshQuestionWithFeedback(String? feedbackMessage) async {
     // Cancel existing response timer
     responseTimer?.cancel();
 
     // Reset timeout state
     _timeoutActive = false;
 
-    // Load a fresh question without generating local notification
+    // Clear any existing notifications/badges
+    await _clearAllNotifications();
+
+    // Load a fresh question
     currentQuestion = questionManager.getNextQuestion();
     displayedChoices = currentQuestion!.getShuffledChoices();
     selectedAnswer = null;
-    feedback = null;
     uiDisabled = false;
     isRetryAttempt = false;
     previousIncorrectAnswer = null;
+    
+    // Track when this question was loaded
+    _questionLoadedAt = DateTime.now();
+    
+    // Show brief feedback if provided
+    if (feedbackMessage != null) {
+      feedback = feedbackMessage;
+      // Clear feedback after a short delay
+      Timer(Duration(seconds: 2), () {
+        feedback = null;
+        onStateChanged();
+      });
+    } else {
+      feedback = null;
+    }
+    
     onStateChanged();
 
     // Set new timeout
     responseTimer = Timer(responseTimeout, _handleTimeout);
 
-    Logger().i('QuizController: Question refreshed due to FCM');
+    Logger().i('QuizController: Question refreshed with feedback: $feedbackMessage');
   }
 }
