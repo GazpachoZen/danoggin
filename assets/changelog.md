@@ -4,6 +4,7 @@
 ### Changes
 - Made it much harder to do accidental double-submits
 - Updated architecture for providing new questions after receipt of notification
+- Improved logic on server for FCM token problems
 
 ## [0.1.0 build 28] 2025-05-29
 ### Changes
