@@ -80,7 +80,8 @@ Please review the contents in the project knowledge to the point where you under
 I welcome modifications that might require multiple steps, understanding that these are sometimes warranted. When that happens, I prefer that you show them to me one file at a time. I do NOT want a blitz of file modifications to be shown as a single output from you. 
 ================================================================================ 
 ---------------------
-Badges. >:-(
+---------------------
+I'd like us to review and re-think how we handle non-activity from the responder.
 ---------------------
 I'd like to be more judicious about what exactly is getting archived away with Git, especially as it pertains to what makes its way up to GitHub. 
 ---------------------
@@ -88,11 +89,11 @@ When an observer starts up for the very first time they are given minimal instru
 ---------------------
 Smaller fonts for the change log
 ---------------------
-Over the course of a long development/debug cycle some of our source files have gotten out of hand. Please look at what I've provided and make some suggestions on which ones would benefit from refactoring?
+Over the course of a long development/debug cycle some of our source files have gotten out of hand. Please look at what I've provided and make some suggestions regarding refactoring. If things are fine as-is, that's okay too.
 ---------------------
 The app presently uses anonymous authentication for Firebase. We should probably button that up before making this app generally available. I'm not very familiar with Firebase. What would be the necessary steps?
 ---------------------
-Can we create a mechanism to pause/cancel notifications for responder somehow? I could see the need to temporarily halt them once in a while. It should probably be near the top of the responder's settings page.
+Can we create a mechanism to pause/cancel notifications for responder somehow? I could see the need to temporarily halt them once in a while. It should probably be near the top of the responder's settings page. If a responder has opted to pause the check-in notifications, then we should probably notify their observers, and also somehow take that into account with respect to the inactivity notification. Please discuss before making any code change suggestions.
 ---------------------
 Seek and destroy all deprecated method calls. Check logs to help find them. Specifically, check settings_page.dart
 Note: Some input files use or override a deprecated API.
@@ -102,7 +103,6 @@ I notice that the icon for the app has a white circle around the main graphic. H
 ---------------------
 I would like to provide a beta release to both Android and iOS users shortly. Please identify things which might need to be addressed before we do this.
 ---------------------
-I need to check that the Sunday 2AM running of cleanupInvalidTokens method is happening and working as we'd like.
 ---------------------
 ---------------------
 ---------------------

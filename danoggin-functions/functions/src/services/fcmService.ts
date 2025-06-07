@@ -1,6 +1,62 @@
 import * as admin from "firebase-admin";
-import {removeTokenFromUser} from "../services/tokenCleanupService";
-import {logTokenFailureForAnalytics, logTokenSuccess} from "./tokenHealthService";
+import { removeTokenFromUser } from "../services/tokenCleanupService";
+import { logTokenFailureForAnalytics, logTokenSuccess } from "./tokenHealthService";
+
+// In-memory event collection for batched metrics
+interface TokenEvent {
+  userId: string;
+  userName?: string;
+  token: string;
+  eventType: 'removal' | 'error' | 'strike';
+  reason: string;
+  details: any;
+  context: string;
+  timestamp: string;
+}
+
+// Global array to collect events during function execution
+let tokenEvents: TokenEvent[] = [];
+
+/**
+ * Add a token event to the in-memory collection
+ */
+function addTokenEvent(event: TokenEvent): void {
+  tokenEvents.push(event);
+
+  // If we have too many events, flush them to prevent memory issues
+  if (tokenEvents.length >= 100) {
+    flushTokenEvents().catch(error =>
+      console.error('Error flushing token events:', error)
+    );
+  }
+}
+
+/**
+ * Flush collected token events to Firestore for batch processing
+ */
+async function flushTokenEvents(): Promise<void> {
+  if (tokenEvents.length === 0) return;
+
+  try {
+    const batch = admin.firestore().batch();
+    const eventsCollection = admin.firestore().collection('token_events');
+
+    for (const event of tokenEvents) {
+      const docRef = eventsCollection.doc(); // Auto-generated ID
+      batch.set(docRef, event);
+    }
+
+    await batch.commit();
+    console.log(`Flushed ${tokenEvents.length} token events to Firestore`);
+
+    // Clear the in-memory array
+    tokenEvents = [];
+
+  } catch (error) {
+    console.error('Error flushing token events to Firestore:', error);
+    // Don't clear the array if flush failed - try again later
+  }
+}
 
 /**
  * Send FCM check-in reminder to a responder
@@ -83,22 +139,24 @@ export async function sendCheckInReminder(
         });
         successCount++;
         await logTokenSuccess(responderId, 'check_in_reminder');
+        await resetTokenStrikes(responderId, token);
+
       } catch (error) {
         failureCount++;
         console.log(
           `Failed to send to token ${token.substring(0, 10)}...: ${error}`
         );
-        
+
         // Log for analytics
         await logTokenFailureForAnalytics(
-          responderId, 
-          token, 
-          error, 
+          responderId,
+          token,
+          error,
           'check_in_reminder'
         );
-        
-        // Remove invalid tokens
-        await removeTokenFromUser(responderId, token);
+
+        // Handle token strikes based on error type
+        await handleTokenError(responderId, token, error, 'check_in_reminder');
       }
     }
 
@@ -106,8 +164,11 @@ export async function sendCheckInReminder(
       `Check-in reminder sent: ${successCount} successful, ` +
       `${failureCount} failed`
     );
+    await ensureTokenEventsFlushed();
   } catch (error) {
     console.error("Error sending check-in reminder:", error);
+    // Still try to flush events even if there was an error
+    await ensureTokenEventsFlushed();
     throw error;
   }
 }
@@ -282,7 +343,7 @@ export async function notifyObserversOfCheckInIssue(
         lastBadgeUpdate: admin.firestore.FieldValue.serverTimestamp(),
       })
     );
-    
+
     await Promise.all(badgeUpdatePromises);
 
     // Send individual notifications instead of using sendMulticast
@@ -298,11 +359,11 @@ export async function notifyObserversOfCheckInIssue(
           const observerDoc = await admin.firestore().collection('users').doc(observerId).get();
           const observerData = observerDoc.data();
           const fcmTokens = observerData?.fcmTokens || [];
-          
-          const hasToken = fcmTokens.some((tokenData: any) => 
+
+          const hasToken = fcmTokens.some((tokenData: any) =>
             typeof tokenData === "object" && tokenData.token === token
           );
-          
+
           if (hasToken) {
             badgeCount = count;
             break;
@@ -345,25 +406,27 @@ export async function notifyObserversOfCheckInIssue(
         successCount++;
         console.log(`Successfully sent to token ${token.substring(0, 10)}...`);
 
-        // Log successful notification for analytics
-        // Find the observer ID for this token
+        // Find the observer ID for this token (used for both strike reset and analytics)
         let observerId = '';
         for (const [id, _count] of Object.entries(observerBadgeUpdates)) {
           const observerDoc = await admin.firestore().collection('users').doc(id).get();
           const observerData = observerDoc.data();
           const fcmTokens = observerData?.fcmTokens || [];
-          
-          const hasToken = fcmTokens.some((tokenData: any) => 
+
+          const hasToken = fcmTokens.some((tokenData: any) =>
             typeof tokenData === "object" && tokenData.token === token
           );
-          
+
           if (hasToken) {
             observerId = id;
             break;
           }
         }
-        
+
         if (observerId) {
+          // Reset strikes after successful send ("all is forgiven")
+          await resetTokenStrikes(observerId, token);
+          // Log successful notification for analytics
           await logTokenSuccess(observerId, 'observer_alert');
         }
 
@@ -373,56 +436,311 @@ export async function notifyObserversOfCheckInIssue(
         console.log(
           `Failed to send to token ${token.substring(0, 10)}...: ${error}`
         );
+
+        // Find which observer this token belongs to for proper error handling
+        let observerId = '';
+        for (const [id, _count] of Object.entries(observerBadgeUpdates)) {
+          const observerDoc = await admin.firestore().collection('users').doc(id).get();
+          const observerData = observerDoc.data();
+          const fcmTokens = observerData?.fcmTokens || [];
+
+          const hasToken = fcmTokens.some((tokenData: any) =>
+            typeof tokenData === "object" && tokenData.token === token
+          );
+
+          if (hasToken) {
+            observerId = id;
+            break;
+          }
+        }
+
+        if (observerId) {
+          // Handle token error with strike system instead of immediate removal
+          await handleTokenError(observerId, token, error, 'observer_alert');
+        }
       }
     }
 
     console.log(`Notification sent to ${successCount} devices`);
     console.log(`Failed to send to ${failureCount} devices`);
+    // Ensure all events are flushed to Firestore
+    await ensureTokenEventsFlushed();
 
-    // Handle failed tokens - remove them from Firestore
-    if (failedTokens.length > 0) {
-      await cleanupFailedTokensIndividual(failedTokens, observerIds);
-    }
-
-    // Clean up old tokens that we identified earlier
-    await cleanupOldTokens(invalidTokens);
   } catch (error) {
     console.error("Error sending observer notifications:", error);
+    // Still try to flush events even if there was an error
+    await ensureTokenEventsFlushed();
     throw error;
   }
 }
 
+
 /**
- * Remove FCM tokens that failed to send notifications (individual method)
+ * Handle FCM token errors with intelligent strike system
+ * Only removes tokens for definitive invalidity, logs everything else
  */
-async function cleanupFailedTokensIndividual(
-  failedTokens: string[],
-  observerIds: string[]
+export async function handleTokenError(
+  userId: string,
+  token: string,
+  error: any,
+  context: string
 ): Promise<void> {
-  console.log("Cleaning up failed FCM tokens...");
+  try {
+    // Extract error code from the error object
+    const errorCode = error?.code || error?.errorInfo?.code || 'unknown';
+    const errorMessage = error?.message || error?.errorInfo?.message || 'Unknown error';
 
-  for (const failedToken of failedTokens) {
-    console.log(
-      `Removing invalid FCM token: ${failedToken.substring(0, 10)}...`
-    );
+    console.log(`Token error for user ${userId}: ${errorCode} - ${errorMessage}`);
 
-    // Find which observer this token belongs to and remove it
-    for (const observerId of observerIds) {
-      await removeTokenFromUser(observerId, failedToken);
+    // Categorize errors into definitive invalidity vs temporary issues
+    const definitivelyInvalidCodes = [
+      'messaging/invalid-registration-token',
+      'messaging/registration-token-not-registered',
+      'messaging/mismatched-credential'
+    ];
+
+    if (definitivelyInvalidCodes.includes(errorCode)) {
+      // This is definitely an invalid token - apply strike
+      console.log(`Applying strike for invalid token: ${errorCode}`);
+      await applyTokenStrike(userId, token, errorCode, context);
+    } else {
+      // This might be temporary (network, FCM service issues, etc.)
+      // Log for metrics but don't penalize the token
+      console.log(`Temporary error logged (no strike): ${errorCode}`);
+      await logTemporaryTokenError(userId, token, errorCode, errorMessage, context);
     }
+
+  } catch (handlingError) {
+    console.error(`Error handling token error for user ${userId}:`, handlingError);
+    // Don't let error handling break the main flow
   }
 }
 
 /**
- * Remove old/expired tokens from user documents
+ * Apply a strike to a token and remove if threshold reached
  */
-async function cleanupOldTokens(
-  invalidTokens: { [userId: string]: string[] }
+export async function applyTokenStrike(
+  userId: string,
+  token: string,
+  errorCode: string,
+  context: string
 ): Promise<void> {
-  for (const [userId, tokens] of Object.entries(invalidTokens)) {
-    console.log(`Cleaning up ${tokens.length} old tokens for user ${userId}`);
-    for (const token of tokens) {
-      await removeTokenFromUser(userId, token);
+  try {
+    const userDoc = await admin.firestore().collection('users').doc(userId).get();
+
+    if (!userDoc.exists) {
+      console.log(`User ${userId} not found for token strike`);
+      return;
     }
+
+    const userData = userDoc.data();
+    const fcmTokens = userData?.fcmTokens || [];
+    let tokenRemoved = false;
+    let newStrikes = 0;
+
+    // Find and update the specific token's strike count
+    const updatedTokens = fcmTokens.map((tokenData: any) => {
+      if (typeof tokenData === "object" && tokenData.token === token) {
+        const currentStrikes = tokenData.strikes || 0;
+        newStrikes = currentStrikes + 1;
+
+        console.log(`Token strike ${newStrikes} for user ${userId} (${errorCode})`);
+
+        // Remove token if it reaches strike threshold (3 strikes)
+        if (newStrikes >= 3) {
+          console.log(`Token removed after ${newStrikes} strikes for user ${userId}`);
+          tokenRemoved = true;
+          return null; // Mark for removal
+        } else {
+          // Update strike count and last strike info
+          return {
+            ...tokenData,
+            strikes: newStrikes,
+            lastStrike: {
+              errorCode: errorCode,
+              timestamp: new Date().toISOString(),
+              context: context
+            }
+          };
+        }
+      }
+      return tokenData;
+    }).filter((tokenData: any) => tokenData !== null); // Remove null entries
+
+    // Update the user document with modified tokens
+    await admin.firestore().collection('users').doc(userId).update({
+      fcmTokens: updatedTokens,
+    });
+
+    // Log events after the map operation (async operations allowed here)
+    if (newStrikes > 0) {
+      // Log the strike event for metrics
+      try {
+        let userName = 'Unknown User';
+        if (userDoc.exists) {
+          userName = userDoc.data()?.name || 'Unknown User';
+        }
+
+        addTokenEvent({
+          userId: userId,
+          userName: userName,
+          token: token.substring(0, 10) + '...',
+          eventType: 'strike',
+          reason: errorCode,
+          details: {
+            strikeNumber: newStrikes,
+            totalStrikes: newStrikes,
+          },
+          context: context,
+          timestamp: new Date().toISOString(),
+        });
+      } catch (logError: any) {
+        console.log(`Error logging strike event: ${logError}`);
+      }
+
+      // Log removal if token was removed
+      if (tokenRemoved) {
+        await logTokenRemoval(userId, token, 'strike_threshold', newStrikes, context);
+        console.log(`Successfully removed token after strikes for user ${userId}`);
+      }
+    }
+
+  } catch (error) {
+    console.error(`Error applying token strike for user ${userId}:`, error);
+  }
+}
+
+/**
+ * Log temporary token errors for metrics without applying strikes
+ */
+export async function logTemporaryTokenError(
+  userId: string,
+  token: string,
+  errorCode: string,
+  errorMessage: string,
+  context: string
+): Promise<void> {
+  try {
+    console.log(`Temporary token error logged: User=${userId}, Error=${errorCode}, Context=${context}`);
+
+    // Get user name for better metrics tracking
+    let userName = 'Unknown User';
+    try {
+      const userDoc = await admin.firestore().collection('users').doc(userId).get();
+      if (userDoc.exists) {
+        userName = userDoc.data()?.name || 'Unknown User';
+      }
+    } catch (userError) {
+      console.log(`Could not fetch user name for ${userId}:`, userError);
+    }
+
+    // Add to in-memory event collection
+    addTokenEvent({
+      userId: userId,
+      userName: userName,
+      token: token.substring(0, 10) + '...', // Only store token prefix for privacy
+      eventType: 'error',
+      reason: errorCode,
+      details: {
+        errorMessage: errorMessage,
+        temporary: true,
+      },
+      context: context,
+      timestamp: new Date().toISOString(),
+    });
+
+  } catch (error: any) {
+    console.error(`Error logging temporary token error:`, error);
+  }
+}
+
+/**
+ * Log token removal events for metrics tracking
+ */
+export async function logTokenRemoval(
+  userId: string,
+  token: string,
+  reason: string,
+  details: any,
+  context: string
+): Promise<void> {
+  try {
+    console.log(`Token removal logged: User=${userId}, Reason=${reason}, Details=${details}, Context=${context}`);
+
+    // Get user name for better metrics tracking
+    let userName = 'Unknown User';
+    try {
+      const userDoc = await admin.firestore().collection('users').doc(userId).get();
+      if (userDoc.exists) {
+        userName = userDoc.data()?.name || 'Unknown User';
+      }
+    } catch (userError) {
+      console.log(`Could not fetch user name for ${userId}:`, userError);
+    }
+
+    // Add to in-memory event collection
+    addTokenEvent({
+      userId: userId,
+      userName: userName,
+      token: token.substring(0, 10) + '...', // Only store token prefix for privacy
+      eventType: 'removal',
+      reason: reason,
+      details: details,
+      context: context,
+      timestamp: new Date().toISOString(),
+    });
+
+  } catch (error: any) {
+    console.error(`Error logging token removal:`, error);
+  }
+}
+
+/**
+ * Reset strike count for a token after successful send
+ * Implements "all is forgiven" policy
+ */
+export async function resetTokenStrikes(userId: string, token: string): Promise<void> {
+  try {
+    const userDoc = await admin.firestore().collection('users').doc(userId).get();
+
+    if (!userDoc.exists) {
+      return;
+    }
+
+    const userData = userDoc.data();
+    const fcmTokens = userData?.fcmTokens || [];
+
+    // Find and reset strikes for the specific token
+    const updatedTokens = fcmTokens.map((tokenData: any) => {
+      if (typeof tokenData === "object" && tokenData.token === token) {
+        if (tokenData.strikes && tokenData.strikes > 0) {
+          console.log(`Resetting ${tokenData.strikes} strikes for user ${userId} after successful send`);
+          // Remove strike-related fields since send was successful
+          const { strikes, lastStrike, ...cleanTokenData } = tokenData;
+          return cleanTokenData;
+        }
+      }
+      return tokenData;
+    });
+
+    // Update the user document
+    await admin.firestore().collection('users').doc(userId).update({
+      fcmTokens: updatedTokens,
+    });
+
+  } catch (error) {
+    console.error(`Error resetting token strikes for user ${userId}:`, error);
+    // Don't let this break the main flow
+  }
+}
+
+/**
+ * Ensure all token events are flushed at the end of function execution
+ * Should be called at the end of main FCM functions
+ */
+export async function ensureTokenEventsFlushed(): Promise<void> {
+  if (tokenEvents.length > 0) {
+    console.log(`Flushing remaining ${tokenEvents.length} token events at function end`);
+    await flushTokenEvents();
   }
 }

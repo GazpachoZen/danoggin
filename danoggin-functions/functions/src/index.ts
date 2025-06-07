@@ -1,4 +1,5 @@
 import {initializeApp, getApps} from "firebase-admin/app";
+import {processDailyTokenMetrics} from "./scheduled/metricsProcessor";
 
 // Initialize Firebase Admin (only if not already initialized)
 if (getApps().length === 0) {
@@ -17,10 +18,12 @@ import {cleanupInvalidTokens} from "./scheduled/tokenCleanup";
 import {processCheckInResult} from "./triggers/checkInProcessor";
 
 // Re-export all functions
+// Re-export all functions
 export {
   testFCM,
   clearUserBadge,
   sendScheduledCheckInReminders,
   cleanupInvalidTokens,
   processCheckInResult,
+  processDailyTokenMetrics,
 };

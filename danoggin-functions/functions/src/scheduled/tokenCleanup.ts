@@ -1,3 +1,4 @@
+import {handleTokenError} from "../services/fcmService";
 import {onSchedule} from "firebase-functions/v2/scheduler";
 import * as admin from "firebase-admin";
 import {removeTokenFromUser} from "../services/tokenCleanupService";
@@ -82,7 +83,7 @@ async function cleanupUserTokens(
     if (typeof tokenData === "object" && tokenData.token) {
       tokensChecked++;
       
-      // Check token age (remove if older than 9 months)
+      // 1. Check token age (remove if older than 9 months)
       const tokenAge = Date.now() - new Date(tokenData.createdAt).getTime();
       const maxAge = 270 * 24 * 60 * 60 * 1000; // 270 days in ms
       
@@ -93,12 +94,23 @@ async function cleanupUserTokens(
         continue;
       }
 
-      // Test token validity with a dry-run message
-      const isValid = await testTokenValidity(tokenData.token);
-      if (!isValid) {
-        console.log(`Removing invalid token for user ${userId}`);
+      // 2. Check for accumulated strikes (remove if 2+ strikes during weekly cleanup)
+      const strikes = tokenData.strikes || 0;
+      if (strikes >= 2) {
+        console.log(`Removing token with ${strikes} strikes for user ${userId}`);
         await removeTokenFromUser(userId, tokenData.token);
         tokensRemoved++;
+        continue;
+      }
+
+      // 3. Test token validity with intelligent error handling
+      const {shouldRemove, reason} = await shouldRemoveToken(userId, tokenData.token);
+      if (shouldRemove) {
+        console.log(`Removing invalid token for user ${userId}: ${reason}`);
+        await removeTokenFromUser(userId, tokenData.token);
+        tokensRemoved++;
+      } else {
+        console.log(`Keeping token for user ${userId}: ${reason}`);
       }
     }
   }
@@ -107,9 +119,10 @@ async function cleanupUserTokens(
 }
 
 /**
- * Test if an FCM token is still valid using a dry-run message
+ * Test if an FCM token should be removed during cleanup
+ * Uses same intelligent error categorization as real-time cleanup
  */
-async function testTokenValidity(token: string): Promise<boolean> {
+async function shouldRemoveToken(userId: string, token: string): Promise<{shouldRemove: boolean, reason: string}> {
   try {
     // Send a dry-run message (not delivered, just validates token)
     await admin.messaging().send({
@@ -130,16 +143,24 @@ async function testTokenValidity(token: string): Promise<boolean> {
       }
     }, true); // dry-run = true
 
-    return true; // Token is valid
+    return {shouldRemove: false, reason: "token_valid"}; // Token is valid
   } catch (error: any) {
-    // Check for specific FCM error codes that indicate invalid tokens
-    if (error.code === 'messaging/invalid-registration-token' ||
-        error.code === 'messaging/registration-token-not-registered') {
-      return false; // Token is invalid
+    const errorCode = error?.code || 'unknown';
+    
+    // Use same error categorization as real-time cleanup
+    const definitivelyInvalidCodes = [
+      'messaging/invalid-registration-token',
+      'messaging/registration-token-not-registered',
+      'messaging/mismatched-credential'
+    ];
+    
+    if (definitivelyInvalidCodes.includes(errorCode)) {
+      console.log(`Token definitely invalid during cleanup: ${errorCode}`);
+      return {shouldRemove: true, reason: errorCode};
     }
     
-    // For other errors (network issues, etc.), assume token is valid
-    console.log(`Unexpected error testing token: ${error.code || error.message}`);
-    return true;
+    // For other errors (network issues, etc.), keep the token
+    console.log(`Temporary error during token validation (keeping token): ${errorCode}`);
+    return {shouldRemove: false, reason: `temporary_error_${errorCode}`};
   }
 }
