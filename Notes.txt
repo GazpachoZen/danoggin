@@ -80,7 +80,6 @@ Please review the contents in the project knowledge to the point where you under
 I welcome modifications that might require multiple steps, understanding that these are sometimes warranted. When that happens, I prefer that you show them to me one file at a time. I do NOT want a blitz of file modifications to be shown as a single output from you. 
 ================================================================================ 
 ---------------------
----------------------
 I'd like us to review and re-think how we handle non-activity from the responder.
 ---------------------
 I'd like to be more judicious about what exactly is getting archived away with Git, especially as it pertains to what makes its way up to GitHub. 
@@ -102,6 +101,7 @@ Note: Recompile with -Xlint:deprecation for details.
 I notice that the icon for the app has a white circle around the main graphic. How would I make that a different color?
 ---------------------
 I would like to provide a beta release to both Android and iOS users shortly. Please identify things which might need to be addressed before we do this.
+---------------------
 ---------------------
 ---------------------
 ---------------------
