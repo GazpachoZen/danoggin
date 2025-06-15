@@ -1,0 +1,84 @@
+[
+    {
+      "prompt": "Click on the orangutan",
+      "correctAnswer": {
+        "text": null, "imagePath": null,
+		"imageUrl": "https://storage.googleapis.com/danoggin-d0478.firebasestorage.app/question_packs/demo_pack/images/orangutan.png"
+      },
+      "decoyAnswers": [
+        {
+          "text": null, "imagePath": null, "imagePath": null,
+          "imageUrl": "https://storage.googleapis.com/danoggin-d0478.firebasestorage.app/question_packs/demo_pack/images/frog.png"
+        },
+        {
+          "text": null, "imagePath": null,
+          "imageUrl": "https://storage.googleapis.com/danoggin-d0478.firebasestorage.app/question_packs/demo_pack/images/ostrich.png"
+        },
+        {
+          "text": null, "imagePath": null,
+          "imageUrl": "https://storage.googleapis.com/danoggin-d0478.firebasestorage.app/question_packs/demo_pack/images/owl.png"
+        },
+        {
+          "text": null, "imagePath": null,
+          "imageUrl": "https://storage.googleapis.com/danoggin-d0478.firebasestorage.app/question_packs/demo_pack/images/shark.png"
+        },
+        {
+          "text": null, "imagePath": null,
+          "imageUrl": "https://storage.googleapis.com/danoggin-d0478.firebasestorage.app/question_packs/demo_pack/images/penguin.png"
+        },
+        {
+          "text": null, "imagePath": null,
+          "imageUrl": "https://storage.googleapis.com/danoggin-d0478.firebasestorage.app/question_packs/demo_pack/images/dolphin.png"
+        },
+        {
+          "text": null, "imagePath": null,
+          "imageUrl": "https://storage.googleapis.com/danoggin-d0478.firebasestorage.app/question_packs/demo_pack/images/snake.png"
+        },
+        {
+          "text": null, "imagePath": null,
+          "imageUrl": "https://storage.googleapis.com/danoggin-d0478.firebasestorage.app/question_packs/demo_pack/images/monkey.png"
+        }
+      ]
+    },
+    {
+      "prompt": "Click on the cat",
+      "correctAnswer": {
+        "text": null, "imagePath": null,
+        "imageUrl": "https://storage.googleapis.com/danoggin-d0478.firebasestorage.app/question_packs/demo_pack/images/cat.png"
+      },
+      "decoyAnswers": [
+        {
+          "text": null, "imagePath": null,
+          "imageUrl": "https://storage.googleapis.com/danoggin-d0478.firebasestorage.app/question_packs/demo_pack/images/peacock.png"
+        },
+        {
+          "text": null, "imagePath": null,
+          "imageUrl": "https://storage.googleapis.com/danoggin-d0478.firebasestorage.app/question_packs/demo_pack/images/rabbit.png"
+        },
+        {
+          "text": null, "imagePath": null,
+          "imageUrl": "https://storage.googleapis.com/danoggin-d0478.firebasestorage.app/question_packs/demo_pack/images/giraffe.png"
+        },
+        {
+          "text": null, "imagePath": null,
+          "imageUrl": "https://storage.googleapis.com/danoggin-d0478.firebasestorage.app/question_packs/demo_pack/images/owl.png"
+        },
+        {
+          "text": null, "imagePath": null,
+          "imageUrl": "https://storage.googleapis.com/danoggin-d0478.firebasestorage.app/question_packs/demo_pack/images/hippopotamus.png"
+        },
+        {
+          "text": null, "imagePath": null,
+          "imageUrl": "https://storage.googleapis.com/danoggin-d0478.firebasestorage.app/question_packs/demo_pack/images/monkey.png"
+        },
+        {
+          "text": null, "imagePath": null,
+          "imageUrl": "https://storage.googleapis.com/danoggin-d0478.firebasestorage.app/question_packs/demo_pack/images/walrus.png"
+        },
+        {
+          "text": null, "imagePath": null,
+          "imageUrl": "https://storage.googleapis.com/danoggin-d0478.firebasestorage.app/question_packs/demo_pack/images/cow.png"
+        }
+      ]
+    },
+ ]

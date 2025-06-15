@@ -70,7 +70,38 @@ iOS for beta with TestFlight...
 		Under "App store connect" we should have 3 things checked, a key in place, and O'Briens selected for a beta group
 	Do a build on CodeMagic
 	https://appstoreconnect.apple.com/teams/075ba76f-1dd1-4739-80b5-1a44e4cc8a5c/apps/6745490439/testflight/ios
-	
+
+Danoggin/docs...
+	danoggin_app_overview
+		Exactly what it sounds like
+	danoggin_firebase_analysis
+		Good overview of what's up there and how FCM's are utilized
+	danoggin_token_metrics_analysis
+		All about the FCM token health metrics
+
+Blindspots relative to FCM token health...
+
+	1. App Uninstallation (Up to 1 week delay)
+
+	FCM doesn't immediately invalidate tokens for uninstalled apps
+	Could result in a week of failed safety notifications appearing as "successful"
+	Risk Level: HIGH for safety-critical application
+
+	2. Extended Device Offline (Up to 4 weeks of false positives)
+
+	Offline devices queue notifications in FCM without errors
+	Emergency situations could persist undetected for weeks
+	Risk Level: CRITICAL for emergency response
+
+	3. OS-Level Notification Blocking (Permanent invisible failure)
+
+	Users can disable notifications while tokens remain "valid"
+	Completely compromises safety system with no detection
+	Risk Level: CRITICAL for safety assurance
+
+	The document provides detailed technical analysis of what's measured, what's missed, and specific scenarios where the current system could fail dangerously. It also includes recommendations for enhanced detection mechanisms that could address these blind spots.
+
+	This is particularly important for Danoggin since notification delivery failures in a safety monitoring app could have serious real-world consequences.
 
 ================================================================================
 ================================================================================

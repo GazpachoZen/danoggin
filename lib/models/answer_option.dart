@@ -11,6 +11,7 @@ import 'dart:io' show Platform;
 import 'package:flutter/material.dart';
 import 'package:danoggin/utils/logger.dart';
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:danoggin/utils/logger.dart';
 
 // Debug flag for text rendering logs
 const bool _debugTextRendering = false;
@@ -110,13 +111,14 @@ class AnswerOption {
     // Conservative safety margin (slightly more conservative for iOS)
     final safetyMargin = isIOS ? 0.60 : 0.80;
     final availableWidth = constraints.maxWidth * safetyMargin;
-    
+
     // Base font size
     const baseFontSize = 26.0;
 
     if (_debugTextRendering) {
       logger.i('Rendering text: "$text" on ${isIOS ? "iOS" : "Android"}');
-      logger.i('Available width: $availableWidth ($safetyMargin * ${constraints.maxWidth})');
+      logger.i(
+          'Available width: $availableWidth ($safetyMargin * ${constraints.maxWidth})');
     }
 
     // Step 1: Check if text fits on single line at base font size
@@ -124,7 +126,8 @@ class AnswerOption {
     final fitsOnSingleLine = textWidth <= availableWidth;
 
     if (_debugTextRendering) {
-      logger.i('Text width at ${baseFontSize}px: $textWidth, fits on single line: $fitsOnSingleLine');
+      logger.i(
+          'Text width at ${baseFontSize}px: $textWidth, fits on single line: $fitsOnSingleLine');
     }
 
     if (fitsOnSingleLine) {
@@ -132,7 +135,7 @@ class AnswerOption {
       if (_debugTextRendering) {
         logger.i('Using single line rendering with font size: $baseFontSize');
       }
-      
+
       return Text(
         text,
         textAlign: TextAlign.center,
@@ -155,9 +158,10 @@ class AnswerOption {
       // No logical break point - scale down for single line
       final scaleFactor = availableWidth / textWidth;
       final scaledFontSize = baseFontSize * scaleFactor;
-      
+
       if (_debugTextRendering) {
-        logger.i('No break point found, scaling to font size: $scaledFontSize (scale factor: $scaleFactor)');
+        logger.i(
+            'No break point found, scaling to font size: $scaledFontSize (scale factor: $scaleFactor)');
       }
 
       return Text(
@@ -185,7 +189,8 @@ class AnswerOption {
     final widerLineWidth = max(firstLineWidth, secondLineWidth);
 
     if (_debugTextRendering) {
-      logger.i('First line width: $firstLineWidth, Second line width: $secondLineWidth');
+      logger.i(
+          'First line width: $firstLineWidth, Second line width: $secondLineWidth');
       logger.i('Wider line width: $widerLineWidth');
     }
 
@@ -202,7 +207,8 @@ class AnswerOption {
       final scaleFactor = availableWidth / widerLineWidth;
       finalFontSize = baseFontSize * scaleFactor;
       if (_debugTextRendering) {
-        logger.i('Wider line doesn\'t fit, scaling to font size: $finalFontSize (scale factor: $scaleFactor)');
+        logger.i(
+            'Wider line doesn\'t fit, scaling to font size: $finalFontSize (scale factor: $scaleFactor)');
       }
     }
 
@@ -272,14 +278,24 @@ class AnswerOption {
     return textPainter.width;
   }
 
-  // Helper method to determine which image source to use
+// Helper method to determine which image source to use
   Widget _buildImage() {
     if (imageUrl != null && imageUrl!.isNotEmpty) {
+      Logger().i('buildImage imageUrl: $imageUrl');
       return CachedNetworkImage(
         imageUrl: imageUrl!,
         fit: BoxFit.contain,
         placeholder: (context, url) => CircularProgressIndicator(),
-        errorWidget: (context, url, error) => Image.asset(imagePath!),
+        errorWidget: (context, url, error) {
+          // If imageUrl fails and we have an imagePath, try that
+          if (imagePath != null && imagePath!.isNotEmpty) {
+            return Image.asset(imagePath!, fit: BoxFit.contain);
+          } else {
+            // If no imagePath or it's null, use the fallback image
+            return Image.asset('assets/images/Unable_to_connect.png',
+                fit: BoxFit.contain);
+          }
+        },
       );
     } else if (imagePath != null && imagePath!.isNotEmpty) {
       return Image.asset(
@@ -287,10 +303,11 @@ class AnswerOption {
         fit: BoxFit.contain,
       );
     } else {
-      return Icon(Icons.image_not_supported);
+      // imagePath is null or empty, use the fallback image
+      return Image.asset(
+        'assets/images/Unable_to_connect.png',
+        fit: BoxFit.contain,
+      );
     }
   }
-
-  @override
-  String toString() => text ?? '[Image Answer]';
 }
