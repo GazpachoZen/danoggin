@@ -1,6 +1,6 @@
 # Danoggin Release Notes
 
-## [0.1.1 build 30] 2025-06-15
+## [0.1.1 build 30] 2025-06-16
 ### Changes
 - Made it much harder to do accidental double-submits
 - Updated architecture for providing new questions after receipt of notification
