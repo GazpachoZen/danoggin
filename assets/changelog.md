@@ -1,10 +1,12 @@
 # Danoggin Release Notes
 
-## [0.1.0 build 28] 2025-XX-XX
+## [0.1.0 build 28] 2025-06-15
 ### Changes
 - Made it much harder to do accidental double-submits
 - Updated architecture for providing new questions after receipt of notification
 - Improved logic on server for FCM token problems
+- Changed the answer options from circles to rounded squares
+- Added new puzzle packs (making change, colored colors)
 
 ## [0.1.0 build 28] 2025-05-29
 ### Changes

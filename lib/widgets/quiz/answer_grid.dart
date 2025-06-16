@@ -57,16 +57,31 @@ class AnswerGrid extends StatelessWidget {
           backgroundColor = AppColors.lightGray;
         }
 
+        // return ElevatedButton(
+        //   onPressed: isButtonDisabled ? null : () => onAnswerSelected(answer),
+        //   style: ElevatedButton.styleFrom(
+        //     backgroundColor: backgroundColor,
+        //     padding: EdgeInsets.all(4),
+        //     disabledBackgroundColor: isPreviousIncorrect && !isDisabled
+        //         ? Colors.pink
+        //             .shade100 // Keep pink for previous incorrect during second attempt
+        //         : Colors
+        //             .grey.shade300, // Gray for all buttons after final answer
+        //   ),
+        //   child: answer.render(disabled: isButtonDisabled),
+        // );
         return ElevatedButton(
           onPressed: isButtonDisabled ? null : () => onAnswerSelected(answer),
           style: ElevatedButton.styleFrom(
             backgroundColor: backgroundColor,
             padding: EdgeInsets.all(4),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(
+                  12.0), // Adjust this value for more/less rounding
+            ),
             disabledBackgroundColor: isPreviousIncorrect && !isDisabled
-                ? Colors.pink
-                    .shade100 // Keep pink for previous incorrect during second attempt
-                : Colors
-                    .grey.shade300, // Gray for all buttons after final answer
+                ? Colors.pink.shade100
+                : Colors.grey.shade300,
           ),
           child: answer.render(disabled: isButtonDisabled),
         );
